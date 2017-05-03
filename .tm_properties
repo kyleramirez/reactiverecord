@@ -1,0 +1,2 @@
+excludeDirectories = "{$excludeDirectories,node_modules,dist}"
+includeFiles = "{$includeFiles,.babelrc,.gitignore,.npmignore}"
