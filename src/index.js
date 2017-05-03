@@ -32,13 +32,14 @@ export class Model {
 // Model.primaryKey
 //
 // instance.serialize()
+// instance.diff()
+// instance.changedAttributes()
 // instance.isPristine() ?
 // instance.isDirty() ?
-// instance.changedAttributes()
 // instance.attributeChanged(attributeName) ?
-// instance.diff()
 // instance.isValid(includeRemoteValidations) ?
 // instance.isInvalid(includeRemoteValidations) ?
+// instance.exists ?
 //
 // Model.routes
 // Model.routeFor(action, attributes)
