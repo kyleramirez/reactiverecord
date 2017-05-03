@@ -8,7 +8,7 @@ export class ReactiveRecord {
 
 export class Model {
 }
-
+// SHOULD MAKE A LOT OF THESE "GETTERS", which don't require a () after the method unless parameters are required
 // Index     Model.all(params)
 //
 // Create    instance.save(options)
