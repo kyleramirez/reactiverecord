@@ -51,6 +51,7 @@ export class Model {
 // Model.associationNames()
 //
 // // On collections
+// class ReactiveRecordCollection extends Array { first(){} last(){} sortBy(){} }
 // collection.first()
 // collection.last()
 // collection.sortBy(keyStr)
