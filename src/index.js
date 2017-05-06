@@ -198,7 +198,7 @@ export class ReactiveRecord {
             resolve()
           })
           // Still need to handle errors, which means parsing the json and dispatching the correct actions
-          .catch(e=>error(e))
+          .catch(error)
       }
       catch(e) { error(e); }
     })
@@ -315,11 +315,16 @@ export class Model {
       return new Promise((resolve,error)=>{
         const modelType =  this.constructor.name;
         reactiveRecord.destroyModel(modelType, {id:this.id})
-          .then(resolve())
-          .catch(e=>error(e))
+          .then(resolve)
+          .catch(error)
+
       })
+
     }
+
   }
+
+
   static create(attrs){
     return new reactiveRecord.models[this.name](attrs).save()
   }
