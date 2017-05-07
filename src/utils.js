@@ -106,85 +106,59 @@ export function delimiterType(delim="") {
   return "dasherize"
 }
 
-export function setReadOnlyProps(params, _timestamps, modelName, _obj, reactiveRecord){
-  const { id, _id } = params;
-  // Establish the ID, also _id
-  if (id || _id) _obj.record.id = id || _id;
-
-  Object.defineProperty(_obj, "id", {
+export function setReadOnlyProps(attrs){
+  // params, _timestamps, modelName, _obj, reactiveRecord
+  const { constructor, ReactiveRecord } = this,
+        { schema:{ _primaryKey="id", _timestamps, ...schema }, displayName } = constructor,
+        {
+          // Single primary key
+          [_primaryKey]:tmpKeyValue=null,
+          // Allow id or _id by default
+          [_primaryKey=="id"? "_id" : _primaryKey]:finalKeyValue=tmpKeyValue
+        } = attrs;
+        this._attributes[_primaryKey] = finalKeyValue;
+  Object.defineProperty(this, _primaryKey, {
     enumerable: true,
-    get: ()=>(_obj.record.id || null),
-    // ID can only be set on instantiation, otherwise it stays undefined
-    set: ()=>{throw new TypeError(`#<${modelName}> property \`id\` cannot be redefined.`)}
-  })
+    get: ()=>this._attributes[_primaryKey]
+  });
 
-  const defineVersion = function(newValue){
-    delete this._version;
-    Object.defineProperty(this, "_version", {
-      enumerable: false,
-      configurable: true,
-      get:()=>(newValue || 0),
-      set:defineVersion.bind(this)
-    })
-  }
-  defineVersion.call(_obj, params._version)
-
-  Object.defineProperty(_obj, "_request", {
-    enumerable: false,
-    value:{
-      version: 0,
-      status: null,
-      body: null,
-      ...params._request
-    }
-  })
-  Object.defineProperty(_obj._request, "clear", {
-    enumerable: false,
-    value: ()=>{
-      for (let property in _obj._request) {
-        if (property != "clear" && property != "version")
-          _obj._request[property] = null
-        if (property == "version")
-          _obj._request[property] = 0
-      }
-    }
-  })
-  Object.defineProperty(_obj, "errors", {
-    enumerable: false,
-    value:{...params.errors}
-  })
-  Object.defineProperty(_obj.errors, "clear", {
-    enumerable: false,
-    value: ()=>{for (let property in _obj.errors) if (property != "clear") delete _obj.errors[property]}
-  })
-
-  if (_timestamps) {
-    // Timestamps aren't something we're going to ever
-    // update on the record, so let's separate it early on
-    Object.defineProperty(_obj, "timestamps", {
-      enumerable: false,
-      value: {}
-    })
-    // Handle the createdAt
-    // Let it be undefined if nothing was given
-    _obj.timestamps.createdAt = params.created_at || params.createdAt || null
-    Object.defineProperty(_obj, "createdAt", {
-      enumerable: true,
-      get: ()=>(_obj.timestamps.createdAt ? new Date(_obj.timestamps.createdAt) : null),
-      // createdAt can only be set on instantiation, otherwise it stays undefined
-      set: ()=>{throw new TypeError(`#<${modelName}> property \`createdAt\` cannot be redefined.`)}
-    })
-
-    // Handle the updatedAt
-    // Let it be undefined if nothing was given
-    _obj.timestamps.updatedAt = params.updated_at || params.updatedAt || null
-    Object.defineProperty(_obj, "updatedAt", {
-      enumerable: true,
-      get: ()=>(_obj.timestamps.updatedAt ? new Date(_obj.timestamps.updatedAt) : null),
-      // updatedAt can only be set on instantiation, otherwise it stays undefined
-      set: ()=>{throw new TypeError(`#<${modelName}> property \`updatedAt\` cannot be redefined.`)}
-    })
-  }
+  
+  // Object.defineProperty(_obj, "errors", {
+  //   enumerable: false,
+  //   value:{...params.errors}
+  // })
+  // Object.defineProperty(_obj.errors, "clear", {
+  //   enumerable: false,
+  //   value: ()=>{for (let property in _obj.errors) if (property != "clear") delete _obj.errors[property]}
+  // })
+  //
+  // if (_timestamps) {
+  //   // Timestamps aren't something we're going to ever
+  //   // update on the record, so let's separate it early on
+  //   Object.defineProperty(_obj, "timestamps", {
+  //     enumerable: false,
+  //     value: {}
+  //   })
+  //   // Handle the createdAt
+  //   // Let it be undefined if nothing was given
+  //   _obj.timestamps.createdAt = params.created_at || params.createdAt || null
+  //   Object.defineProperty(_obj, "createdAt", {
+  //     enumerable: true,
+  //     get: ()=>(_obj.timestamps.createdAt ? new Date(_obj.timestamps.createdAt) : null),
+  //     // createdAt can only be set on instantiation, otherwise it stays undefined
+  //     set: ()=>{throw new TypeError(`#<${modelName}> property \`createdAt\` cannot be redefined.`)}
+  //   })
+  //
+  //   // Handle the updatedAt
+  //   // Let it be undefined if nothing was given
+  //   _obj.timestamps.updatedAt = params.updated_at || params.updatedAt || null
+  //   Object.defineProperty(_obj, "updatedAt", {
+  //     enumerable: true,
+  //     get: ()=>(_obj.timestamps.updatedAt ? new Date(_obj.timestamps.updatedAt) : null),
+  //     // updatedAt can only be set on instantiation, otherwise it stays undefined
+  //     set: ()=>{throw new TypeError(`#<${modelName}> property \`updatedAt\` cannot be redefined.`)}
+  //   })
+  // }
 }
 
 export function setWriteableProps(params, schema, _obj, reactiveRecord){
