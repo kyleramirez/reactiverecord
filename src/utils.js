@@ -106,10 +106,9 @@ export function delimiterType(delim="") {
   return "dasherize"
 }
 
-export function setReadOnlyProps(attrs){
-  // params, _timestamps, modelName, _obj, reactiveRecord
-  const { constructor, ReactiveRecord } = this,
-        { schema:{ _primaryKey="id", _timestamps, ...schema }, displayName } = constructor,
+export function setReadOnlyProps(attrs, persisted) {
+  const { constructor } = this,
+        { schema:{ _primaryKey="id", _timestamps} } = constructor,
         {
           // Single primary key
           [_primaryKey]:tmpKeyValue=null,
@@ -117,54 +116,43 @@ export function setReadOnlyProps(attrs){
           [_primaryKey=="id"? "_id" : _primaryKey]:finalKeyValue=tmpKeyValue
         } = attrs;
         this._attributes[_primaryKey] = finalKeyValue;
+        this._pristine[_primaryKey] = finalKeyValue;
+
+  Object.defineProperty(this, "_persisted", { value: !!persisted })
+
   Object.defineProperty(this, _primaryKey, {
     enumerable: true,
-    get: ()=>this._attributes[_primaryKey]
+    value: this._attributes[_primaryKey]
   });
 
-  
-  // Object.defineProperty(_obj, "errors", {
-  //   enumerable: false,
-  //   value:{...params.errors}
-  // })
-  // Object.defineProperty(_obj.errors, "clear", {
-  //   enumerable: false,
-  //   value: ()=>{for (let property in _obj.errors) if (property != "clear") delete _obj.errors[property]}
-  // })
-  //
-  // if (_timestamps) {
-  //   // Timestamps aren't something we're going to ever
-  //   // update on the record, so let's separate it early on
-  //   Object.defineProperty(_obj, "timestamps", {
-  //     enumerable: false,
-  //     value: {}
-  //   })
-  //   // Handle the createdAt
-  //   // Let it be undefined if nothing was given
-  //   _obj.timestamps.createdAt = params.created_at || params.createdAt || null
-  //   Object.defineProperty(_obj, "createdAt", {
-  //     enumerable: true,
-  //     get: ()=>(_obj.timestamps.createdAt ? new Date(_obj.timestamps.createdAt) : null),
-  //     // createdAt can only be set on instantiation, otherwise it stays undefined
-  //     set: ()=>{throw new TypeError(`#<${modelName}> property \`createdAt\` cannot be redefined.`)}
-  //   })
-  //
-  //   // Handle the updatedAt
-  //   // Let it be undefined if nothing was given
-  //   _obj.timestamps.updatedAt = params.updated_at || params.updatedAt || null
-  //   Object.defineProperty(_obj, "updatedAt", {
-  //     enumerable: true,
-  //     get: ()=>(_obj.timestamps.updatedAt ? new Date(_obj.timestamps.updatedAt) : null),
-  //     // updatedAt can only be set on instantiation, otherwise it stays undefined
-  //     set: ()=>{throw new TypeError(`#<${modelName}> property \`updatedAt\` cannot be redefined.`)}
-  //   })
-  // }
+  if (_timestamps) {
+    // Timestamps aren't something we're going to ever
+    // update on the record, so let's separate it early on
+    // createdAt and updatedAt can be either created_at or updated_at on the model
+
+    this._pristine.createdAt = attrs.created_at || attrs.createdAt || null
+    const createdAtGetter = this._pristine.createdAt ? () => new Date(this._pristine.createdAt) : () => null
+    Object.defineProperty(this, "createdAt", {
+      enumerable: true,
+      get: createdAtGetter
+    })
+
+    this._pristine.updatedAt = attrs.updated_at || attrs.updatedAt || null
+    const updatedAtGetter = this._pristine.updatedAt ? () => new Date(this._pristine.updatedAt) : () => null
+    Object.defineProperty(this, "updatedAt", {
+      enumerable: true,
+      get: updatedAtGetter
+    })
+  }
 }
 
-export function setWriteableProps(params, schema, _obj, reactiveRecord){
+export function setWriteableProps(attrs){
+  const { constructor } = this,
+        { schema:{ _primaryKey, _timestamps, ...schema } } = constructor;
   for (let prop in schema){
-    const initialValue = params.hasOwnProperty(prop) ? params[prop] : null;
-    _obj.record[prop] = initialValue
+    const initialValue = JSON.parse(JSON.stringify(attrs.hasOwnProperty(prop) ? attrs[prop] : null));
+    this._attributes[prop] = initialValue;
+    this._pristine[prop] = initialValue
 
     let get = ()=>(_obj.record[prop])
     // @TODO: The set function should dispatch an action that something was set, which

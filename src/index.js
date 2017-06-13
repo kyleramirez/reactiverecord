@@ -2,7 +2,7 @@ import Sugar from "./sugar"
 import "whatwg-fetch"
 import diff from "object-diff"
 import {
-  isEmptyObject, setReadOnlyProps
+  isEmptyObject, setReadOnlyProps, setWriteableProps
 } from "./utils"
 import {
   actionMatch, singleRecordProps, recordProps, versioningProps, restVerbs
@@ -71,17 +71,28 @@ class ReactiveRecordErrors {
   // Errors populate in real time according to the value of the
   // field, or server errors populate after returning from
   // a request.
+  // Object.defineProperty(_obj, "errors", {
+  //   enumerable: false,
+  //   value:{...params.errors}
+  // })
+  // Object.defineProperty(_obj.errors, "clear", {
+  //   enumerable: false,
+  //   value: ()=>{for (let property in _obj.errors) if (property != "clear") delete _obj.errors[property]}
+  // })
+  //
 }
 
 export class Model {
-  get ReactiveRecord(){ return this.constructor.ReactiveRecord }
-  constructor(attrs={}, actAsPersisted=false){
+  constructor(attrs={}, persisted=false) {
     const modelName = this.constructor.displayName,
           model = this.ReactiveRecord.models[modelName];
     // Define the internal record
     Object.defineProperty(this, "_attributes", { value:{} })
+    // Define the internal pristine record
+    Object.defineProperty(this, "_pristine",   { value:{} })
 
-    setReadOnlyProps.call(this, attrs);
+    setReadOnlyProps.call(this, attrs, persisted);
+    setWriteableProps.call(this, attrs);
 
     Object.defineProperty(this, "_request", {
       value:new ReactiveRecordRequest({...attrs._request})
@@ -91,11 +102,10 @@ export class Model {
       value:new ReactiveRecordErrors({...attrs._errors})
     });
 
-    Object.defineProperty(this, "_pristine", {
-      get: ()=>({ ...this.serialize })
-    });
+    Object.freeze(this._pristine)
   }
 
+  get ReactiveRecord(){ return this.constructor.ReactiveRecord }
   // Serialized
   get serialize(){ return JSON.parse(JSON.stringify(this._attributes)); }
 }
