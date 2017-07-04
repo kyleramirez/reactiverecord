@@ -1,6 +1,6 @@
 import Sugar from "./sugar"
 import { actionMatch, singleRecordProps, recordProps, versioningProps, restVerbs } from "./constants"
-
+/* ReactiveRecord */
 export function isEmptyObject(obj){
   for (let name in obj) {
     return false;
@@ -94,18 +94,24 @@ export function generateRoute(name, method, apiDelimiter, prefix, index=false, i
         id = method === "POST" || index ? "" : "/:id";
   return `${prefix}${modelWithDelimiter}${id}`
 }
-
-export function interpolateRoute(route, record) {
-  return route.replace(/:([^\/\?]*)/g, (match, capture)=>(
-    record.hasOwnProperty(capture) && record[capture] ? record[capture] : match
+/* ReactiveRecord */
+export function interpolateRoute(route, attributes, resourceName, singular, apiConfig) {
+  const { prefix } = apiConfig,
+        delimiter = delimiterType(apiConfig.delimiter),
+        modelInflection = singular? resourceName : Sugar.String.pluralize(resourceName),
+        modelWithDelimiter = `${Sugar.String[delimiter](modelInflection)}`;
+  return route.replace(":modelname", modelWithDelimiter)
+              .replace(":prefix", prefix)
+              .replace(/:([^\/\?]*)/g, (match, capture)=>(
+    attributes.hasOwnProperty(capture) && attributes[capture] ? attributes[capture] : match
   ))
 }
-
+/* ReactiveRecord */
 export function delimiterType(delim="") {
   if (delim.match(/^(underscores?|_)$/)) return "underscore"
   return "dasherize"
 }
-
+/* ReactiveRecord */
 export function setReadOnlyProps(attrs, persisted) {
   const { constructor } = this,
         { schema:{ _primaryKey="id", _timestamps} } = constructor,
@@ -116,7 +122,6 @@ export function setReadOnlyProps(attrs, persisted) {
           [_primaryKey=="id"? "_id" : _primaryKey]:finalKeyValue=tmpKeyValue
         } = attrs;
         this._attributes[_primaryKey] = finalKeyValue;
-        this._pristine[_primaryKey] = finalKeyValue;
 
   Object.defineProperty(this, "_persisted", { value: !!persisted })
 
@@ -130,56 +135,71 @@ export function setReadOnlyProps(attrs, persisted) {
     // update on the record, so let's separate it early on
     // createdAt and updatedAt can be either created_at or updated_at on the model
 
-    this._pristine.createdAt = attrs.created_at || attrs.createdAt || null
-    const createdAtGetter = this._pristine.createdAt ? () => new Date(this._pristine.createdAt) : () => null
+    const createdAt = attrs.created_at || attrs.createdAt || null
     Object.defineProperty(this, "createdAt", {
       enumerable: true,
-      get: createdAtGetter
+      value: createdAt? new Date(createdAt) : null
     })
 
-    this._pristine.updatedAt = attrs.updated_at || attrs.updatedAt || null
-    const updatedAtGetter = this._pristine.updatedAt ? () => new Date(this._pristine.updatedAt) : () => null
+    const updatedAt = attrs.updated_at || attrs.updatedAt || null
     Object.defineProperty(this, "updatedAt", {
       enumerable: true,
-      get: updatedAtGetter
+      value: updatedAt? new Date(updatedAt) : null
     })
   }
 }
-
+/* ReactiveRecord */
 export function setWriteableProps(attrs){
   const { constructor } = this,
         { schema:{ _primaryKey, _timestamps, ...schema } } = constructor;
   for (let prop in schema){
-    const initialValue = JSON.parse(JSON.stringify(attrs.hasOwnProperty(prop) ? attrs[prop] : null));
-    this._attributes[prop] = initialValue;
-    this._pristine[prop] = initialValue
+    const hasDescriptor = typeof schema[prop] === "object",
+          // Establish a default value from the schema
+          defaultValue = hasDescriptor? (schema[prop].default || null) : null,
+          // Establish initial value but fallback to default value
+          initialValue = JSON.parse(JSON.stringify(attrs.hasOwnProperty(prop) ? attrs[prop] : defaultValue)),
+          // Establish type from descriptor
+          type = hasDescriptor? schema[prop].type : schema[prop].name;
 
-    let get = ()=>(_obj.record[prop])
+    // Write default value
+    this._attributes[prop] = initialValue;
+
+    let get = ()=>(this._attributes[prop])
     // @TODO: The set function should dispatch an action that something was set, which
     // would be used to increase the version number, and thus invalidate errors
     let set = (newValue)=>{
-      reactiveRecord.setModel(_obj) //, prop, newValue)
-      return _obj.record[prop] = newValue
+      return this._attributes[prop] = newValue
     }
 
-    if (schema[prop].name === "Array")
-      get = ()=> (_obj.record[prop] || [])
-    if (schema[prop].name === "Date")
-      get = ()=> (_obj.record[prop] === null ? null : new Date(_obj.record[prop]))
-    if (schema[prop].name === "Number")
-      get = ()=> (_obj.record[prop] === null ? null : Number(_obj.record[prop]))
-    if (schema[prop].name === "Boolean") {
-      if (_obj.record[prop] !== null) {
-        _obj.record[prop] = initialValue === "false" ? false : Boolean(initialValue)
+    if (type === "Object")
+      get = ()=> (this._attributes[prop] || {})
+    if (type === "Array")
+      get = ()=> (this._attributes[prop] || [])
+    if (type === "Date")
+      get = ()=> (this._attributes[prop] === null ? null : new Date(this._attributes[prop]))
+    if (type === "Number")
+      get = ()=> (this._attributes[prop] === null ? null : Number(this._attributes[prop]))
+    if (type === "Boolean") {
+      if (this._attributes[prop] !== null) {
+        this._attributes[prop] = initialValue === "false" ? false : Boolean(initialValue)
       }
       set = (newValue)=>{
-        reactiveRecord.setModel(_obj) //, prop, newValue)
-        return _obj.record[prop] = newValue === "false" ? false : Boolean(newValue)
+        return this._attributes[prop] = newValue === "false" ? false : Boolean(newValue)
       }
     }
 
-    Object.defineProperty(_obj, prop, { get, set, enumerable: true })
+    Object.defineProperty(this, prop, { get, set, enumerable: true })
   }
+}
+/* ReactiveRecord */
+export function recordDiff(a,b) {
+  if (a instanceof Array && b instanceof Array)
+    return JSON.stringify(a) === JSON.stringify(b);
+  if (a instanceof Date && b instanceof Date)
+    return JSON.stringify(a) === JSON.stringify(b);
+  if (a !== null && typeof a === "object" && b !== null && typeof b === "object")
+    return JSON.stringify(a) === JSON.stringify(b);
+  return a === b;
 }
 
 export function mergeRecordsIntoCache(cache, records, keyStr, model) {
@@ -210,7 +230,7 @@ export function tmpRecordProps(){
     creating: false
   });
 };
-
+/* ReactiveRecord */
 export function objToQueryString(obj) {
   return Object.keys(obj).reduce( (final, current) => {
     const prefix = final.length? "&" : "?",
@@ -218,4 +238,20 @@ export function objToQueryString(obj) {
           value = encodeURIComponent(obj[current]);
     return `${final}${prefix}${key}=${value}`;
   }, "" )
+}
+/* ReactiveRecord */
+export function buildRouteFromInstance(action, query) {
+  const {
+    constructor:{ routes, displayName, store:{ singleton:singular=false }={} },
+    _attributes,
+    ReactiveRecord:{ API:config }
+  } = this;
+  if (!routes[action]) throw new ReferenceError("The specified route is either not found or not permitted");
+  return interpolateRoute(
+    routes[action],
+    _attributes,
+    displayName,
+    singular,
+    config
+  ) + objToQueryString(query)
 }

@@ -2,7 +2,8 @@ import Sugar from "./sugar"
 import "whatwg-fetch"
 import diff from "object-diff"
 import {
-  isEmptyObject, setReadOnlyProps, setWriteableProps
+  isEmptyObject, setReadOnlyProps, setWriteableProps, recordDiff,
+  buildRouteFromInstance
 } from "./utils"
 import {
   actionMatch, singleRecordProps, recordProps, versioningProps, restVerbs
@@ -27,6 +28,31 @@ export class ReactiveRecord {
     modelClass.ReactiveRecord = this;
     // Assign the model's name
     modelClass.displayName = modelStr;
+
+    // Interpolate the model's routes
+    const {
+            routes:{
+              only=[], except=[], ...definedRoutes
+            }={},
+            schema:{
+              _primaryKey="id"
+            },
+            store:{
+              singleton=false
+            }={}
+          } = modelClass,
+          defaultRoutes = ["index", "create", "show", "update", "destroy"]
+            // Removes routes if except defined
+            .filter(function(action){ return except.indexOf(action) == -1 })
+            // Remove routes if only defined
+            .filter(function(action){ return !only.length || only.indexOf(action) > -1 });
+    modelClass.routes = defaultRoutes.reduce((routes, action) => {
+      let generatedRoute = ":prefix/:modelname"
+      if (action.match(/^(show|update|destroy)$/)) generatedRoute += `/:${_primaryKey}`
+      routes[action] = routes[action] || generatedRoute;
+      return routes;
+    }, definedRoutes)
+
     // Assign the model
     this.models[modelStr] = modelClass;
   }
@@ -88,8 +114,6 @@ export class Model {
           model = this.ReactiveRecord.models[modelName];
     // Define the internal record
     Object.defineProperty(this, "_attributes", { value:{} })
-    // Define the internal pristine record
-    Object.defineProperty(this, "_pristine",   { value:{} })
 
     setReadOnlyProps.call(this, attrs, persisted);
     setWriteableProps.call(this, attrs);
@@ -102,12 +126,56 @@ export class Model {
       value:new ReactiveRecordErrors({...attrs._errors})
     });
 
+    // Define the internal pristine record
+    Object.defineProperty(this, "_pristine",   { value:this.serialize })
     Object.freeze(this._pristine)
   }
 
+  // ReactiveRecord
   get ReactiveRecord(){ return this.constructor.ReactiveRecord }
-  // Serialized
-  get serialize(){ return JSON.parse(JSON.stringify(this._attributes)); }
+  get dispatch() { return this.ReactiveRecord.dispatch }
+  static store = { singleton: false }
+
+  // Serialization
+  get serialize(){ return JSON.parse(JSON.stringify(this)); }
+
+  // Dirty
+  get diff() {
+    return diff.custom({
+      equal: recordDiff
+    }, this._pristine, this.serialize)
+  }
+  get changedAttributes() { return Object.keys(this.diff) }
+  get isPristine() { return !!!this.changedAttributes.length }
+  get isDirty() { return !this.isPristine }
+  get attributeChanged() {
+    return attr => (this.changedAttributes.indexOf(attr) > -1)
+  }
+
+  // Routes
+  get routeFor() {
+    return (action, query={}) => buildRouteFromInstance.call(this, action, query)
+  }
+
+  // Persistence
+  static create() {}
+  get updateAttributes() {}
+  get updateAttribute() {}
+  get save() {}
+  get destroy() {}
+  static destroy(key) {}
+
+  // Remote
+  static find() {}
+  static all() {}
+  static load() {}
+  get reload() {}
+
+  // Validations
+  static validations = {}
+  static validationsFor() {}
+  get isValid() {}
+  get isInvalid() {}
 }
 
 
@@ -133,24 +201,31 @@ export class Model {
 //           instance.delete()
 //           Model.delete(key)
 //
-// Model.primaryKey
+// Model.schema._primaryKey
 //
 // instance.serialize()
-// instance.diff()
-// instance.changedAttributes()
-// instance.isPristine() ?
-// instance.isDirty() ?
+
+/*** Dirty ***/
+// instance.diff
+// instance.changedAttributes
+// instance.isPristine ?
+// instance.isDirty ?
 // instance.attributeChanged(attributeName) ?
-// instance.isValid(includeRemoteValidations) ?
-// instance.isInvalid(includeRemoteValidations) ?
-// instance.exists ?
-//
+
+/*** Persistence ***/
+// instance._persisted ?
+
+/*** Routes ***/
 // Model.routes
-// Model.routeFor(action, attributes)
 // instance.routeFor(action)
+
+/*** Validations ***/
 // Model.validations()
 // Model.validationsFor(attributeName)
-//
+// instance.isValid(includeRemoteValidations) ?
+// instance.isInvalid(includeRemoteValidations) ?
+
+
 // Model.attributeNames()
 // Model.associationNames()
 //
@@ -175,4 +250,13 @@ export class Model {
 // schema {
 //   attr: String,
 //   attr: { type: Boolean, default: false }
+// }
+// routes = {
+//   only: ["index", "create", "show", "update", "destroy"],
+//   except: ["index", "create", "show", "update", "destroy"],
+//   index: "",
+//   create: "",
+//   show: "",
+//   update: "",
+//   destroy: "",
 // }
