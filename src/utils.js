@@ -17,7 +17,7 @@ export function generateID() {
   }
   return `_${s4()+s4()+s4()}${s4()+s4()+s4()}`;
 }
-
+/* ReactiveRecord */
 export function pruneDeep(obj){
   return function prune(current){
     for (let key in current) {
@@ -254,4 +254,16 @@ export function buildRouteFromInstance(action, query) {
     singular,
     config
   ) + objToQueryString(query)
+}
+/* ReactiveRecord */
+export function getKey() {
+  const {
+    constructor:{
+      schema:{
+        _primaryKey="id"
+      }
+    },
+    [_primaryKey]:key
+  } = this;
+  return key;
 }

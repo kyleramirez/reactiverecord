@@ -15,6 +15,9 @@ class Fart extends Model {
     fat: "basket",
     // only: "create"
   }
+  // static store = {
+  //   singleton: true
+  // }
 }
 ReactiveRecord.model("Fart", Fart)
 window.Fart = ReactiveRecord.model("Fart")

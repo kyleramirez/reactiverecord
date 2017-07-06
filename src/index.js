@@ -3,7 +3,7 @@ import "whatwg-fetch"
 import diff from "object-diff"
 import {
   isEmptyObject, setReadOnlyProps, setWriteableProps, recordDiff,
-  buildRouteFromInstance
+  buildRouteFromInstance, pruneDeep, getKey
 } from "./utils"
 import {
   actionMatch, singleRecordProps, recordProps, versioningProps, restVerbs
@@ -78,6 +78,10 @@ export class ReactiveRecord {
     } = opts);
     Object.assign(this.API.headers, headers);
   }
+
+  dispatch({ type, ...args }) {
+    return(JSON.stringify({ type, ...args }))
+  }
 }
 export default new ReactiveRecord;
 
@@ -133,7 +137,15 @@ export class Model {
 
   // ReactiveRecord
   get ReactiveRecord(){ return this.constructor.ReactiveRecord }
-  get dispatch() { return this.ReactiveRecord.dispatch }
+  static dispatch({ action, key, ...args }) {
+    const { displayName, ReactiveRecord, schema:{ _primaryKey="id" } } = this,
+          type = `@${action}(${displayName})`;
+    if (key) {
+      args.attributes = args.attributes || {}
+      args.attributes[_primaryKey] = key;
+    }
+    return ReactiveRecord.dispatch({ type, ...args })
+  }
   static store = { singleton: false }
 
   // Serialization
@@ -158,18 +170,39 @@ export class Model {
   }
 
   // Persistence
-  static create() {}
-  get updateAttributes() {}
-  get updateAttribute() {}
-  get save() {}
-  get destroy() {}
-  static destroy(key) {}
+  static create(attrs) { return new this(attrs).save() }
+  get updateAttributes() {
+    return (attributes={})=>{
+      Object.assign(this, attributes)
+      return this.save()
+    }
+  }
+  get updateAttribute() {
+    return (name, value)=>{
+      this[name] = value;
+      return this.save({validate: false})
+    }
+  }
+  get save() {
+    const action = this._persisted? "UPDATE" : "CREATE",
+          attributes = this._persisted? this.diff : pruneDeep(this._attributes)
+    return options => this.constructor.dispatch({ action, attributes })
+  }
+  get destroy() {
+    return query => this.constructor.destroy(getKey.call(this), query)
+  }
+  static destroy(key, query) {
+    return this.dispatch({ action:"DESTROY", key, query })
+  }
 
   // Remote
-  static find() {}
-  static all() {}
-  static load() {}
-  get reload() {}
+  static find(key, query) { return this.dispatch({ action:"SHOW", key, query }) }
+  static all(query) { return this.dispatch({ action:"INDEX", query }) }
+  static load(query) { return this.all(query) }
+  get reload() {
+    const {constructor:{store:{singleton=false}}} = this;
+    return query => singleton? this.constructor.all(query) : this.constructor.find(getKey.call(this), query);
+  }
 
   // Validations
   static validations = {}
@@ -177,8 +210,6 @@ export class Model {
   get isValid() {}
   get isInvalid() {}
 }
-
-
 
 // SHOULD MAKE A LOT OF THESE "GETTERS", which don't require a () after the method unless parameters are required
 // Index     Model.all(params)
@@ -260,3 +291,5 @@ export class Model {
 //   update: "",
 //   destroy: "",
 // }
+// actions possible attributes { type, attributes, key, query }
+// { type:"@DESTROY(Contact)", key:123 }
