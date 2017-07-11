@@ -1,5 +1,11 @@
 import Sugar from "./sugar"
-import { actionMatch, singleRecordProps, recordProps, versioningProps, restVerbs } from "./constants"
+import { ROUTE_TOKENIZER } from "./constants"
+/* ReactiveRecord */
+export function skinnyObject(...args) {
+  return args.reduce(function(final, arg){
+    return Object.assign(final, JSON.parse(JSON.stringify(arg)));
+  }, Object.create(null, {}))
+}
 /* ReactiveRecord */
 export function isEmptyObject(obj){
   for (let name in obj) {
@@ -38,7 +44,7 @@ export function pruneDeep(obj){
     return current
   }(Object.assign({}, obj))
 }
-
+/* ReactiveRecord */
 export function pruneArray(arr) {
   const newArray = new Array();
   for (var i = 0; i < arr.length; i++) {
@@ -58,7 +64,7 @@ export function regexIndexOf(regex, string, startpos=0){
   var indexOf = string.substring(startpos).search(regex);
   return (indexOf >= 0) ? (indexOf + (startpos || 0)) : indexOf;
 }
-
+/* ReactiveRecord */
 export function checkResponseStatus(response){
   const {status} = response,
         error = new Error;
@@ -95,16 +101,23 @@ export function generateRoute(name, method, apiDelimiter, prefix, index=false, i
   return `${prefix}${modelWithDelimiter}${id}`
 }
 /* ReactiveRecord */
-export function interpolateRoute(route, attributes, resourceName, singular, apiConfig) {
+export function interpolateRoute(route, attributes, resourceName, singular, apiConfig, query) {
   const { prefix } = apiConfig,
         delimiter = delimiterType(apiConfig.delimiter),
         modelInflection = singular? resourceName : Sugar.String.pluralize(resourceName),
         modelWithDelimiter = `${Sugar.String[delimiter](modelInflection)}`;
   return route.replace(":modelname", modelWithDelimiter)
               .replace(":prefix", prefix)
-              .replace(/:([^\/\?]*)/g, (match, capture)=>(
-    attributes.hasOwnProperty(capture) && attributes[capture] ? attributes[capture] : match
-  ))
+              .replace(ROUTE_TOKENIZER, (token, attributeName)=>{
+                let match = null
+                if (attributes.hasOwnProperty(attributeName))
+                  match = attributes[attributeName]
+                if (query.hasOwnProperty(attributeName))
+                  match = query[attributeName]
+                delete attributes[attributeName]
+                delete query[attributeName]
+                return match || token;
+              }) + objToQueryString(query);
 }
 /* ReactiveRecord */
 export function delimiterType(delim="") {
@@ -246,7 +259,7 @@ export function buildRouteFromInstance(action, query) {
     _attributes,
     ReactiveRecord:{ API:config }
   } = this;
-  if (!routes[action]) throw new ReferenceError("The specified route is either not found or not permitted");
+  if (!routes[action]) throw new ROUTE_NOT_FOUND_ERROR;
   return interpolateRoute(
     routes[action],
     _attributes,
@@ -266,4 +279,16 @@ export function getKey() {
     [_primaryKey]:key
   } = this;
   return key;
+}
+/* ReactiveRecord */
+export function getRouteAttributes(action, query) {
+  const { constructor:{ routes:{ [action.toLowerCase()]:routeTemplate } } } = this,
+        attributes = {};
+  if (!routeTemplate) throw new ROUTE_NOT_FOUND_ERROR;
+  let matchArr = null;
+  while(matchArr = ROUTE_TOKENIZER.exec(routeTemplate)) {
+    const [, token] = matchArr;
+    if (this[token] || query[token]) attributes[token] = this[token] || query[token]
+  }
+  return attributes;
 }

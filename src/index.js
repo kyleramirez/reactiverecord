@@ -1,15 +1,25 @@
 import Sugar from "./sugar"
 import "whatwg-fetch"
 import diff from "object-diff"
+import { combineReducers } from "redux"
 import {
-  isEmptyObject, setReadOnlyProps, setWriteableProps, recordDiff,
-  buildRouteFromInstance, pruneDeep, getKey
+  isEmptyObject, setReadOnlyProps,
+  setWriteableProps, recordDiff,
+  buildRouteFromInstance, pruneDeep,
+  getKey, interpolateRoute,
+  getRouteAttributes, checkResponseStatus,
+  skinnyObject
 } from "./utils"
 import {
-  actionMatch, singleRecordProps, recordProps, versioningProps, restVerbs
+  requestProps, memberProps,
+  collectionProps, ACTION_MATCHER,
+  ROUTE_NOT_FOUND_ERROR, ROUTE_TOKENIZER,
+  ACTION_STATUSES, ACTION_METHODS,
+  MODEL_NOT_FOUND_ERROR
 } from "./constants"
 
 export class ReactiveRecord {
+  /* ReactiveModel */
   models = {}
   model(modelStr, modelClass=false){
     // If we're just retrieving a model
@@ -57,6 +67,7 @@ export class ReactiveRecord {
     this.models[modelStr] = modelClass;
   }
 
+  /* ReactiveAPI */
   API = {
     prefix: "",
     delimiter: "-",
@@ -79,8 +90,108 @@ export class ReactiveRecord {
     Object.assign(this.API.headers, headers);
   }
 
-  dispatch({ type, ...args }) {
-    return(JSON.stringify({ type, ...args }))
+  /* ReactiveStore */
+  get combineReducers() {
+    return reducers => combineReducers({
+      ...reducers,
+      ReactiveRecord: new reactiveRecordReducer(this)
+    })
+  }
+  get storeEnhancer() {
+    return createStore => (reducer, initialState, enhancer) => {
+      const store = createStore(reducer, initialState, enhancer),
+            dispatch = action => {
+              store.dispatch(action);
+              let matches = false;
+              if (!(matches = action.type.match(ACTION_MATCHER))) return
+              const [, requestStatus, actionName, modelName] = matches;
+              if (actionName && !requestStatus) return this.performAsync(action)
+            },
+            getState = store.getState,
+            stateTransformer = (...args) => {
+              const { ReactiveRecord, ...state } = getState(...args),
+                    transformed = Object.keys(ReactiveRecord).reduce((final, modelName) => {
+                      const singular = ReactiveRecord[modelName].hasOwnProperty("attributes"),
+                            model = this.models[modelName];
+                      if (singular) {
+                        const { attributes, errors:_errors, request:_request } = ReactiveRecord[modelName];
+                        final[modelName] = new model({ ...attributes, _errors, _request }, true)
+                      }
+                      else {
+                        const { collection, request } = ReactiveRecord[modelName];
+                        const transformedCollection = Object.values(collection).map(
+                          ({ attributes, errors:_errors, request:_request }) => new model({ ...attributes, _errors, _request }, true)
+                        )
+                        final[modelName] = new ReactiveRecordCollection(...transformedCollection)
+                        final[modelName]._request = new ReactiveRecordRequest(request);
+                      }
+                      return final;
+                    }, {})
+              return { ...state, ReactiveRecord:transformed };
+            };
+      return { ...store, dispatch, getState:stateTransformer };
+    };
+  }
+  registerStore(store) {
+    this.dispatch = store.dispatch;
+  }
+
+  performAsync(action) {
+    return new Promise((resolve, reject)=>{
+      const [,, actionName, modelName] = action.type.match(ACTION_MATCHER),
+            model = this.models[modelName],
+            { store:{ singleton=false } } = model,
+            { query={}, attributes:body={} } = action,
+            { headers, credentials, ...apiConfig } = this.API,
+            routeTemplate = model.routes[actionName.toLowerCase()];
+
+      if (!routeTemplate) throw new ROUTE_NOT_FOUND_ERROR;
+
+      const route = interpolateRoute(routeTemplate, body, modelName, singleton, apiConfig, query),
+            method = ACTION_METHODS[actionName.toLowerCase()];
+      let responseStatus = null;
+
+      fetch(route, { method, body:JSON.stringify(body), headers, credentials })
+        .then(checkResponseStatus)
+        .then(res=>{
+          responseStatus = res.status;
+          return res.json()
+        })
+        .then(data=>{
+          const isCollection = data instanceof Array;
+          let resource = null;
+          if (!isCollection) {
+            resource = (new model({...data, _request:{ status: responseStatus }}))
+          }
+          else {
+            const collection = data.map( attrs => (new model({...attrs, _request:{ status: responseStatus }})))
+            resource = new ReactiveRecordCollection(...collection)
+            resource._request = new ReactiveRecordRequest({ status: responseStatus })
+          }
+          resolve(resource)
+          this.dispatch({ ...resource.serialize(), type:`@OK_${actionName}(${modelName})` })
+        })
+        .catch(({ status, response }) =>{
+          response.json().then(body=>{
+            // const wasCollection = actionName == "INDEX" || actionName == "SHOW"
+            // if (wasCollection) reject({ status, body })
+            // else {
+            //
+            // }
+          })
+        })
+    })
+  }
+
+  get initialState() {
+    const { models } = this;
+    return Object.keys(models).reduce(function(state, modelName){
+      state[modelName] = models[modelName].store.singleton?
+        {...memberProps}
+      :
+        {...collectionProps}
+      return state;
+    }, {})
   }
 }
 export default new ReactiveRecord;
@@ -111,6 +222,28 @@ class ReactiveRecordErrors {
   // })
   //
 }
+class ReactiveRecordCollection extends Array {
+  _request = {}
+  serialize = () => skinnyObject(this)
+  toJSON = ()=> {
+    let collection = {}
+    if (this.length) {
+      const [{ constructor:{ schema:{ _primaryKey="id" } } }] = this;
+      collection = this.reduce(
+        function(collection, member) {
+          const { [_primaryKey]:key } = member;
+          collection[key] = member.serialize();
+          return collection;
+        },
+        {}
+      )
+    }
+    return {
+      request:this._request,
+      collection
+    }
+  }
+}
 
 export class Model {
   constructor(attrs={}, persisted=false) {
@@ -131,7 +264,7 @@ export class Model {
     });
 
     // Define the internal pristine record
-    Object.defineProperty(this, "_pristine",   { value:this.serialize })
+    Object.defineProperty(this, "_pristine",   { value:skinnyObject(this._attributes) })
     Object.freeze(this._pristine)
   }
 
@@ -149,13 +282,22 @@ export class Model {
   static store = { singleton: false }
 
   // Serialization
-  get serialize(){ return JSON.parse(JSON.stringify(this)); }
+  serialize(){
+    return skinnyObject(this)
+  }
+  toJSON() {
+    return {
+      attributes: this._attributes,
+      errors: this._errors,
+      request: this._request
+    }
+  }
 
   // Dirty
   get diff() {
     return diff.custom({
       equal: recordDiff
-    }, this._pristine, this.serialize)
+    }, this._pristine, skinnyObject(this._attributes))
   }
   get changedAttributes() { return Object.keys(this.diff) }
   get isPristine() { return !!!this.changedAttributes.length }
@@ -168,40 +310,57 @@ export class Model {
   get routeFor() {
     return (action, query={}) => buildRouteFromInstance.call(this, action, query)
   }
+  get routeAttributes(){
+    return (action, query={}) => getRouteAttributes.call(this, action, query)
+  }
 
   // Persistence
-  static create(attrs) { return new this(attrs).save() }
+  static create(attrs, options) { return new this(attrs).save(options) }
   get updateAttributes() {
-    return (attributes={})=>{
+    return (attributes={}, options)=>{
       Object.assign(this, attributes)
-      return this.save()
+      return this.save(options)
     }
   }
   get updateAttribute() {
-    return (name, value)=>{
+    return (name, value, options={})=>{
       this[name] = value;
-      return this.save({validate: false})
+      return this.save({...options, validate: false})
     }
   }
   get save() {
     const action = this._persisted? "UPDATE" : "CREATE",
           attributes = this._persisted? this.diff : pruneDeep(this._attributes)
-    return options => this.constructor.dispatch({ action, attributes })
+    return ({ query={} }={}) => {
+      const submit = { action, attributes, query }
+      Object.assign(submit.attributes, this.routeAttributes(action, query))
+      return this.constructor.dispatch(submit)
+    }
   }
   get destroy() {
-    return query => this.constructor.destroy(getKey.call(this), query)
+    return (query={}) => {
+      Object.assign(query, this.routeAttributes("DESTROY", query))
+      return this.constructor.destroy(getKey.call(this), query)
+    }
   }
   static destroy(key, query) {
     return this.dispatch({ action:"DESTROY", key, query })
   }
 
   // Remote
-  static find(key, query) { return this.dispatch({ action:"SHOW", key, query }) }
-  static all(query) { return this.dispatch({ action:"INDEX", query }) }
+  static find(key, query={}) {
+    return this.dispatch({ action:"SHOW", key, query })
+  }
+  static all(query={}) {
+    return this.dispatch({ action:"INDEX", query })
+  }
   static load(query) { return this.all(query) }
   get reload() {
     const {constructor:{store:{singleton=false}}} = this;
-    return query => singleton? this.constructor.all(query) : this.constructor.find(getKey.call(this), query);
+    return query => {
+      if (singleton) return this.constructor.all(query)
+      return this.constructor.find(getKey.call(this), query)
+    } 
   }
 
   // Validations
@@ -209,6 +368,46 @@ export class Model {
   static validationsFor() {}
   get isValid() {}
   get isInvalid() {}
+}
+
+function reactiveRecordReducer(reactiveRecordInstance) {
+  return function(state = reactiveRecordInstance.initialState, action) {
+    if (!ACTION_MATCHER.test(action.type)) return state
+    const [,asyncStatus, actionNameUpper, modelName] = action.type.match(ACTION_MATCHER),
+          actionName = actionNameUpper.toLowerCase(),
+          nextState = {...state},
+          modelClass = reactiveRecordInstance.models[modelName],
+          { schema:{ _primaryKey="id" } } = modelClass;
+
+    if (!modelClass) throw new MODEL_NOT_FOUND_ERROR(modelName)
+    const { attributes:{ [_primaryKey]:key }={} } = action,
+          { [modelName]:{ collection:{ [key]:member }={} } } = nextState;
+
+    let nextModel = nextState[modelName];
+    if (!asyncStatus) {
+      nextState[modelName] = {
+        ...nextModel,
+        request: {
+          ...nextModel.request,
+          status: ACTION_STATUSES[actionName]
+        }
+      }
+      if (member) {
+        nextState[modelName].collection = {
+          ...nextModel.collection,
+          [key]: {
+            ...member,
+            request: {
+              ...member.request,
+              status: ACTION_STATUSES[actionName]
+            }
+          }
+        }
+      }
+    }
+
+    return nextState;
+  }
 }
 
 // SHOULD MAKE A LOT OF THESE "GETTERS", which don't require a () after the method unless parameters are required
@@ -293,3 +492,47 @@ export class Model {
 // }
 // actions possible attributes { type, attributes, key, query }
 // { type:"@DESTROY(Contact)", key:123 }
+// Fart.create({}, { query:{ page: 2 } })
+// {"type":"@CREATE(Fart)","attributes":{},"query":{"page":2}}
+//
+// Fart.destroy(123, { page: 2 })
+// {"type":"@DESTROY(Fart)","query":{"page":2},"attributes":{}}
+//
+// Fart.find(123, { page: 2 })
+// {"type":"@SHOW(Fart)","query":{"page":2},"attributes":{}}
+//
+// Fart.all({ page: 2 })
+// {"type":"@INDEX(Fart)","query":{"page":2}}
+//
+// Fart.load({ page: 2 })
+// {"type":"@INDEX(Fart)","query":{"page":2}}
+//
+// fart.reload({ page: 2 })
+// {"type":"@INDEX(Fart)","query":{"page":2}}
+//
+// fart.updateAttributes({cling:"sing"}, { query:{ page: 2 } })
+// {"type":"@UPDATE(Fart)","attributes":{"cling":"sing"},"query":{"page":2}}
+//
+// fart.updateAttribute("cling", "sing", { query:{ page: 2 } })
+// {"type":"@UPDATE(Fart)","attributes":{"cling":"sing"},"query":{"page":2}}
+//
+// fart.save({ query:{ page: 2 } })
+// {"type":"@UPDATE(Fart)","attributes":{"cling":"sing"},"query":{"page":2}}
+//
+// fart.destroy({ page: 2 })
+// {"type":"@DESTROY(Fart)","query":{"page":2},"attributes":{}}
+//
+//
+//
+//
+// store.dispatch({"type":"@CREATE(Fart)","attributes":{},"query":{"page":2}})
+// store.dispatch({"type":"@DESTROY(Fart)","query":{"page":2},"attributes":{}})
+// store.dispatch({"type":"@SHOW(Fart)","query":{"page":2},"attributes":{}})
+// store.dispatch({"type":"@INDEX(Fart)","query":{"page":2}})
+// store.dispatch({"type":"@INDEX(Fart)","query":{"page":2}})
+// store.dispatch({"type":"@INDEX(Fart)","query":{"page":2}})
+// store.dispatch({"type":"@UPDATE(Fart)","attributes":{"cling":"sing"},"query":{"page":2}})
+// store.dispatch({"type":"@UPDATE(Fart)","attributes":{"cling":"sing"},"query":{"page":2}})
+// store.dispatch({"type":"@UPDATE(Fart)","attributes":{"cling":"sing"},"query":{"page":2}})
+// store.dispatch({"type":"@DESTROY(Fart)","query":{"page":2},"attributes":{}})
+
