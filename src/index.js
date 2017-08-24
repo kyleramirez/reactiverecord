@@ -1,5 +1,4 @@
 import Sugar from "./sugar"
-import "whatwg-fetch"
 import diff from "object-diff"
 import { combineReducers } from "redux"
 import {
@@ -8,7 +7,7 @@ import {
   buildRouteFromInstance, pruneDeep,
   getKey, interpolateRoute,
   getRouteAttributes, checkResponseStatus,
-  skinnyObject
+  skinnyObject, generateID
 } from "./utils"
 import {
   requestProps, memberProps,
@@ -17,6 +16,10 @@ import {
   ACTION_STATUSES, ACTION_METHODS,
   MODEL_NOT_FOUND_ERROR
 } from "./constants"
+export reducer from "./reducer"
+export middleware from "./middleware"
+export ReactiveRecordProvider from "./components/Provider"
+export withTransformed from "./components/withTransformed"
 
 export class ReactiveRecord {
   /* ReactiveModel */
@@ -94,46 +97,13 @@ export class ReactiveRecord {
   get combineReducers() {
     return reducers => combineReducers({
       ...reducers,
-      ReactiveRecord: new reactiveRecordReducer(this)
+      ReactiveRecord: this::reducer()
     })
   }
-  get storeEnhancer() {
-    return createStore => (reducer, initialState, enhancer) => {
-      const store = createStore(reducer, initialState, enhancer),
-            dispatch = action => {
-              store.dispatch(action);
-              let matches = false;
-              if (!(matches = action.type.match(ACTION_MATCHER))) return
-              const [, requestStatus, actionName, modelName] = matches;
-              if (actionName && !requestStatus) return this.performAsync(action)
-            },
-            getState = store.getState,
-            stateTransformer = (...args) => {
-              const { ReactiveRecord, ...state } = getState(...args),
-                    transformed = Object.keys(ReactiveRecord).reduce((final, modelName) => {
-                      const singular = ReactiveRecord[modelName].hasOwnProperty("attributes"),
-                            model = this.models[modelName];
-                      if (singular) {
-                        const { attributes, errors:_errors, request:_request } = ReactiveRecord[modelName];
-                        final[modelName] = new model({ ...attributes, _errors, _request }, true)
-                      }
-                      else {
-                        const { collection, request } = ReactiveRecord[modelName];
-                        const transformedCollection = Object.values(collection).map(
-                          ({ attributes, errors:_errors, request:_request }) => new model({ ...attributes, _errors, _request }, true)
-                        )
-                        final[modelName] = new ReactiveRecordCollection(...transformedCollection)
-                        final[modelName]._request = new ReactiveRecordRequest(request);
-                      }
-                      return final;
-                    }, {})
-              return { ...state, ReactiveRecord:transformed };
-            };
-      return { ...store, dispatch, getState:stateTransformer };
-    };
-  }
+
   registerStore(store) {
     this.dispatch = store.dispatch;
+    return store;
   }
 
   performAsync(action) {
@@ -185,13 +155,15 @@ export class ReactiveRecord {
 
   get initialState() {
     const { models } = this;
+    this.instanceID = generateID();
+
     return Object.keys(models).reduce(function(state, modelName){
       state[modelName] = models[modelName].store.singleton?
         {...memberProps}
       :
         {...collectionProps}
       return state;
-    }, {})
+    }, { instanceId: this.instanceID })
   }
 }
 export default new ReactiveRecord;
@@ -370,45 +342,7 @@ export class Model {
   get isInvalid() {}
 }
 
-function reactiveRecordReducer(reactiveRecordInstance) {
-  return function(state = reactiveRecordInstance.initialState, action) {
-    if (!ACTION_MATCHER.test(action.type)) return state
-    const [,asyncStatus, actionNameUpper, modelName] = action.type.match(ACTION_MATCHER),
-          actionName = actionNameUpper.toLowerCase(),
-          nextState = {...state},
-          modelClass = reactiveRecordInstance.models[modelName],
-          { schema:{ _primaryKey="id" } } = modelClass;
 
-    if (!modelClass) throw new MODEL_NOT_FOUND_ERROR(modelName)
-    const { attributes:{ [_primaryKey]:key }={} } = action,
-          { [modelName]:{ collection:{ [key]:member }={} } } = nextState;
-
-    let nextModel = nextState[modelName];
-    if (!asyncStatus) {
-      nextState[modelName] = {
-        ...nextModel,
-        request: {
-          ...nextModel.request,
-          status: ACTION_STATUSES[actionName]
-        }
-      }
-      if (member) {
-        nextState[modelName].collection = {
-          ...nextModel.collection,
-          [key]: {
-            ...member,
-            request: {
-              ...member.request,
-              status: ACTION_STATUSES[actionName]
-            }
-          }
-        }
-      }
-    }
-
-    return nextState;
-  }
-}
 
 // SHOULD MAKE A LOT OF THESE "GETTERS", which don't require a () after the method unless parameters are required
 // Index     Model.all(params)

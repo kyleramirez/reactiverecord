@@ -3,7 +3,7 @@ import { ReactiveRecord, Model } from "../src"
 
 describe("ReactiveRecord", ()=>{
   describe("#model", ()=>{
-    
+
     it("should add a new Model to the ReactiveRecord instance", ()=>{
       const reactiveRecordTest = new ReactiveRecord();
       reactiveRecordTest.model("Person", class extends Model {
@@ -41,6 +41,7 @@ describe("ReactiveRecord", ()=>{
       expect(instanceOne).to.not.equal(instanceTwo);
       expect(instanceTwo).to.equal(placeInstance);
     })
+
   });
 
   describe("#setAPI", ()=>{
