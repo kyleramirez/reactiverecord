@@ -1,6 +1,7 @@
 import {
   MODEL_NOT_FOUND_ERROR,
-  ACTION_MATCHER
+  ACTION_MATCHER,
+  ACTION_STATUSES
 } from "./constants"
 
 export default function reducer() {
@@ -38,7 +39,7 @@ export default function reducer() {
         }
       }
     }
-
+    console.log(action)
     return nextState;
   }
 }

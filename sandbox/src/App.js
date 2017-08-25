@@ -1,40 +1,39 @@
 import React, { Component } from "react";
-import ReactiveRecord, { reducer, middleware, ReactiveRecordProvider, withTransformed } from "./reactiverecord"
+import ReactiveRecord, { reducer, middleware, Collection } from "./reactiverecord"
 import { createStore, applyMiddleware, compose } from "redux"
-import { Provider, connect } from "react-redux"
-
-window.ReactiveRecord = ReactiveRecord;
+import { Provider } from "react-redux"
+import "./models/Post"
 
 const reduxDevTools = window.devToolsExtension ? window.devToolsExtension() : f => f;
 
 const store = createStore(
   reducer.call(ReactiveRecord),
-  compose(
-    applyMiddleware(middleware.call(ReactiveRecord)),
-    reduxDevTools
-  )
+  compose(applyMiddleware(middleware.call(ReactiveRecord)), reduxDevTools)
 );
 
-// connect::withTransformed(mapStateToProps, mapDispatchToProps)(Page)
-
-class InnerPage extends Component {
-  render() {
-    console.log("InnerPageProps:",this.props)
-    return <div>{this.props.children}</div>
-  }
+function ShowPost({ POST }) {
+  return(
+    <pre>{JSON.stringify(POST, null, 2)}</pre>
+  )
 }
-
-const Page = withTransformed.call(connect, state => state)(InnerPage)
 
 export default class App extends Component {
   render() {
     return (
       <Provider store={store}>
-        <ReactiveRecordProvider register={ReactiveRecord}>
-          <Page>
-            Mkay
-          </Page>
-        </ReactiveRecordProvider>
+        <Collection for={ReactiveRecord.model("Post")}>
+          {(POSTS) => (
+            <div>
+            {console.log(POSTS) || null}
+            {
+              POSTS?
+                POSTS.map(POST => <ShowPost POST={POST} key={POST.id} />)
+              :
+                <div>Loading ...</div>
+            }
+            </div>
+          )}
+        </Collection>
       </Provider>
     );
   }

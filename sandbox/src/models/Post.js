@@ -1,4 +1,4 @@
-import ReactiveRecord, { Model } from "reactiverecord"
+import ReactiveRecord, { Model } from "../reactiverecord"
 
 class Post extends Model {
   static schema = {

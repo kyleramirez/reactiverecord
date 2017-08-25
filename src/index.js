@@ -16,10 +16,11 @@ import {
   ACTION_STATUSES, ACTION_METHODS,
   MODEL_NOT_FOUND_ERROR
 } from "./constants"
+import ReactiveRecordCollection from "./ReactiveRecordCollection"
 export reducer from "./reducer"
 export middleware from "./middleware"
-export ReactiveRecordProvider from "./components/Provider"
-export withTransformed from "./components/withTransformed"
+export Member from "./components/Member"
+export Collection from "./components/Collection"
 
 export class ReactiveRecord {
   /* ReactiveModel */
@@ -120,8 +121,9 @@ export class ReactiveRecord {
       const route = interpolateRoute(routeTemplate, body, modelName, singleton, apiConfig, query),
             method = ACTION_METHODS[actionName.toLowerCase()];
       let responseStatus = null;
+      const request = skinnyObject({ method, body, headers, credentials })
 
-      fetch(route, { method, body:JSON.stringify(body), headers, credentials })
+      fetch(route, request)
         .then(checkResponseStatus)
         .then(res=>{
           responseStatus = res.status;
@@ -130,6 +132,7 @@ export class ReactiveRecord {
         .then(data=>{
           const isCollection = data instanceof Array;
           let resource = null;
+          console.log(data)
           if (!isCollection) {
             resource = (new model({...data, _request:{ status: responseStatus }}))
           }
@@ -178,6 +181,7 @@ class ReactiveRecordRequest {
     this.body=null;
   } }
 }
+
 class ReactiveRecordErrors {
   //Each attribute in the schema gets an array, empty or not
   // Also provide a clear function
@@ -193,28 +197,6 @@ class ReactiveRecordErrors {
   //   value: ()=>{for (let property in _obj.errors) if (property != "clear") delete _obj.errors[property]}
   // })
   //
-}
-class ReactiveRecordCollection extends Array {
-  _request = {}
-  serialize = () => skinnyObject(this)
-  toJSON = ()=> {
-    let collection = {}
-    if (this.length) {
-      const [{ constructor:{ schema:{ _primaryKey="id" } } }] = this;
-      collection = this.reduce(
-        function(collection, member) {
-          const { [_primaryKey]:key } = member;
-          collection[key] = member.serialize();
-          return collection;
-        },
-        {}
-      )
-    }
-    return {
-      request:this._request,
-      collection
-    }
-  }
 }
 
 export class Model {
