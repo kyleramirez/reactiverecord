@@ -14,7 +14,7 @@ export function isEmptyObject(obj){
   return true;
 }
 /* ReactiveRecord */
-export function generateID() {
+export function generateId() {
   function s4(){
     return Math
       .floor((1 + Math.random()) * 0x10000)

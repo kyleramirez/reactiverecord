@@ -7,7 +7,7 @@ import {
   buildRouteFromInstance, pruneDeep,
   getKey, interpolateRoute,
   getRouteAttributes, checkResponseStatus,
-  skinnyObject, generateID
+  skinnyObject, generateId
 } from "./utils"
 import {
   requestProps, memberProps,
@@ -155,7 +155,7 @@ export class ReactiveRecord {
 
   get initialState() {
     const { models } = this;
-    this.instanceID = generateID();
+    this.instanceId = generateId();
 
     return Object.keys(models).reduce(function(state, modelName){
       state[modelName] = models[modelName].store.singleton?
@@ -163,7 +163,7 @@ export class ReactiveRecord {
       :
         {...collectionProps}
       return state;
-    }, { instanceId: this.instanceID })
+    }, { instanceId: this.instanceId })
   }
 }
 export default new ReactiveRecord;

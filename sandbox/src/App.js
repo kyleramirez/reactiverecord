@@ -15,7 +15,7 @@ const store = createStore(
   )
 );
 
-// connect::withTransformed("Lease")(mapStateToProps, mapDispatchToProps)(Page)
+// connect::withTransformed(mapStateToProps, mapDispatchToProps)(Page)
 
 class InnerPage extends Component {
   render() {
@@ -24,7 +24,7 @@ class InnerPage extends Component {
   }
 }
 
-const Page = withTransformed.call(connect, "Lease")(({ instanceId })=>({ instanceId, truck:"barber" }))(InnerPage)
+const Page = withTransformed.call(connect, state => state)(InnerPage)
 
 export default class App extends Component {
   render() {
