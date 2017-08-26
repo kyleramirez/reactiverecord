@@ -1,6 +1,6 @@
 import React, { Component, Children } from "react"
 import { connect } from "react-redux"
-import mapStateToProps from "../mapStateToProps"
+import mapStateToProps from "./mapStateToProps"
 
 class Collection extends Component {
 

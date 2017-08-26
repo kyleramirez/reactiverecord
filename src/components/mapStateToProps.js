@@ -1,4 +1,4 @@
-import ReactiveRecordCollection from "./ReactiveRecordCollection"
+import Collection from "./ReactiveRecordCollection"
 
 export default function mapStateToProps(state, { for:Model }) {
   const { ReactiveRecord:{ instanceId }, store:{ singleton }, displayName } = Model,

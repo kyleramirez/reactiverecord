@@ -159,3 +159,130 @@ If you are running your build through something like Uglify, or part of a Webpac
  - **Scopes** and default scope syntax like `orders.completed`
  - **Order** and default ordering `cards.orderBy("price", "ASC")`
  - **Custom schema types** such as automatic conversions to U.S. dollar
+
+// SHOULD MAKE A LOT OF THESE "GETTERS", which don't require a () after the method unless parameters are required
+// Index     Model.all(params)
+//
+// Create    instance.save(options)
+//           instance.updateAttributes(attributes)
+//           instance.updateAttribute(key, value)
+//           Model.create(attributes)
+//
+// Show      instance.reload()
+//           Model.find(key)
+//           Model.load(key)
+//
+// Update    instance.save(options)
+//           instance.updateAttributes(attributes)
+//           instance.updateAttribute(key, value)
+//           Model.update(attributes) <- for singletons
+//
+// Destroy   instance.destroy()
+//           instance.delete()
+//           Model.delete(key)
+//
+// Model.schema._primaryKey
+//
+// instance.serialize()
+
+/*** Dirty ***/
+// instance.diff
+// instance.changedAttributes
+// instance.isPristine ?
+// instance.isDirty ?
+// instance.attributeChanged(attributeName) ?
+
+/*** Persistence ***/
+// instance._persisted ?
+
+/*** Routes ***/
+// Model.routes
+// instance.routeFor(action)
+
+/*** Validations ***/
+// Model.validations()
+// Model.validationsFor(attributeName)
+// instance.isValid(includeRemoteValidations) ?
+// instance.isInvalid(includeRemoteValidations) ?
+
+
+// Model.attributeNames()
+// Model.associationNames()
+//
+// // On collections
+// class ReactiveRecordCollection extends Array { first(){} last(){} sortBy(){} }
+// collection.first()
+// collection.last()
+// collection.sortBy(keyStr)
+//
+// @beforeValidation
+// @afterValidation
+// @beforeSave
+// @afterSave
+// @beforeCreate
+// @afterCreate
+// @afterError
+// @beforeUpdate
+// @afterUpdate
+// @beforeDestroy
+// @afterDestroy
+//
+// schema {
+//   attr: String,
+//   attr: { type: Boolean, default: false }
+// }
+// routes = {
+//   only: ["index", "create", "show", "update", "destroy"],
+//   except: ["index", "create", "show", "update", "destroy"],
+//   index: "",
+//   create: "",
+//   show: "",
+//   update: "",
+//   destroy: "",
+// }
+// actions possible attributes { type, attributes, key, query }
+// { type:"@DESTROY(Contact)", key:123 }
+// Fart.create({}, { query:{ page: 2 } })
+// {"type":"@CREATE(Fart)","attributes":{},"query":{"page":2}}
+//
+// Fart.destroy(123, { page: 2 })
+// {"type":"@DESTROY(Fart)","query":{"page":2},"attributes":{}}
+//
+// Fart.find(123, { page: 2 })
+// {"type":"@SHOW(Fart)","query":{"page":2},"attributes":{}}
+//
+// Fart.all({ page: 2 })
+// {"type":"@INDEX(Fart)","query":{"page":2}}
+//
+// Fart.load({ page: 2 })
+// {"type":"@INDEX(Fart)","query":{"page":2}}
+//
+// fart.reload({ page: 2 })
+// {"type":"@INDEX(Fart)","query":{"page":2}}
+//
+// fart.updateAttributes({cling:"sing"}, { query:{ page: 2 } })
+// {"type":"@UPDATE(Fart)","attributes":{"cling":"sing"},"query":{"page":2}}
+//
+// fart.updateAttribute("cling", "sing", { query:{ page: 2 } })
+// {"type":"@UPDATE(Fart)","attributes":{"cling":"sing"},"query":{"page":2}}
+//
+// fart.save({ query:{ page: 2 } })
+// {"type":"@UPDATE(Fart)","attributes":{"cling":"sing"},"query":{"page":2}}
+//
+// fart.destroy({ page: 2 })
+// {"type":"@DESTROY(Fart)","query":{"page":2},"attributes":{}}
+//
+//
+//
+//
+// store.dispatch({"type":"@CREATE(Fart)","attributes":{},"query":{"page":2}})
+// store.dispatch({"type":"@DESTROY(Fart)","query":{"page":2},"attributes":{}})
+// store.dispatch({"type":"@SHOW(Fart)","query":{"page":2},"attributes":{}})
+// store.dispatch({"type":"@INDEX(Fart)","query":{"page":2}})
+// store.dispatch({"type":"@INDEX(Fart)","query":{"page":2}})
+// store.dispatch({"type":"@INDEX(Fart)","query":{"page":2}})
+// store.dispatch({"type":"@UPDATE(Fart)","attributes":{"cling":"sing"},"query":{"page":2}})
+// store.dispatch({"type":"@UPDATE(Fart)","attributes":{"cling":"sing"},"query":{"page":2}})
+// store.dispatch({"type":"@UPDATE(Fart)","attributes":{"cling":"sing"},"query":{"page":2}})
+// store.dispatch({"type":"@DESTROY(Fart)","query":{"page":2},"attributes":{}})
+

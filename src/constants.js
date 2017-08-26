@@ -17,7 +17,8 @@ export const ACTION_METHODS = {
                  status: null,
                  // GETTING, 200, POSTING, 201, PUTTING, 202, DELETING, 204
                  // 401, 403, 404, 500 ...
-                 body: null
+                 body: null,
+                 original: null
                }
              },
              memberProps = {
