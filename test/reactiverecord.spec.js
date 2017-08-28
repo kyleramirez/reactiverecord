@@ -1,65 +1,65 @@
-import { expect } from "chai"
-import { ReactiveRecord, Model } from "../src"
-
-describe("ReactiveRecord", ()=>{
-  describe("#model", ()=>{
-
-    it("should add a new Model to the ReactiveRecord instance", ()=>{
-      const reactiveRecordTest = new ReactiveRecord();
-      reactiveRecordTest.model("Person", class extends Model {
-        static schema = {
-          name: String
-        }
-      });
-      expect(reactiveRecordTest.models).to.have.property("Person")
-    });
-
-    it("should assign models a unique instance", () => {
-      const reactiveRecordTest = new ReactiveRecord(),
-            reactiveRecordTest2 = new ReactiveRecord();
-      reactiveRecordTest.model("Person", class extends Model {
-        static schema = {
-          name: String
-        }
-      });
-      reactiveRecordTest2.model("Person", class extends Model {
-        static schema = {
-          name: String
-        }
-      });
-      reactiveRecordTest2.model("Place", class extends Model {
-        static schema = {
-          name: String
-        }
-      });
-
-      const instanceOne = reactiveRecordTest.model("Person").ReactiveRecord,
-            instanceTwo = reactiveRecordTest2.model("Person").ReactiveRecord,
-            placeInstance = reactiveRecordTest2.model("Place").ReactiveRecord;
-
-      expect(instanceOne).to.not.be.undefined;
-      expect(instanceOne).to.not.equal(instanceTwo);
-      expect(instanceTwo).to.equal(placeInstance);
-    })
-
-  });
-
-  describe("#setAPI", ()=>{
-    const reactiveRecordTest = new ReactiveRecord();
-
-    reactiveRecordTest.setAPI({ headers: {
-      "Accept": "text/plain",
-      "JWT_TOKEN": "thetoken"
-    }});
-
-    it("should merge API request headers with the default headers", ()=>{
-      expect(reactiveRecordTest.API.headers["Content-Type"]).to.equal("application/json")
-      expect(reactiveRecordTest.API.headers["JWT_TOKEN"]).to.equal("thetoken")
-    });
-    it("should leave default API request properties alone if unspecified", ()=>{
-      expect(reactiveRecordTest.API.prefix).to.equal("")
-    });
-  });
+// import { expect } from "chai"
+// import { ReactiveRecord, Model } from "../src"
+//
+// describe("ReactiveRecord", ()=>{
+//   describe("#model", ()=>{
+//
+//     it("should add a new Model to the ReactiveRecord instance", ()=>{
+//       const reactiveRecordTest = new ReactiveRecord();
+//       reactiveRecordTest.model("Person", class extends Model {
+//         static schema = {
+//           name: String
+//         }
+//       });
+//       expect(reactiveRecordTest.models).to.have.property("Person")
+//     });
+//
+//     it("should assign models a unique instance", () => {
+//       const reactiveRecordTest = new ReactiveRecord(),
+//             reactiveRecordTest2 = new ReactiveRecord();
+//       reactiveRecordTest.model("Person", class extends Model {
+//         static schema = {
+//           name: String
+//         }
+//       });
+//       reactiveRecordTest2.model("Person", class extends Model {
+//         static schema = {
+//           name: String
+//         }
+//       });
+//       reactiveRecordTest2.model("Place", class extends Model {
+//         static schema = {
+//           name: String
+//         }
+//       });
+//
+//       const instanceOne = reactiveRecordTest.model("Person").ReactiveRecord,
+//             instanceTwo = reactiveRecordTest2.model("Person").ReactiveRecord,
+//             placeInstance = reactiveRecordTest2.model("Place").ReactiveRecord;
+//
+//       expect(instanceOne).to.not.be.undefined;
+//       expect(instanceOne).to.not.equal(instanceTwo);
+//       expect(instanceTwo).to.equal(placeInstance);
+//     })
+//
+//   });
+//
+//   describe("#setAPI", ()=>{
+//     const reactiveRecordTest = new ReactiveRecord();
+//
+//     reactiveRecordTest.setAPI({ headers: {
+//       "Accept": "text/plain",
+//       "JWT_TOKEN": "thetoken"
+//     }});
+//
+//     it("should merge API request headers with the default headers", ()=>{
+//       expect(reactiveRecordTest.API.headers["Content-Type"]).to.equal("application/json")
+//       expect(reactiveRecordTest.API.headers["JWT_TOKEN"]).to.equal("thetoken")
+//     });
+//     it("should leave default API request properties alone if unspecified", ()=>{
+//       expect(reactiveRecordTest.API.prefix).to.equal("")
+//     });
+//   });
 
   // describe("#getRoute", ()=>{
   //   const reactiveRecordTest = new ReactiveRecord();
@@ -88,4 +88,4 @@ describe("ReactiveRecord", ()=>{
   // });
 
   
-});
+// });

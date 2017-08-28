@@ -1,4 +1,4 @@
-import { skinnyObject } from "./utils"
+import { skinnyObject } from "../utils"
 
 export default class ReactiveRecordCollection extends Array {
   _request = {}

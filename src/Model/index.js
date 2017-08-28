@@ -1,27 +1,25 @@
+import {
+  setReadOnlyProps, setWriteableProps,
+  skinnyObject
+} from "../utils"
+import Request from "../ReactiveRecord/Request"
+import Errors from "./Errors"
+
 export default class Model {
   constructor(attrs={}, persisted=false) {
     const modelName = this.constructor.displayName,
           model = this.ReactiveRecord.models[modelName];
-    // Define the internal record
+
     Object.defineProperty(this, "_attributes", { value:{} })
-
-    setReadOnlyProps.call(this, attrs, persisted);
-    setWriteableProps.call(this, attrs);
-
-    Object.defineProperty(this, "_request", {
-      value:new ReactiveRecordRequest({...attrs._request})
-    });
-
-    Object.defineProperty(this, "_errors", {
-      value:new ReactiveRecordErrors({...attrs._errors})
-    });
-
-    // Define the internal pristine record
-    Object.defineProperty(this, "_pristine",   { value:skinnyObject(this._attributes) })
+    Object.defineProperty(this, "_request", { value:new Request({...attrs._request}) });
+    Object.defineProperty(this, "_errors", { value:new Errors({...attrs._errors}) });
+    this::setReadOnlyProps(attrs, persisted);
+    this::setWriteableProps(attrs);
+    Object.defineProperty(this, "_pristine", { value:skinnyObject(this._attributes) })
     Object.freeze(this._pristine)
   }
 
-  // ReactiveRecord
+  /* ReactiveRecord */
   get ReactiveRecord(){ return this.constructor.ReactiveRecord }
   static dispatch({ action, key, ...args }) {
     const { displayName, ReactiveRecord, schema:{ _primaryKey="id" } } = this,
@@ -38,11 +36,12 @@ export default class Model {
   serialize(){
     return skinnyObject(this)
   }
+
   toJSON() {
     return {
-      attributes: this._attributes,
-      errors: this._errors,
-      request: this._request
+      _attributes: this._attributes,
+      _errors: this._errors,
+      _request: this._request
     }
   }
 

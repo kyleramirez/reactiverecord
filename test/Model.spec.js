@@ -1,37 +1,70 @@
 import chai, { expect } from "chai"
-import spies from "chai-spies"
 import { ReactiveRecord, Model } from "../src"
-
-/*******************************/
-/**           Stubs           **/
-/*******************************/
-chai.use(spies);
-const fetch = ()=>Promise.resolve({
-  status: 404,
-  json: ()=>Promise.resolve({body: { summary: "Not found" }})
-})
-const fetchSpy = chai.spy(fetch),
-      dispatch = chai.spy();
-global.fetch = fetchSpy;
+import "./test-utils"
 
 describe("Model", ()=>{
   describe("#constructor", ()=>{
-    it("should give models access to the ReactiveRecord instance", ()=>{
-      const reactiveRecordTest = new ReactiveRecord();
-      reactiveRecordTest.model("Person", class extends Model {
-        static schema = {
-          name: String
-        }
-      });
+    const reactiveRecordTest = new ReactiveRecord();
+    const Person = reactiveRecordTest.model("Person", class Person extends Model {
+      static schema = { name: String, _timestamps: true }
+    });
+    const dude = new Person;
 
-      const Person = reactiveRecordTest.model("Person");
-      expect((new Person).ReactiveRecord).to.not.be.undefined;
-      expect ((new Person).ReactiveRecord).to.be.an.instanceof(ReactiveRecord)
+    it("should provide internal private attributes", ()=>{
+      ["_attributes", "_request", "_errors", "_pristine", "_persisted"].map( property => {
+        expect(dude).to.have.property(property);
+      });
+    });
+
+    it("should have an ID property if no _primaryKey was given in the schema", ()=>{
+      expect(dude).to.have.property("id");
+    });
+
+    it("should not create an ID property if a primary key was given in the schema", ()=>{
+      const Card = reactiveRecordTest.model("Card", class Card extends Model {
+        static schema = { _primaryKey: "token" }
+      });
+      const card = new Card;
+      expect(card).to.not.have.property("id");
+    });
+
+    it("should have created read-only properties", ()=>{
+      ["id", "createdAt", "updatedAt"].map( property => {
+        expect(()=>{
+          dude[property] = "anything";
+        }).to.throw(TypeError)
+      });
+    });
+
+    it("should have created writeable properties", ()=>{
+      dude.name = "Kyle";
+      expect("Kyle").to.equal(dude.name);
+    });
+
+    it("should not allow changing the _pristine copy", ()=>{
+      expect(()=>{
+        dude._pristine.name = "Kyle"
+      }).to.throw(TypeError)
+    });
+
+    it("should record if a resource is database persisted or not", ()=>{
+      expect(false).to.equal(dude._persisted)
+      expect(true).to.equal((new Person({}, true))._persisted)
     });
   });
 });
 
-
+// it("should give models access to the ReactiveRecord instance", ()=>{
+//   reactiveRecordTest.model("Person", class extends Model {
+//     static schema = {
+//       name: String
+//     }
+//   });
+//
+//   const Person = reactiveRecordTest.model("Person");
+//   expect((new Person).ReactiveRecord).to.not.be.undefined;
+//   expect ((new Person).ReactiveRecord).to.be.an.instanceof(ReactiveRecord)
+// });
 // reactiveRecord.model(Person);
 // const PersonModel = reactiveRecord.model("Person")
 //

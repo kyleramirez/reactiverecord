@@ -1,12 +1,12 @@
-import Model from "./Model"
+import Model from "../Model"
 import {
   isEmptyObject, generateId, interpolateRoute,
   skinnyObject, checkResponseStatus
-} from "./utils"
+} from "../utils"
 import {
   collectionProps, ACTION_MATCHER, ACTION_METHODS,
   ROUTE_NOT_FOUND_ERROR
-} from "./constants"
+} from "../constants"
 import Collection from "./Collection"
 import Request from "./Request"
 
