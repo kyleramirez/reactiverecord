@@ -23,7 +23,7 @@ export function generateId() {
   }
   return `_${s4()+s4()+s4()}${s4()+s4()+s4()}`;
 }
-/* ReactiveRecord */
+
 export function pruneDeep(obj){
   return function prune(current){
     for (let key in current) {
@@ -44,7 +44,7 @@ export function pruneDeep(obj){
     return current
   }(Object.assign({}, obj))
 }
-/* ReactiveRecord */
+
 export function pruneArray(arr) {
   const newArray = new Array();
   for (var i = 0; i < arr.length; i++) {
@@ -278,7 +278,7 @@ export function getKey() {
     },
     [_primaryKey]:key
   } = this;
-  return key;
+  return [_primaryKey, key];
 }
 /* ReactiveRecord */
 export function getRouteAttributes(action, query) {

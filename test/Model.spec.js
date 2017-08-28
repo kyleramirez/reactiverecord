@@ -3,11 +3,12 @@ import { ReactiveRecord, Model } from "../src"
 import "./test-utils"
 
 describe("Model", ()=>{
+  const reactiveRecordTest = new ReactiveRecord();
+  const Person = reactiveRecordTest.model("Person", class Person extends Model {
+    static schema = { name: String, _timestamps: true }
+  });
   describe("#constructor", ()=>{
-    const reactiveRecordTest = new ReactiveRecord();
-    const Person = reactiveRecordTest.model("Person", class Person extends Model {
-      static schema = { name: String, _timestamps: true }
-    });
+
     const dude = new Person;
 
     it("should provide internal private attributes", ()=>{
@@ -36,6 +37,16 @@ describe("Model", ()=>{
       });
     });
 
+    it("should treat a custom _primaryKey as read-only", () => {
+      const Bank = reactiveRecordTest.model("Bank", class Bank extends Model {
+        static schema = { _primaryKey: "token" }
+      });
+      const bank = new Bank;
+      expect(()=>{
+        bank.token = "anything";
+      }).to.throw(TypeError)
+    });
+
     it("should have created writeable properties", ()=>{
       dude.name = "Kyle";
       expect("Kyle").to.equal(dude.name);
@@ -52,6 +63,20 @@ describe("Model", ()=>{
       expect(true).to.equal((new Person({}, true))._persisted)
     });
   });
+
+  describe("#ReactiveRecord", () => {
+    it("should give each instance access to ReactiveRecord", () => {
+      expect((new Person).ReactiveRecord).to.not.be.undefined;
+      expect ((new Person).ReactiveRecord).to.be.an.instanceof(ReactiveRecord);
+    });
+  });
+
+  describe("#dispatch", () => {
+    it("should dispatch actions to the ReactiveRecord instance", () => {
+      reactiveRecordTest.dispatch = chai.spy();
+      // expect(reactiveRecordTest.dispatch).to.have.been.called.with("")
+    });
+  });
 });
 
 // it("should give models access to the ReactiveRecord instance", ()=>{
@@ -62,8 +87,6 @@ describe("Model", ()=>{
 //   });
 //
 //   const Person = reactiveRecordTest.model("Person");
-//   expect((new Person).ReactiveRecord).to.not.be.undefined;
-//   expect ((new Person).ReactiveRecord).to.be.an.instanceof(ReactiveRecord)
 // });
 // reactiveRecord.model(Person);
 // const PersonModel = reactiveRecord.model("Person")

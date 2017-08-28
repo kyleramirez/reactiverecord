@@ -60,10 +60,11 @@ export default class Model {
 
   // Routes
   get routeFor() {
-    return (action, query={}) => buildRouteFromInstance.call(this, action, query)
+    return (action, query={}) => this::buildRouteFromInstance(action, query);
   }
   get routeAttributes(){
-    return (action, query={}) => getRouteAttributes.call(this, action, query)
+    /* Returns all attributes needed from this resource to build the route */
+    return (action, query={}) => this::getRouteAttributes(action, query);
   }
 
   // Persistence
@@ -82,7 +83,7 @@ export default class Model {
   }
   get save() {
     const action = this._persisted? "UPDATE" : "CREATE",
-          attributes = this._persisted? this.diff : pruneDeep(this._attributes)
+          attributes = this._persisted? this.diff : skinnyObject(this._attributes)
     return ({ query={} }={}) => {
       const submit = { action, attributes, query }
       Object.assign(submit.attributes, this.routeAttributes(action, query))
