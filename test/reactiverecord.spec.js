@@ -89,3 +89,21 @@
 
   
 // });
+
+// it("should add to query string for every type of operation where the attribute does not exist", () => {
+//   reactiveRecordTest.dispatch.reset();
+// });
+//
+// it("should not add to query string if the attribute in the query was used to build the URL", () => {
+//   reactiveRecordTest.dispatch.reset();
+// });
+//
+// it("should interpolate URL tokens that are not in the schema", () => {
+//   reactiveRecordTest.dispatch.reset();
+// });
+// it("should give models access to the ReactiveRecord instance", ()=>{
+//   reactiveRecordTest.model("Person", class extends Model {
+//     static schema = {
+//       name: String
+//     }
+//   });

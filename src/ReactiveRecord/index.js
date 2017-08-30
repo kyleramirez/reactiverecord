@@ -63,16 +63,16 @@ export default class ReactiveRecord {
       "Content-Type": "application/json"
     },
     credentials: "same-origin",
-    diffMode: true
+    patchMode: true
   }
   setAPI(opts){
-    const { prefix, delimiter, credentials, diffMode } = this.API,
+    const { prefix, delimiter, credentials, patchMode } = this.API,
     { headers={} } = opts;
     ({
       prefix:this.API.prefix=prefix,
       delimiter:this.API.delimiter=delimiter,
       credentials:this.API.credentials=credentials,
-      diffMode:this.API.diffMode=diffMode
+      patchMode:this.API.patchMode=patchMode
     } = opts);
     Object.assign(this.API.headers, headers);
   }

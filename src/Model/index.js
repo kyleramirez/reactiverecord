@@ -3,7 +3,7 @@ import {
   setReadOnlyProps, setWriteableProps, getKey,
   skinnyObject, getRouteAttributes, recordDiff,
   setDefaultValues, buildRouteFromInstance, assignLeft,
-  without
+  without, queryStringToObj
 } from "../utils"
 import Request from "../ReactiveRecord/Request"
 import Errors from "./Errors"
@@ -28,10 +28,10 @@ export default class Model {
 
   /* ReactiveRecord */
   get ReactiveRecord() { return this.constructor.ReactiveRecord }
-  static dispatch({ action, ...args }) {
+  static dispatch({ action, attributes }) {
     const { displayName, ReactiveRecord } = this,
           type = `@${action}(${displayName})`;
-    return ReactiveRecord.dispatch({ type, ...args })
+    return ReactiveRecord.dispatch({ type, attributes })
   }
   static store = { singleton: false }
   static schema = {}
@@ -87,44 +87,51 @@ export default class Model {
     }
   }
   get save() {
-    const action = this._persisted? "UPDATE" : "CREATE",
-          attributes = this.diff;
-    return ({ query={} }={}) => {
-      const submit = { action, attributes, query }
-      Object.assign(submit.attributes, this.routeAttributes(action, query))
-      return this.constructor.dispatch(submit)
+    const action = this._persisted ? "UPDATE" : "CREATE";
+    return ({ query:_query={} }={}) => {
+      const shouldDiff = this.ReactiveRecord.API.patchMode,
+            attributesForRequest = shouldDiff ? this.diff : skinnyObject(this._attributes),
+            query = typeof _query === "string" ? queryStringToObj(_query) : _query,
+            attributes = Object.assign(attributesForRequest, this.routeAttributes(action, query), query);
+      return this.constructor.dispatch({ action, attributes })
     }
   }
   get destroy() {
+    const action = "DESTROY";
     return (_query={}) => {
-      const attributes = this.routeAttributes("DESTROY", _query),
-            query = _query::without(...Object.keys(attributes));
-      return this.constructor.dispatch({ action:"DESTROY", attributes, query })
+      const query = typeof _query === "string" ? queryStringToObj(_query) : _query,
+            attributes = Object.assign(this.routeAttributes(action, query), query);
+      return this.constructor.dispatch({ action:"DESTROY", attributes })
     }
   }
 
   static destroy(key, _query={}) {
-    const { _primaryKey="id" } = this.schema;
-    const [ attributes, query ] = assignLeft({ [_primaryKey]:key }, _query)
-    return this.dispatch({ action:"DESTROY", attributes, query })
+    const query = typeof _query === "string" ? queryStringToObj(_query) : _query,
+          { _primaryKey="id" } = this.schema,
+          attributes = Object.assign({ [_primaryKey]:key }, query);
+    return this.dispatch({ action:"DESTROY", attributes });
   }
 
   /* Remote */
   static find(key, _query={}) {
-    const { _primaryKey="id" } = this.schema;
-    const [ attributes, query ] = assignLeft({ [_primaryKey]:key }, _query)
-
-    return this.dispatch({ action:"SHOW", attributes, query })
+    const query = typeof _query === "string" ? queryStringToObj(_query) : _query,
+          { _primaryKey="id" } = this.schema,
+          attributes = Object.assign({ [_primaryKey]:key }, query);
+    return this.dispatch({ action:"SHOW", attributes });
   }
   static all(query={}) {
-    return this.dispatch({ action:"INDEX", attributes: {}, query })
+    const attributes = typeof query === "string" ? queryStringToObj(query) : query;
+    return this.dispatch({ action:"INDEX", attributes })
   }
   static load(query) { return this.all(query) }
   get reload() {
-    const {constructor:{store:{singleton=false}}} = this;
-    return query => {
+    const { singleton=false } = this.constructor.store;
+    return _query => {
+      const query = typeof _query === "string" ? queryStringToObj(_query) : _query;
       if (singleton) return this.constructor.all(query)
-      return this.constructor.find(this::getKey()[1], query)
+      const [ _primaryKey, key ] = this::getKey(),
+            findQuery = Object.assign(this.routeAttributes("SHOW", query), query)
+      return this.constructor.find(findQuery[_primaryKey] || key, findQuery::without(_primaryKey))
     } 
   }
 

@@ -129,8 +129,7 @@ describe("Model", ()=>{
       Person.create()
       expect(reactiveRecordTest.dispatch).to.have.been.called.with({
         type: "@CREATE(Person)",
-        attributes: { level: "customer" },
-        query: {}
+        attributes: { level: "customer" }
       })
     });
   });
@@ -299,8 +298,7 @@ describe("Model", ()=>{
       News.create(attributes, { query });
       expect(reactiveRecordTest.dispatch).to.have.been.called.with({
         type: "@CREATE(News)",
-        attributes,
-        query
+        attributes: { ...attributes, ...query }
       });
     });
   });
@@ -316,8 +314,7 @@ describe("Model", ()=>{
         attributes: {
           title: "Update: Nandos never actually on fire",
           slug: "nandos-on-fire"
-        },
-        query: {}
+        }
       });
     });
 
@@ -325,11 +322,9 @@ describe("Model", ()=>{
       reactiveRecordTest.dispatch.reset();
       const guy = new Person({ id: 123 }, true);
       guy.updateAttributes({ name: "Craig" })
-      // console.log(reactiveRecordTest.dispatch.__spy.calls[0][0])
       expect(reactiveRecordTest.dispatch).to.have.been.called.with({
         type: "@UPDATE(Person)",
-        attributes: { id: 123, name: "Craig", level: "customer" },
-        query: {}
+        attributes: { id: 123, name: "Craig", level: "customer" }
       });
     });
   });
@@ -344,8 +339,7 @@ describe("Model", ()=>{
         attributes: {
           title: "Update: Nandos never actually on fire",
           slug: "nandos-on-fire"
-        },
-        query: {}
+        }
       });
     });
 
@@ -355,8 +349,7 @@ describe("Model", ()=>{
       guy.updateAttribute("name", "Craig")
       expect(reactiveRecordTest.dispatch).to.have.been.called.with({
         type: "@UPDATE(Person)",
-        attributes: { id: 123, name: "Craig", level: "customer" },
-        query: {}
+        attributes: { id: 123, name: "Craig", level: "customer" }
       });
     });
   });
@@ -369,8 +362,7 @@ describe("Model", ()=>{
       person.save()
       expect(reactiveRecordTest.dispatch).to.have.been.called.with({
         type: "@UPDATE(Person)",
-        attributes: { id: 123, name: "Shaka" },
-        query: {}
+        attributes: { id: 123, name: "Shaka" }
       });
     });
 
@@ -381,8 +373,7 @@ describe("Model", ()=>{
       person.save()
       expect(reactiveRecordTest.dispatch).to.have.been.called.with({
         type: "@CREATE(Person)",
-        attributes: { name: "Shaka", level: "Zulu" },
-        query: {}
+        attributes: { name: "Shaka", level: "Zulu" }
       });
     });
 
@@ -393,8 +384,7 @@ describe("Model", ()=>{
       person.save()
       expect(reactiveRecordTest.dispatch).to.have.been.called.with({
         type: "@UPDATE(Person)",
-        attributes: { id: 123, name: "Shaka", level: "customer" },
-        query: {}
+        attributes: { id: 123, name: "Shaka", level: "customer" }
       });
     });
   });
@@ -406,8 +396,7 @@ describe("Model", ()=>{
       person.destroy()
       expect(reactiveRecordTest.dispatch).to.have.been.called.with({
         type: "@DESTROY(Person)",
-        attributes: { id: 123 },
-        query: {}
+        attributes: { id: 123 }
       });
     });
 
@@ -417,8 +406,7 @@ describe("Model", ()=>{
       leadMessage.destroy({ unit_id: 50, lead_id: 500, reason: "Trump" });
       expect(reactiveRecordTest.dispatch).to.have.been.called.with({
         type: "@DESTROY(LeadMessage)",
-        attributes: { id: 124, unit_id: 50, lead_id: 500 },
-        query: { reason: "Trump" }
+        attributes: { id: 124, unit_id: 50, lead_id: 500, reason: "Trump" }
       });
     });
   });
@@ -429,8 +417,7 @@ describe("Model", ()=>{
       News.destroy("nandos-on-fire")
       expect(reactiveRecordTest.dispatch).to.have.been.called.with({
         type: "@DESTROY(News)",
-        attributes: { slug: "nandos-on-fire" },
-        query: {}
+        attributes: { slug: "nandos-on-fire" }
       });
     });
 
@@ -439,8 +426,7 @@ describe("Model", ()=>{
       LeadMessage.destroy(124,{ unit_id: 50, lead_id: 500, reason: "Trump" })
       expect(reactiveRecordTest.dispatch).to.have.been.called.with({
         type: "@DESTROY(LeadMessage)",
-        attributes: { id: 124 },
-        query: { reason: "Trump", unit_id: 50, lead_id: 500 }
+        attributes: { id: 124, reason: "Trump", unit_id: 50, lead_id: 500 }
       });
     });
   });
@@ -453,9 +439,17 @@ describe("Model", ()=>{
         type: "@CREATE(Person)",
         attributes: {
           name: "Thomas",
-          level: "customer"
-        },
-        query: {
+          level: "customer",
+          generic: "attribute"
+        }
+      })
+      reactiveRecordTest.dispatch.reset();
+      Person.create({ name: "Thomas" }, { query: "?generic=attribute" })
+      expect(reactiveRecordTest.dispatch).to.have.been.called.with({
+        type: "@CREATE(Person)",
+        attributes: {
+          name: "Thomas",
+          level: "customer",
           generic: "attribute"
         }
       })
@@ -467,9 +461,16 @@ describe("Model", ()=>{
       expect(reactiveRecordTest.dispatch).to.have.been.called.with({
         type: "@DESTROY(Person)",
         attributes: {
-          id: 123
-        },
-        query: {
+          id: 123,
+          generic: "attribute"
+        }
+      })
+      reactiveRecordTest.dispatch.reset();
+      Person.destroy(123, "?generic=attribute")
+      expect(reactiveRecordTest.dispatch).to.have.been.called.with({
+        type: "@DESTROY(Person)",
+        attributes: {
+          id: 123,
           generic: "attribute"
         }
       })
@@ -481,9 +482,16 @@ describe("Model", ()=>{
       expect(reactiveRecordTest.dispatch).to.have.been.called.with({
         type: "@SHOW(Person)",
         attributes: {
-          id: 123
-        },
-        query: {
+          id: 123,
+          generic: "attribute"
+        }
+      })
+      reactiveRecordTest.dispatch.reset();
+      Person.find(123, "?generic=attribute")
+      expect(reactiveRecordTest.dispatch).to.have.been.called.with({
+        type: "@SHOW(Person)",
+        attributes: {
+          id: 123,
           generic: "attribute"
         }
       })
@@ -494,10 +502,13 @@ describe("Model", ()=>{
       Person.all({ generic: "attribute" })
       expect(reactiveRecordTest.dispatch).to.have.been.called.with({
         type: "@INDEX(Person)",
-        attributes: {},
-        query: {
-          generic: "attribute"
-        }
+        attributes: { generic: "attribute" }
+      })
+      reactiveRecordTest.dispatch.reset();
+      Person.all("?generic=attribute")
+      expect(reactiveRecordTest.dispatch).to.have.been.called.with({
+        type: "@INDEX(Person)",
+        attributes: { generic: "attribute" }
       })
     });
 
@@ -506,10 +517,13 @@ describe("Model", ()=>{
       Person.load({ generic: "attribute" })
       expect(reactiveRecordTest.dispatch).to.have.been.called.with({
         type: "@INDEX(Person)",
-        attributes: {},
-        query: {
-          generic: "attribute"
-        }
+        attributes: { generic: "attribute" }
+      })
+      reactiveRecordTest.dispatch.reset();
+      Person.load("?generic=attribute")
+      expect(reactiveRecordTest.dispatch).to.have.been.called.with({
+        type: "@INDEX(Person)",
+        attributes: { generic: "attribute" }
       })
     });
 
@@ -521,9 +535,17 @@ describe("Model", ()=>{
         type: "@CREATE(Person)",
         attributes: {
           name: "Thomas",
-          level: "customer"
-        },
-        query: {
+          level: "customer",
+          generic: "attribute"
+        }
+      })
+      reactiveRecordTest.dispatch.reset();
+      person.updateAttributes({ name: "Thomas" }, { query: "?generic=attribute" })
+      expect(reactiveRecordTest.dispatch).to.have.been.called.with({
+        type: "@CREATE(Person)",
+        attributes: {
+          name: "Thomas",
+          level: "customer",
           generic: "attribute"
         }
       })
@@ -537,9 +559,17 @@ describe("Model", ()=>{
         type: "@CREATE(Person)",
         attributes: {
           name: "Thomas",
-          level: "customer"
-        },
-        query: {
+          level: "customer",
+          generic: "attribute"
+        }
+      })
+      reactiveRecordTest.dispatch.reset();
+      person.updateAttribute("name", "Thomas", { query: "?generic=attribute" })
+      expect(reactiveRecordTest.dispatch).to.have.been.called.with({
+        type: "@CREATE(Person)",
+        attributes: {
+          name: "Thomas",
+          level: "customer",
           generic: "attribute"
         }
       })
@@ -552,9 +582,16 @@ describe("Model", ()=>{
       expect(reactiveRecordTest.dispatch).to.have.been.called.with({
         type: "@CREATE(Person)",
         attributes: {
-          level: "customer"
-        },
-        query: {
+          level: "customer",
+          generic: "attribute"
+        }
+      })
+      reactiveRecordTest.dispatch.reset();
+      person.save({ query: "?generic=attribute" })
+      expect(reactiveRecordTest.dispatch).to.have.been.called.with({
+        type: "@CREATE(Person)",
+        attributes: {
+          level: "customer",
           generic: "attribute"
         }
       })
@@ -566,10 +603,13 @@ describe("Model", ()=>{
       lastPerson.destroy({ generic: "attribute" })
       expect(reactiveRecordTest.dispatch).to.have.been.called.with({
         type: "@DESTROY(Person)",
-        attributes: { id: 123 },
-        query: {
-          generic: "attribute"
-        }
+        attributes: { id: 123, generic: "attribute" }
+      })
+      reactiveRecordTest.dispatch.reset();
+      lastPerson.destroy("?generic=attribute")
+      expect(reactiveRecordTest.dispatch).to.have.been.called.with({
+        type: "@DESTROY(Person)",
+        attributes: { id: 123, generic: "attribute" }
       })
     });
 
@@ -580,143 +620,19 @@ describe("Model", ()=>{
       expect(reactiveRecordTest.dispatch).to.have.been.called.with({
         type: "@SHOW(Person)",
         attributes: {
-          id: 123
-        },
-        query: {
+          id: 123,
+          generic: "attribute"
+        }
+      })
+      reactiveRecordTest.dispatch.reset();
+      lastPerson.reload("?generic=attribute")
+      expect(reactiveRecordTest.dispatch).to.have.been.called.with({
+        type: "@SHOW(Person)",
+        attributes: {
+          id: 123,
           generic: "attribute"
         }
       })
     });
-
-    it("should allow a query string or object for each type of operation", () => {
-      reactiveRecordTest.dispatch.reset();
-    });
-
-    it("should override existing attribues for each type of operation", () => {
-      reactiveRecordTest.dispatch.reset();
-    });
-
-    it("should add to query string for every type of operation where the attribute does not exist", () => {
-      reactiveRecordTest.dispatch.reset();
-    });
-
-    it("should not add to query string if the attribute in the query was used to build the URL", () => {
-      reactiveRecordTest.dispatch.reset();
-    });
-
-    it("should interpolate URL tokens that are not in the schema", () => {
-      reactiveRecordTest.dispatch.reset();
-    });
   });
 });
-
-// it("should give models access to the ReactiveRecord instance", ()=>{
-//   reactiveRecordTest.model("Person", class extends Model {
-//     static schema = {
-//       name: String
-//     }
-//   });
-//
-//   const Person = reactiveRecordTest.model("Person");
-// });
-// reactiveRecord.model(Person);
-// const PersonModel = reactiveRecord.model("Person")
-//
-// class Unit extends Model {
-//   static routes = {
-//     only: ["GET", "POST", "PUT"],
-//     POST: "/api/v2/landlords/buildings/:building_id/units",
-//     PUT: "/api/v2/landlords/buildings/:building_id/units/:id"
-//   }
-//   static schema = {
-//     user_id: Number,
-//     building_id: Number,
-//     unit_type: String,
-//     _timestamps: true
-//   }
-// }
-// reactiveRecord.model(Unit);
-// const UnitModel = reactiveRecord.model("Unit")
-//
-//
-// // Stub out a redux store for reactiveRecord
-// middleware({ dispatch })(function(action){ return action; })({type:"cool"})
-//
-// describe("Model", ()=>{
-//   describe("#constructor", ()=>{
-//
-//     it("should create a pristine version of the model that is not writeable", ()=>{
-//       const person = new Person({ name: "Kyle", age: 28 })
-//       person.name = "Jim"
-//       person.pristineRecord.name = "Jim";
-//       expect(person.pristineRecord.name).to.equal("Kyle")
-//     });
-//
-//   });
-//   describe("#save", ()=>{
-//     it("should only save the changed attributes (diff)", ()=>{
-//       const person = new Person({ id:12983, name: "Kyle", age: 28 })
-//       person.name = "Jim"
-//       fetchSpy.reset();
-//       person.save().catch(e=>{});
-//       const [lastCall] = fetchSpy.__spy.calls,
-//             [,{ body:jsonBody }] = lastCall,
-//             body = JSON.parse(jsonBody);
-//
-//       expect(body).to.eql({ name: "Jim" })
-//     })
-//
-//     it("should save the entire record if diff mode is disabled", ()=>{
-//       const person = new Person({ name: "Kyle", age: 28 })
-//       person.name = "Jim"
-//       fetchSpy.reset();
-//       reactiveRecord.setAPI({ diffMode: false })
-//       person.save().catch(e=>{});
-//       const [lastCall] = fetchSpy.__spy.calls,
-//             [,{ body:jsonBody }] = lastCall,
-//             body = JSON.parse(jsonBody);
-//
-//       expect(body).to.eql({ name: "Jim", age: 28 })
-//     })
-//
-//     it("should be able to interpolate a route when diffMode is on (#BUG)", ()=>{
-//
-//       const unit = new Unit({
-//         id:46,
-//         user_id: 10,
-//         building_id: 45,
-//         unit_type: "sfh",
-//         created_at: "2017-04-06T14:49:46-05:00",
-//         updated_at:"2017-04-06T14:49:46-05:00"
-//       })
-//       unit.unit_type = "town"
-//       fetchSpy.reset();
-//       reactiveRecord.setAPI({ diffMode: true })
-//       unit.save().catch(e=>{});
-//
-//       const [lastCall] = fetchSpy.__spy.calls,
-//             [requestPath,{ body:jsonBody }] = lastCall,
-//             body = JSON.parse(jsonBody);
-//
-//       expect(body).to.eql({ unit_type: "town" })
-//       expect(requestPath).to.eql("/api/v2/landlords/buildings/45/units/46")
-//     })
-//
-//     it("should submit all attributes if the record is new (no ID) (#BUG)", ()=>{
-//       const unit = new Unit({
-//         user_id: 10,
-//         building_id: 45,
-//         unit_type: "sfh"
-//       })
-//       fetchSpy.reset();
-//
-//       unit.save().catch(e=>{});
-//
-//       const [lastCall] = fetchSpy.__spy.calls,
-//             [,{ body:jsonBody }] = lastCall,
-//             body = JSON.parse(jsonBody);
-//
-//       expect(body).to.eql({ user_id: 10, building_id: 45, unit_type: "sfh" })
-//     })
-//   })
-// });
