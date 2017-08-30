@@ -22,9 +22,6 @@ export default class ReactiveRecord {
     /* Check if it's an instance of model */
     if (!(modelClass.prototype instanceof Model))
       throw new TypeError(`Model ${modelStr} needs to inherit from ReactiveRecord's Model.`)
-    /* Check if there's a schema that isn't empty */
-    if (modelClass.schema === undefined || isEmptyObject(modelClass.schema))
-      throw new TypeError(`Model #<${modelStr}> needs a valid schema.`)
     // Assign the model's parent
     modelClass.ReactiveRecord = this;
     // Assign the model's name

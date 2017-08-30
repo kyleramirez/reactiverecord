@@ -1,5 +1,5 @@
 import Sugar from "./sugar"
-import { ROUTE_TOKENIZER } from "./constants"
+import { ROUTE_TOKENIZER, ROUTE_NOT_FOUND_ERROR } from "./constants"
 /* ReactiveRecord */
 export function skinnyObject(...args) {
   return args.reduce(function(final, arg){
@@ -104,20 +104,24 @@ export function generateRoute(name, method, apiDelimiter, prefix, index=false, i
 export function interpolateRoute(route, attributes, resourceName, singular, apiConfig, query) {
   const { prefix } = apiConfig,
         delimiter = delimiterType(apiConfig.delimiter),
-        modelInflection = singular? resourceName : Sugar.String.pluralize(resourceName),
-        modelWithDelimiter = `${Sugar.String[delimiter](modelInflection)}`;
+        modelInflection = singular ? resourceName : Sugar.String.pluralize(resourceName),
+        modelWithDelimiter = `${Sugar.String[delimiter](modelInflection)}`,
+        queryObj = typeof query === "string" ? queryStringToObj(query) : query;
+  
   return route.replace(":modelname", modelWithDelimiter)
               .replace(":prefix", prefix)
               .replace(ROUTE_TOKENIZER, (token, attributeName)=>{
                 let match = null
-                if (attributes.hasOwnProperty(attributeName))
+                if (attributes.hasOwnProperty(attributeName)) {
                   match = attributes[attributeName]
-                if (query.hasOwnProperty(attributeName))
-                  match = query[attributeName]
+                }
+                if (queryObj.hasOwnProperty(attributeName)) {
+                  match = queryObj[attributeName]
+                }
                 delete attributes[attributeName]
-                delete query[attributeName]
+                delete queryObj[attributeName]
                 return match || token;
-              }) + objToQueryString(query);
+              }) + objToQueryString(queryObj);
 }
 /* ReactiveRecord */
 export function delimiterType(delim="") {
@@ -162,42 +166,54 @@ export function setReadOnlyProps(attrs, persisted) {
   }
 }
 /* ReactiveRecord */
-export function setWriteableProps(attrs){
+export function setWriteableProps(attrs) {
   const { constructor } = this,
-        { schema:{ _primaryKey, _timestamps, ...schema } } = constructor;
+        { schema:{ _primaryKey, _timestamps, ...schema }, prototype } = constructor;
   for (let prop in schema){
-    const hasDescriptor = typeof schema[prop] === "object",
-          // Establish a default value from the schema
-          defaultValue = hasDescriptor? (schema[prop].default || null) : null,
+    const hasDescriptor = typeof schema[prop] === "object" && schema[prop].hasOwnProperty("type"),
           // Establish initial value but fallback to default value
-          initialValue = JSON.parse(JSON.stringify(attrs.hasOwnProperty(prop) ? attrs[prop] : defaultValue)),
+          initialValue = JSON.parse(JSON.stringify(attrs.hasOwnProperty(prop) ? attrs[prop] : null)),
           // Establish type from descriptor
-          type = hasDescriptor? schema[prop].type : schema[prop].name;
+          type = hasDescriptor? schema[prop].type.displayName || schema[prop].type.name : schema[prop].name;
 
     // Write default value
     this._attributes[prop] = initialValue;
 
-    let get = ()=>(this._attributes[prop])
-    // @TODO: The set function should dispatch an action that something was set, which
-    // would be used to increase the version number, and thus invalidate errors
-    let set = (newValue)=>{
-      return this._attributes[prop] = newValue
+    const manuallyDefinedGetter = (Object.getOwnPropertyDescriptor(prototype, prop) || {})["get"],
+          manuallyDefinedSetter = (Object.getOwnPropertyDescriptor(prototype, prop) || {})["set"];
+
+    let get = manuallyDefinedGetter;
+
+    let set = manuallyDefinedSetter;
+
+    if (!manuallyDefinedGetter) {
+      get = ()=>(this._attributes[prop]);
+      if (type == "Object") {
+        get = ()=> (this._attributes[prop] || {})
+      }
+      if (type == "Array") {
+        get = ()=> (this._attributes[prop] || [])
+      }
+      if (type == "Date") {
+        get = ()=> (this._attributes[prop] === null ? null : new Date(this._attributes[prop]))
+      }
+      if (type == "Number") {
+        get = ()=> (this._attributes[prop] === null ? null : Number(this._attributes[prop]))
+      }
     }
 
-    if (type === "Object")
-      get = ()=> (this._attributes[prop] || {})
-    if (type === "Array")
-      get = ()=> (this._attributes[prop] || [])
-    if (type === "Date")
-      get = ()=> (this._attributes[prop] === null ? null : new Date(this._attributes[prop]))
-    if (type === "Number")
-      get = ()=> (this._attributes[prop] === null ? null : Number(this._attributes[prop]))
-    if (type === "Boolean") {
+    if (!manuallyDefinedSetter) {
+      set = (newValue) => (this._attributes[prop] = newValue);
+      if (type == "Boolean") {
+        set = (newValue)=>{
+          return this._attributes[prop] = newValue === "false" ? false : Boolean(newValue)
+        }
+      }
+    }
+
+    if (type == "Boolean") {
       if (this._attributes[prop] !== null) {
         this._attributes[prop] = initialValue === "false" ? false : Boolean(initialValue)
-      }
-      set = (newValue)=>{
-        return this._attributes[prop] = newValue === "false" ? false : Boolean(newValue)
       }
     }
 
@@ -245,28 +261,44 @@ export function tmpRecordProps(){
 };
 /* ReactiveRecord */
 export function objToQueryString(obj) {
-  return Object.keys(obj).reduce( (final, current) => {
+  return Object.keys(obj).reduce( function(final, current) {
     const prefix = final.length? "&" : "?",
           key = encodeURIComponent(current),
           value = encodeURIComponent(obj[current]);
     return `${final}${prefix}${key}=${value}`;
-  }, "" )
+  }, "")
+}
+/* ReactiveRecord */
+export function queryStringToObj(str) {
+  return str?
+    JSON.parse(
+      `{"${str.replace(/^\?/, "")
+              .replace(/#[^$&]*$/, "")
+              .replace(/&/g, '","')
+              .replace(/=/g,'":"')}"}`,
+      (k,v) => (k === ""? v : decodeURIComponent(v) )
+    )
+  :
+    {}
 }
 /* ReactiveRecord */
 export function buildRouteFromInstance(action, query) {
   const {
-    constructor:{ routes, displayName, store:{ singleton:singular=false }={} },
+    constructor: { routes, displayName, store: { singleton:singular=false }={} },
     _attributes,
     ReactiveRecord:{ API:config }
   } = this;
+
   if (!routes[action]) throw new ROUTE_NOT_FOUND_ERROR;
+
   return interpolateRoute(
     routes[action],
     _attributes,
     displayName,
     singular,
-    config
-  ) + objToQueryString(query)
+    config,
+    query
+  );
 }
 /* ReactiveRecord */
 export function getKey() {
@@ -291,4 +323,55 @@ export function getRouteAttributes(action, query) {
     if (this[token] || query[token]) attributes[token] = this[token] || query[token]
   }
   return attributes;
+}
+/* ReactiveRecord */
+export function setDefaultValues(attrs) {
+  const { schema } = this.constructor;
+
+  for (let prop in schema) {
+
+    const hasInitialValue = attrs.hasOwnProperty(prop);
+    if (hasInitialValue) continue;
+
+    const hasDescriptor = typeof schema[prop] === "object";
+    if (!hasDescriptor) continue;
+
+    const hasDefaultValue = schema[prop].hasOwnProperty("default");
+    if (!hasDefaultValue) continue;
+
+    this[prop] = schema[prop].default;
+  }
+}
+/* ReactiveRecord */
+export function without() {
+  const obj = {},
+        { indexOf } = Array.prototype;
+  for (let i in this) {
+    if (arguments::indexOf(i) >= 0) continue;
+    if (!Object.prototype.hasOwnProperty.call(this, i)) continue;
+    obj[i] = this[i];
+  }
+  return obj;
+}
+/* ReactiveRecord */
+export function pick() {
+  const obj = {};
+  for(let i = 0; i < arguments.length; i++) {
+    if(this.hasOwnProperty([arguments[i]])) obj[arguments[i]] = this[arguments[i]];
+  }
+  return obj;
+}
+/* ReactiveRecord */
+export function assignLeft() {
+  const objects = [];
+  for (let i = arguments.length; i-- > 0; ) {
+    if (i) {
+      objects[i - 1] = Object.assign(
+        arguments[i - 1],
+        arguments[i]::pick(...Object.keys(arguments[i - 1]))
+      )
+      objects[i] = arguments[i]::without(...Object.keys(objects[i - 1]))
+    }
+  }
+  return objects;
 }

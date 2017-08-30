@@ -1,6 +1,9 @@
+import diff from "object-diff"
 import {
-  setReadOnlyProps, setWriteableProps,
-  skinnyObject
+  setReadOnlyProps, setWriteableProps, getKey,
+  skinnyObject, getRouteAttributes, recordDiff,
+  setDefaultValues, buildRouteFromInstance, assignLeft,
+  without
 } from "../utils"
 import Request from "../ReactiveRecord/Request"
 import Errors from "./Errors"
@@ -13,30 +16,30 @@ export default class Model {
     Object.defineProperty(this, "_attributes", { value:{} })
     Object.defineProperty(this, "_request", { value:new Request({...attrs._request}) });
     Object.defineProperty(this, "_errors", { value:new Errors({...attrs._errors}) });
+
     this::setReadOnlyProps(attrs, persisted);
     this::setWriteableProps(attrs);
-    Object.defineProperty(this, "_pristine", { value:skinnyObject(this._attributes) })
+
+    Object.defineProperty(this, "_pristine", { value: skinnyObject(this._attributes) })
     Object.freeze(this._pristine)
+
+    this::setDefaultValues(attrs)
   }
 
   /* ReactiveRecord */
-  get ReactiveRecord(){ return this.constructor.ReactiveRecord }
-  static dispatch({ action, key, ...args }) {
-    const { displayName, ReactiveRecord, schema:{ _primaryKey="id" } } = this,
+  get ReactiveRecord() { return this.constructor.ReactiveRecord }
+  static dispatch({ action, ...args }) {
+    const { displayName, ReactiveRecord } = this,
           type = `@${action}(${displayName})`;
-    if (key) {
-      args.attributes = args.attributes || {}
-      args.attributes[_primaryKey] = key;
-    }
     return ReactiveRecord.dispatch({ type, ...args })
   }
   static store = { singleton: false }
+  static schema = {}
 
-  // Serialization
-  serialize(){
+  /* Serialization */
+  serialize() {
     return skinnyObject(this)
   }
-
   toJSON() {
     return {
       _attributes: this._attributes,
@@ -45,11 +48,13 @@ export default class Model {
     }
   }
 
-  // Dirty
+  /* Dirty */
   get diff() {
-    return diff.custom({
-      equal: recordDiff
-    }, this._pristine, skinnyObject(this._attributes))
+    return diff.custom(
+      { equal: recordDiff },
+      this._persisted ? this._pristine : (new this.constructor)._pristine,
+      skinnyObject(this._attributes)
+    )
   }
   get changedAttributes() { return Object.keys(this.diff) }
   get isPristine() { return !!!this.changedAttributes.length }
@@ -58,7 +63,7 @@ export default class Model {
     return attr => (this.changedAttributes.indexOf(attr) > -1)
   }
 
-  // Routes
+  /* Routes */
   get routeFor() {
     return (action, query={}) => this::buildRouteFromInstance(action, query);
   }
@@ -67,7 +72,7 @@ export default class Model {
     return (action, query={}) => this::getRouteAttributes(action, query);
   }
 
-  // Persistence
+  /* Persistence */
   static create(attrs, options) { return new this(attrs).save(options) }
   get updateAttributes() {
     return (attributes={}, options)=>{
@@ -78,12 +83,12 @@ export default class Model {
   get updateAttribute() {
     return (name, value, options={})=>{
       this[name] = value;
-      return this.save({...options, validate: false})
+      return this.save({ ...options, validate: false })
     }
   }
   get save() {
     const action = this._persisted? "UPDATE" : "CREATE",
-          attributes = this._persisted? this.diff : skinnyObject(this._attributes)
+          attributes = this.diff;
     return ({ query={} }={}) => {
       const submit = { action, attributes, query }
       Object.assign(submit.attributes, this.routeAttributes(action, query))
@@ -91,32 +96,39 @@ export default class Model {
     }
   }
   get destroy() {
-    return (query={}) => {
-      Object.assign(query, this.routeAttributes("DESTROY", query))
-      return this.constructor.destroy(getKey.call(this), query)
+    return (_query={}) => {
+      const attributes = this.routeAttributes("DESTROY", _query),
+            query = _query::without(...Object.keys(attributes));
+      return this.constructor.dispatch({ action:"DESTROY", attributes, query })
     }
   }
-  static destroy(key, query) {
-    return this.dispatch({ action:"DESTROY", key, query })
+
+  static destroy(key, _query={}) {
+    const { _primaryKey="id" } = this.schema;
+    const [ attributes, query ] = assignLeft({ [_primaryKey]:key }, _query)
+    return this.dispatch({ action:"DESTROY", attributes, query })
   }
 
-  // Remote
-  static find(key, query={}) {
-    return this.dispatch({ action:"SHOW", key, query })
+  /* Remote */
+  static find(key, _query={}) {
+    const { _primaryKey="id" } = this.schema;
+    const [ attributes, query ] = assignLeft({ [_primaryKey]:key }, _query)
+
+    return this.dispatch({ action:"SHOW", attributes, query })
   }
   static all(query={}) {
-    return this.dispatch({ action:"INDEX", query })
+    return this.dispatch({ action:"INDEX", attributes: {}, query })
   }
   static load(query) { return this.all(query) }
   get reload() {
     const {constructor:{store:{singleton=false}}} = this;
     return query => {
       if (singleton) return this.constructor.all(query)
-      return this.constructor.find(getKey.call(this), query)
+      return this.constructor.find(this::getKey()[1], query)
     } 
   }
 
-  // Validations
+  /* Validations */
   static validations = {}
   static validationsFor() {}
   get isValid() {}
