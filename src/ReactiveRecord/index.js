@@ -1,11 +1,19 @@
 import Model from "../Model"
 import {
-  isEmptyObject, generateId, interpolateRoute,
-  skinnyObject, checkResponseStatus
+  isEmptyObject,
+  generateId,
+  interpolateRoute,
+  skinnyObject,
+  checkResponseStatus,
+  without, pick
 } from "../utils"
 import {
-  collectionProps, ACTION_MATCHER, ACTION_METHODS,
-  ROUTE_NOT_FOUND_ERROR
+  collectionProps,
+  ACTION_MATCHER,
+  ACTION_METHODS,
+  ROUTE_NOT_FOUND_ERROR,
+  MODEL_NOT_FOUND_ERROR,
+  MODEL_NOT_VALID_ERROR
 } from "../constants"
 import Collection from "./Collection"
 import Request from "./Request"
@@ -16,12 +24,12 @@ export default class ReactiveRecord {
     /* If we're just retrieving a model */
     if (!modelClass) {
       if (typeof this.models[modelStr] === "undefined")
-        throw new ReferenceError(`Model ${modelStr} is not a recognized ReactiveRecord Model.`);
+        throw new MODEL_NOT_FOUND_ERROR(modelStr)
       return this.models[modelStr];
     }
     /* Check if it's an instance of model */
     if (!(modelClass.prototype instanceof Model))
-      throw new TypeError(`Model ${modelStr} needs to inherit from ReactiveRecord's Model.`)
+      throw new MODEL_NOT_VALID_ERROR(modelStr)
     // Assign the model's parent
     modelClass.ReactiveRecord = this;
     // Assign the model's name
@@ -34,10 +42,7 @@ export default class ReactiveRecord {
             }={},
             schema:{
               _primaryKey="id"
-            },
-            store:{
-              singleton=false
-            }={}
+            }
           } = modelClass,
           defaultRoutes = ["index", "create", "show", "update", "destroy"]
             // Removes routes if except defined
@@ -65,6 +70,7 @@ export default class ReactiveRecord {
     credentials: "same-origin",
     patchMode: true
   }
+
   setAPI(opts){
     const { prefix, delimiter, credentials, patchMode } = this.API,
     { headers={} } = opts;
@@ -80,11 +86,16 @@ export default class ReactiveRecord {
   performAsync(action) {
     return new Promise((resolve, reject)=>{
       const [,, actionName, modelName] = action.type.match(ACTION_MATCHER),
-            model = this.models[modelName],
-            { store:{ singleton=false } } = model,
-            { query={}, attributes:body={} } = action,
+            model = this.models[modelName];
+
+      if (!model) throw new MODEL_NOT_FOUND_ERROR(modelName);
+
+      const { store:{ singleton=false } } = model,
+            { attributes={} } = action,
             { headers, credentials, ...apiConfig } = this.API,
-            routeTemplate = model.routes[actionName.toLowerCase()];
+            routeTemplate = model.routes[actionName.toLowerCase()],
+            query = attributes::without(...Object.keys(model.schema)),
+            body = attributes::pick(...Object.keys(model.schema));
 
       if (!routeTemplate) throw new ROUTE_NOT_FOUND_ERROR;
 
@@ -96,36 +107,36 @@ export default class ReactiveRecord {
 
       let responseStatus = null;
       fetch(route, request)
-        .then(checkResponseStatus)
-        .then(res=>{
-          responseStatus = res.status;
-          return res.json()
-        })
-        .then(data=>{
-          /* Getting this far means no errors occured */
-          const isCollection = data instanceof Array;
-          let resource = null;
-          const _request = { status: responseStatus, original:{ route, request } }
-          if (!isCollection) {
-            resource = new model({...data, _request }, true)
-          }
-          else {
-            const collection = data.map( attrs => (new model({...attrs, _request:{ status: responseStatus } }, true)))
-            resource = new Collection(...collection)
-            resource._request = new Request({ ..._request })
-          }
-          resolve(resource)
-          this.dispatch({ ...resource.serialize(), type:`@OK_${actionName}(${modelName})` })
-        })
-        .catch(({ status, response }) =>{
-          response.json().then(body=>{
-            // const wasCollection = actionName == "INDEX" || actionName == "SHOW"
-            // if (wasCollection) reject({ status, body })
-            // else {
-            //
-            // }
-          })
-        })
+        // .then(checkResponseStatus)
+        // .then(res=>{
+        //   responseStatus = res.status;
+        //   return res.json()
+        // })
+        // .then(data=>{
+        //   /* Getting this far means no errors occured */
+        //   const isCollection = data instanceof Array;
+        //   let resource = null;
+        //   const _request = { status: responseStatus, original:{ route, request } }
+        //   if (!isCollection) {
+        //     resource = new model({...data, _request }, true)
+        //   }
+        //   else {
+        //     const collection = data.map( attrs => (new model({...attrs, _request:{ status: responseStatus } }, true)))
+        //     resource = new Collection(...collection)
+        //     resource._request = new Request({ ..._request })
+        //   }
+        //   resolve(resource)
+        //   this.dispatch({ ...resource.serialize(), type:`@OK_${actionName}(${modelName})` })
+        // })
+        // .catch(({ status, response }) =>{
+        //   response.json().then(body=>{
+        //     // const wasCollection = actionName == "INDEX" || actionName == "SHOW"
+        //     // if (wasCollection) reject({ status, body })
+        //     // else {
+        //     //
+        //     // }
+        //   })
+        // })
     })
   }
 

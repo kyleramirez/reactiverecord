@@ -66,13 +66,13 @@ export function regexIndexOf(regex, string, startpos=0){
 }
 /* ReactiveRecord */
 export function checkResponseStatus(response){
-  const {status} = response,
+  const { status } = response,
         error = new Error;
-  // If no error, great, return the response.
+  /* If no error, great, return the response. */
   if (status >= 200 && status < 300)
     return response
 
-  // Begin parsing this error
+  /* Begin parsing this error */
   error.status = status
   error.response = response
   throw error
@@ -105,8 +105,7 @@ export function interpolateRoute(route, attributes, resourceName, singular, apiC
   const { prefix } = apiConfig,
         delimiter = delimiterType(apiConfig.delimiter),
         modelInflection = singular ? resourceName : Sugar.String.pluralize(resourceName),
-        modelWithDelimiter = `${Sugar.String[delimiter](modelInflection)}`,
-        queryObj = typeof query === "string" ? queryStringToObj(query) : query;
+        modelWithDelimiter = `${Sugar.String[delimiter](modelInflection)}`;
   
   return route.replace(":modelname", modelWithDelimiter)
               .replace(":prefix", prefix)
@@ -115,13 +114,13 @@ export function interpolateRoute(route, attributes, resourceName, singular, apiC
                 if (attributes.hasOwnProperty(attributeName)) {
                   match = attributes[attributeName]
                 }
-                if (queryObj.hasOwnProperty(attributeName)) {
-                  match = queryObj[attributeName]
+                if (query.hasOwnProperty(attributeName)) {
+                  match = query[attributeName]
                 }
                 delete attributes[attributeName]
-                delete queryObj[attributeName]
+                delete query[attributeName]
                 return match || token;
-              }) + objToQueryString(queryObj);
+              }) + objToQueryString(query);
 }
 /* ReactiveRecord */
 export function delimiterType(delim="") {

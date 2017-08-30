@@ -65,11 +65,18 @@ export default class Model {
 
   /* Routes */
   get routeFor() {
-    return (action, query={}) => this::buildRouteFromInstance(action, query);
+    return (action, _query={}) => {
+      const query = typeof _query === "string" ? queryStringToObj(_query) : _query
+      return this::buildRouteFromInstance(action, query);
+    }
   }
+
   get routeAttributes(){
     /* Returns all attributes needed from this resource to build the route */
-    return (action, query={}) => this::getRouteAttributes(action, query);
+    return (action, _query={}) => {
+      const query = typeof _query === "string" ? queryStringToObj(_query) : _query
+      return this::getRouteAttributes(action, query);
+    }
   }
 
   /* Persistence */
