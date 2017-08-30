@@ -27,6 +27,9 @@ describe("Model", ()=>{
       return this._attributes.phone || "No phone number given";
     }
   });
+  const CurrentUser = reactiveRecordTest.model("CurrentUser", class CurrentUser extends Person {
+    static store = { singleton: true }
+  })
   const Smell = reactiveRecordTest.model("Smell", class Smell extends Model {
     static routes = {
       index: "/:modelname/:special_prop_not_in_schema",
@@ -81,6 +84,29 @@ describe("Model", ()=>{
           dude[property] = "anything";
         }).to.throw(TypeError)
       });
+    });
+
+    it("should treat created_at, createdAt, updated_at, updatedAt as the same", () => {
+      const date = "2017-08-30T15:05:32.144Z",
+            created_at = date,
+            updated_at = date,
+            createdAt = date,
+            updatedAt = date,
+            person1 = new Person({ created_at, updated_at }),
+            person2 = new Person({ createdAt, updatedAt });
+      expect(date).to.equal(person1.createdAt.toISOString())
+      expect(date).to.equal(person1.updatedAt.toISOString())
+      expect(date).to.equal(person2.createdAt.toISOString())
+      expect(date).to.equal(person2.createdAt.toISOString())
+    });
+
+    it("should treat an id and _id as the same", () => {
+      const id = 123,
+            _id = id,
+            person1 = new Person({ id }),
+            person2 = new Person({ _id });
+      expect(id).to.equal(person1.id)
+      expect(id).to.equal(person2.id)
     });
 
     it("should treat a custom _primaryKey as read-only", () => {
@@ -292,7 +318,7 @@ describe("Model", ()=>{
 
   describe("#create", () => {
     it("should submit the correct attributes for creation", () => {
-      reactiveRecordTest.dispatch.reset();
+      
       const attributes = { slug: "nandos-on-fire", title: "Nandos on fire" },
             query = { priority: "breaking" };
       News.create(attributes, { query });
@@ -306,7 +332,7 @@ describe("Model", ()=>{
   describe("#updateAttributes", () => {
 
     it("should only send changed attributes and attributes needed for URL", () => {
-      reactiveRecordTest.dispatch.reset();
+      
       const news = new News({ slug: "nandos-on-fire", title: "Nandos on fire" }, true);
       news.updateAttributes({ title: "Update: Nandos never actually on fire" })
       expect(reactiveRecordTest.dispatch).to.have.been.called.with({
@@ -319,7 +345,7 @@ describe("Model", ()=>{
     });
 
     it("should consider default values as changed values", () => {
-      reactiveRecordTest.dispatch.reset();
+      
       const guy = new Person({ id: 123 }, true);
       guy.updateAttributes({ name: "Craig" })
       expect(reactiveRecordTest.dispatch).to.have.been.called.with({
@@ -331,7 +357,7 @@ describe("Model", ()=>{
 
   describe("#updateAttribute", () => {
     it("should only send changed attribute and attributes needed for URL", () => {
-      reactiveRecordTest.dispatch.reset();
+      
       const news = new News({ slug: "nandos-on-fire", title: "Nandos on fire" }, true);
       news.updateAttribute("title", "Update: Nandos never actually on fire")
       expect(reactiveRecordTest.dispatch).to.have.been.called.with({
@@ -344,7 +370,7 @@ describe("Model", ()=>{
     });
 
     it("should consider default values as changed values", () => {
-      reactiveRecordTest.dispatch.reset();
+      
       const guy = new Person({ id: 123 }, true);
       guy.updateAttribute("name", "Craig")
       expect(reactiveRecordTest.dispatch).to.have.been.called.with({
@@ -356,7 +382,7 @@ describe("Model", ()=>{
 
   describe("#save", () => {
     it("should only send changed attributes and attributes needed for URL", () => {
-      reactiveRecordTest.dispatch.reset();
+      
       const person = new Person({ id: 123, level: "Zulu" }, true)
       person.name = "Shaka"
       person.save()
@@ -367,7 +393,7 @@ describe("Model", ()=>{
     });
 
     it("should dispatch a create action if the record is not persisted", () => {
-      reactiveRecordTest.dispatch.reset();
+      
       const person = new Person({ level: "Zulu" })
       person.name = "Shaka"
       person.save()
@@ -378,7 +404,7 @@ describe("Model", ()=>{
     });
 
     it("should dispatch an update action if the record is persisted", () => {
-      reactiveRecordTest.dispatch.reset();
+      
       const person = new Person({ id: 123 }, true)
       person.name = "Shaka"
       person.save()
@@ -391,7 +417,7 @@ describe("Model", ()=>{
 
   describe("#destroy", () => {
     it("should only dispatch the attributes needed to destroy", () => {
-      reactiveRecordTest.dispatch.reset();
+      
       const person = new Person({ id: 123 }, true);
       person.destroy()
       expect(reactiveRecordTest.dispatch).to.have.been.called.with({
@@ -401,7 +427,7 @@ describe("Model", ()=>{
     });
 
     it("should include the necessary attributes to build the route", () => {
-      reactiveRecordTest.dispatch.reset();
+      
       const leadMessage = new LeadMessage({ id: 124 });
       leadMessage.destroy({ unit_id: 50, lead_id: 500, reason: "Trump" });
       expect(reactiveRecordTest.dispatch).to.have.been.called.with({
@@ -413,7 +439,7 @@ describe("Model", ()=>{
 
   describe("#static destroy", () => {
     it("should only require a key to dispatch the correct attributes", () => {
-      reactiveRecordTest.dispatch.reset();
+      
       News.destroy("nandos-on-fire")
       expect(reactiveRecordTest.dispatch).to.have.been.called.with({
         type: "@DESTROY(News)",
@@ -422,7 +448,7 @@ describe("Model", ()=>{
     });
 
     it("should include the necessary attributes to build the route", () => {
-      reactiveRecordTest.dispatch.reset();
+      
       LeadMessage.destroy(124,{ unit_id: 50, lead_id: 500, reason: "Trump" })
       expect(reactiveRecordTest.dispatch).to.have.been.called.with({
         type: "@DESTROY(LeadMessage)",
@@ -431,9 +457,58 @@ describe("Model", ()=>{
     });
   });
 
+  describe("#find", () => {
+    it("should dispatch a SHOW action", () => {
+      News.find("nandos-on-fire")
+      expect(reactiveRecordTest.dispatch).to.have.been.called.with({
+        type: "@SHOW(News)",
+        attributes: { slug: "nandos-on-fire" }
+      });
+    });
+  });
+
+  describe("#all", () => {
+    it("should dispatch an INDEX action", () => {
+      News.all()
+      expect(reactiveRecordTest.dispatch).to.have.been.called.with({
+        type: "@INDEX(News)",
+        attributes: {}
+      });
+    });
+  });
+
+  describe("#load", () => {
+    it("should be an alias for #all", () => {
+      News.load()
+      expect(reactiveRecordTest.dispatch).to.have.been.called.with({
+        type: "@INDEX(News)",
+        attributes: {}
+      });
+    });
+  });
+
+  describe("#reload", () => {
+    it("should dispatch an INDEX action for singleton models", () => {
+      const currentUser = new CurrentUser;
+      currentUser.reload();
+      expect(reactiveRecordTest.dispatch).to.have.been.called.with({
+        type: "@INDEX(CurrentUser)",
+        attributes: {}
+      });
+    });
+    it("should dispatch a SHOW action for non-singleton resoures", () => {
+      const person = new Person({ id: 123 });
+      person.reload();
+      expect(reactiveRecordTest.dispatch).to.have.been.called.with({
+        type: "@SHOW(Person)",
+        attributes: { id: 123 }
+      });
+    });
+  });
+
   describe("Query Interface", () => {
     it("should take a query for a create operation", () => {
-      reactiveRecordTest.dispatch.reset();
+      
       Person.create({ name: "Thomas" }, { query: { generic: "attribute" } })
       expect(reactiveRecordTest.dispatch).to.have.been.called.with({
         type: "@CREATE(Person)",
@@ -443,7 +518,7 @@ describe("Model", ()=>{
           generic: "attribute"
         }
       })
-      reactiveRecordTest.dispatch.reset();
+      
       Person.create({ name: "Thomas" }, { query: "?generic=attribute" })
       expect(reactiveRecordTest.dispatch).to.have.been.called.with({
         type: "@CREATE(Person)",
@@ -456,7 +531,7 @@ describe("Model", ()=>{
     });
 
     it("should take a query for a static destroy operation", () => {
-      reactiveRecordTest.dispatch.reset();
+      
       Person.destroy(123, { generic: "attribute" })
       expect(reactiveRecordTest.dispatch).to.have.been.called.with({
         type: "@DESTROY(Person)",
@@ -465,7 +540,7 @@ describe("Model", ()=>{
           generic: "attribute"
         }
       })
-      reactiveRecordTest.dispatch.reset();
+      
       Person.destroy(123, "?generic=attribute")
       expect(reactiveRecordTest.dispatch).to.have.been.called.with({
         type: "@DESTROY(Person)",
@@ -477,7 +552,7 @@ describe("Model", ()=>{
     });
       
     it("should take a query for a find operation", () => {
-      reactiveRecordTest.dispatch.reset();
+      
       Person.find(123, { generic: "attribute" })
       expect(reactiveRecordTest.dispatch).to.have.been.called.with({
         type: "@SHOW(Person)",
@@ -486,7 +561,7 @@ describe("Model", ()=>{
           generic: "attribute"
         }
       })
-      reactiveRecordTest.dispatch.reset();
+      
       Person.find(123, "?generic=attribute")
       expect(reactiveRecordTest.dispatch).to.have.been.called.with({
         type: "@SHOW(Person)",
@@ -498,13 +573,13 @@ describe("Model", ()=>{
     });
       
     it("should take a query for an index operation", () => {
-      reactiveRecordTest.dispatch.reset();
+      
       Person.all({ generic: "attribute" })
       expect(reactiveRecordTest.dispatch).to.have.been.called.with({
         type: "@INDEX(Person)",
         attributes: { generic: "attribute" }
       })
-      reactiveRecordTest.dispatch.reset();
+      
       Person.all("?generic=attribute")
       expect(reactiveRecordTest.dispatch).to.have.been.called.with({
         type: "@INDEX(Person)",
@@ -513,13 +588,13 @@ describe("Model", ()=>{
     });
 
     it("should take a query for a load operation", () => {
-      reactiveRecordTest.dispatch.reset();
+      
       Person.load({ generic: "attribute" })
       expect(reactiveRecordTest.dispatch).to.have.been.called.with({
         type: "@INDEX(Person)",
         attributes: { generic: "attribute" }
       })
-      reactiveRecordTest.dispatch.reset();
+      
       Person.load("?generic=attribute")
       expect(reactiveRecordTest.dispatch).to.have.been.called.with({
         type: "@INDEX(Person)",
@@ -528,7 +603,7 @@ describe("Model", ()=>{
     });
 
     it("should take a query for an updateAttributes operation", () => {
-      reactiveRecordTest.dispatch.reset();
+      
       const person = new Person
       person.updateAttributes({ name: "Thomas" }, { query: { generic: "attribute" } })
       expect(reactiveRecordTest.dispatch).to.have.been.called.with({
@@ -539,7 +614,7 @@ describe("Model", ()=>{
           generic: "attribute"
         }
       })
-      reactiveRecordTest.dispatch.reset();
+      
       person.updateAttributes({ name: "Thomas" }, { query: "?generic=attribute" })
       expect(reactiveRecordTest.dispatch).to.have.been.called.with({
         type: "@CREATE(Person)",
@@ -552,7 +627,7 @@ describe("Model", ()=>{
     });
 
     it("should take a query for an updateAttribute operation", () => {
-      reactiveRecordTest.dispatch.reset();
+      
       const person = new Person
       person.updateAttribute("name", "Thomas", { query: { generic: "attribute" } })
       expect(reactiveRecordTest.dispatch).to.have.been.called.with({
@@ -563,7 +638,7 @@ describe("Model", ()=>{
           generic: "attribute"
         }
       })
-      reactiveRecordTest.dispatch.reset();
+      
       person.updateAttribute("name", "Thomas", { query: "?generic=attribute" })
       expect(reactiveRecordTest.dispatch).to.have.been.called.with({
         type: "@CREATE(Person)",
@@ -576,7 +651,7 @@ describe("Model", ()=>{
     });
 
     it("should take a query for a save operation", () => {
-      reactiveRecordTest.dispatch.reset();
+      
       const person = new Person
       person.save({ query: { generic: "attribute" } })
       expect(reactiveRecordTest.dispatch).to.have.been.called.with({
@@ -586,7 +661,7 @@ describe("Model", ()=>{
           generic: "attribute"
         }
       })
-      reactiveRecordTest.dispatch.reset();
+      
       person.save({ query: "?generic=attribute" })
       expect(reactiveRecordTest.dispatch).to.have.been.called.with({
         type: "@CREATE(Person)",
@@ -598,14 +673,14 @@ describe("Model", ()=>{
     });
 
     it("should take a query for a destroy operation", () => {
-      reactiveRecordTest.dispatch.reset();
+      
       const lastPerson = new Person({ id: 123 })
       lastPerson.destroy({ generic: "attribute" })
       expect(reactiveRecordTest.dispatch).to.have.been.called.with({
         type: "@DESTROY(Person)",
         attributes: { id: 123, generic: "attribute" }
       })
-      reactiveRecordTest.dispatch.reset();
+      
       lastPerson.destroy("?generic=attribute")
       expect(reactiveRecordTest.dispatch).to.have.been.called.with({
         type: "@DESTROY(Person)",
@@ -614,7 +689,7 @@ describe("Model", ()=>{
     });
 
     it("should take a query for a reload operation", () => {
-      reactiveRecordTest.dispatch.reset();
+      
       const lastPerson = new Person({ id: 123 })
       lastPerson.reload({ generic: "attribute" })
       expect(reactiveRecordTest.dispatch).to.have.been.called.with({
@@ -624,7 +699,7 @@ describe("Model", ()=>{
           generic: "attribute"
         }
       })
-      reactiveRecordTest.dispatch.reset();
+      
       lastPerson.reload("?generic=attribute")
       expect(reactiveRecordTest.dispatch).to.have.been.called.with({
         type: "@SHOW(Person)",
