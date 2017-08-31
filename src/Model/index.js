@@ -14,8 +14,8 @@ export default class Model {
           model = this.ReactiveRecord.models[modelName];
 
     Object.defineProperty(this, "_attributes", { value:{} })
-    Object.defineProperty(this, "_request", { value:new Request({...attrs._request}) });
-    Object.defineProperty(this, "_errors", { value:new Errors({...attrs._errors}) });
+    Object.defineProperty(this, "_request", { value: new Request({...attrs._request}) });
+    Object.defineProperty(this, "_errors", { value: new Errors({...attrs._errors}) });
 
     this::setReadOnlyProps(attrs, persisted);
     this::setWriteableProps(attrs);
@@ -28,24 +28,21 @@ export default class Model {
 
   /* ReactiveRecord */
   get ReactiveRecord() { return this.constructor.ReactiveRecord }
-  static dispatch({ action, attributes }) {
+  static dispatch({ action, _attributes }) {
     const { displayName, ReactiveRecord } = this,
           type = `@${action}(${displayName})`;
-    return ReactiveRecord.dispatch({ type, attributes })
+    return ReactiveRecord.dispatch({ type, _attributes })
   }
   static store = { singleton: false }
   static schema = {}
 
   /* Serialization */
   serialize() {
-    return skinnyObject(this)
-  }
-  toJSON() {
-    return {
+    return skinnyObject({
       _attributes: this._attributes,
       _errors: this._errors,
-      _request: this._request
-    }
+      _request: this._request.serialize()
+    })
   }
 
   /* Dirty */
@@ -99,42 +96,43 @@ export default class Model {
       const shouldDiff = this.ReactiveRecord.API.patchMode,
             attributesForRequest = shouldDiff ? this.diff : skinnyObject(this._attributes),
             query = typeof _query === "string" ? queryStringToObj(_query) : _query,
-            attributes = Object.assign(attributesForRequest, this.routeAttributes(action, query), query);
-      return this.constructor.dispatch({ action, attributes })
+            _attributes = Object.assign(attributesForRequest, this.routeAttributes(action, query), query);
+      return this.constructor.dispatch({ action, _attributes })
     }
   }
   get destroy() {
     const action = "DESTROY";
     return (_query={}) => {
       const query = typeof _query === "string" ? queryStringToObj(_query) : _query,
-            attributes = Object.assign(this.routeAttributes(action, query), query);
-      return this.constructor.dispatch({ action:"DESTROY", attributes })
+            _attributes = Object.assign(this.routeAttributes(action, query), query);
+      return this.constructor.dispatch({ action:"DESTROY", _attributes })
     }
   }
 
   static destroy(key, _query={}) {
     const query = typeof _query === "string" ? queryStringToObj(_query) : _query,
           { _primaryKey="id" } = this.schema,
-          attributes = Object.assign({ [_primaryKey]:key }, query);
-    return this.dispatch({ action:"DESTROY", attributes });
+          _attributes = Object.assign({ [_primaryKey]:key }, query);
+    return this.dispatch({ action:"DESTROY", _attributes });
   }
 
   /* Remote */
   static find(key, _query={}) {
     const query = typeof _query === "string" ? queryStringToObj(_query) : _query,
           { _primaryKey="id" } = this.schema,
-          attributes = Object.assign({ [_primaryKey]:key }, query);
-    return this.dispatch({ action:"SHOW", attributes });
+          _attributes = Object.assign({ [_primaryKey]:key }, query);
+    return this.dispatch({ action:"SHOW", _attributes });
   }
   static all(query={}) {
-    const attributes = typeof query === "string" ? queryStringToObj(query) : query;
-    return this.dispatch({ action:"INDEX", attributes })
+    const _attributes = typeof query === "string" ? queryStringToObj(query) : query;
+    return this.dispatch({ action:"INDEX", _attributes })
   }
   static load(query) { return this.all(query) }
   get reload() {
     const { singleton=false } = this.constructor.store;
     return _query => {
       const query = typeof _query === "string" ? queryStringToObj(_query) : _query;
+      if (this._request.canReload) return this._request.reload(query)
       if (singleton) return this.constructor.all(query)
       const [ _primaryKey, key ] = this::getKey(),
             findQuery = Object.assign(this.routeAttributes("SHOW", query), query)

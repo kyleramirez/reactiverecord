@@ -1,4 +1,4 @@
-import { expect } from "chai"
+import chai, { expect } from "chai"
 import { ReactiveRecord, Model } from "../src"
 import { fetchRequests, FetchResponse } from "./test-utils"
 
@@ -141,44 +141,257 @@ describe("ReactiveRecord", ()=>{
 
   describe("#performAsync", () => {
     const reactiveRecordTest = new ReactiveRecord(),
-          Person = reactiveRecordTest.model("Person", class extends Model {});
-          Person.schema = { name: String }
-    fetch.reset();
+          dispatchSpy = chai.spy(),
+          Person = reactiveRecordTest.model("Person", class extends Model {
+            static schema = { name: String }
+          });
+    reactiveRecordTest.dispatch = dispatchSpy;
 
-    // WRITE TESTS FOR ASYNC
+    it("should throw an error if referencing a non-existent model", () => {
+      return reactiveRecordTest.performAsync({ type: "@CREATE(Insect)", _attributes: { name: "Asian Longhorn Beetle" } })
+                               .catch( e => {
+                                 expect(e).to.be.an.instanceof(ReferenceError)
+                               });
+    });
 
+    it("should select the appropriate route based on the dispatched action", () => {
+      fetch.reset();
+      fetchRequests.reset();
+      const Insect = reactiveRecordTest.model("Insect", class extends Model {
+        static routes = {
+          index: "/the-index-route",
+          create: "/the-create-route",
+          show: "/the-show-route",
+          update: "/the-update-route",
+          destroy: "/the-destroy-route"
+        }
+      })
+      reactiveRecordTest.performAsync({ type: "@INDEX(Insect)" })
+      expect(fetch).to.have.been.called.with(Insect.routes.index);
 
-    it("should dispatch correct actions", () => {
-      reactiveRecordTest.performAsync({ type: "@CREATE(Person)", attributes: { name: "Kyle" } })
-      const request = [
+      reactiveRecordTest.performAsync({ type: "@CREATE(Insect)" })
+      expect(fetch).to.have.been.called.with(Insect.routes.create);
+
+      reactiveRecordTest.performAsync({ type: "@SHOW(Insect)" })
+      expect(fetch).to.have.been.called.with(Insect.routes.show);
+
+      reactiveRecordTest.performAsync({ type: "@UPDATE(Insect)" })
+      expect(fetch).to.have.been.called.with(Insect.routes.update);
+
+      reactiveRecordTest.performAsync({ type: "@DESTROY(Insect)" })
+      expect(fetch).to.have.been.called.with(Insect.routes.destroy);
+
+    });
+
+    it("should select the appropriate request method based on the dispatched action", () => {
+      fetch.reset();
+      fetchRequests.reset();
+      reactiveRecordTest.performAsync({ type: "@INDEX(Person)" })
+      reactiveRecordTest.performAsync({ type: "@CREATE(Person)", _attributes: { name: "O'Doyle" }})
+      reactiveRecordTest.performAsync({ type: "@SHOW(Person)", _attributes: { id: 123 }})
+      reactiveRecordTest.performAsync({ type: "@UPDATE(Person)", _attributes: { id: 123, name: "Happy" }})
+      reactiveRecordTest.performAsync({ type: "@DESTROY(Person)", _attributes: { id: 123 }})
+      const index = [
         "/people",
-        { method: "POST",
-          body: { name: "Kyle" },
+        { method: "GET",
+          body: {},
           headers: { "Accept": "application/json", "Content-Type": "application/json" },
           credentials: "same-origin" }
       ]
-      expect(fetch).to.have.been.called.with(...request);
-
-      // reactiveRecordTest.performAsync({ type: "@INDEX(Person)", attributes: { name: "Carl", id: 123 } })
-      // console.log(fetch.__spy.calls[fetch.__spy.calls.length - 1])
+      const create = [
+        "/people",
+        { method: "POST",
+          body: { name: "O'Doyle" },
+          headers: { "Accept": "application/json", "Content-Type": "application/json" },
+          credentials: "same-origin" }
+      ]
+      const show = [
+        "/people/123",
+        { method: "GET",
+          body: {},
+          headers: { "Accept": "application/json", "Content-Type": "application/json" },
+          credentials: "same-origin" }
+      ]
+      const update = [
+        "/people/123",
+        { method: "PUT",
+          body: { name: "Happy" },
+          headers: { "Accept": "application/json", "Content-Type": "application/json" },
+          credentials: "same-origin" }
+      ]
+      const destroy = [
+        "/people/123",
+        { method: "DELETE",
+          body: {},
+          headers: { "Accept": "application/json", "Content-Type": "application/json" },
+          credentials: "same-origin" }
+      ]
+      expect(fetch).to.have.been.called.with(...index);
+      expect(fetch).to.have.been.called.with(...create);
+      expect(fetch).to.have.been.called.with(...show);
+      expect(fetch).to.have.been.called.with(...update);
+      expect(fetch).to.have.been.called.with(...destroy);
     });
+
+    it("should never include a body for a GET request", () => {
+      fetch.reset();
+      fetchRequests.reset();
+      const requestWithNoBody = {
+        method: "GET",
+        body: {},
+        headers: {
+          "Accept": "application/json",
+          "Content-Type": "application/json"
+        },
+        credentials: "same-origin"
+      }
+      reactiveRecordTest.performAsync({ type: "@INDEX(Person)", _attributes: {
+        include: "friends",
+        exclude: "email",
+        joins: "invoices",
+        ["range-start"]: "2017-04-01",
+        ["range-end"]: "2017-08-01"
+      }});
+      expect(fetch).to.have.been.called.with(requestWithNoBody);
+      fetch.reset();
+      fetchRequests.reset();
+
+      reactiveRecordTest.performAsync({ type: "@SHOW(Person)", _attributes: {
+        id: 123,
+        include: "friends",
+        exclude: "email",
+        joins: "invoices",
+        ["range-start"]: "2017-04-01",
+        ["range-end"]: "2017-08-01"
+      }});
+      expect(fetch).to.have.been.called.with(requestWithNoBody);
+    });
+
+    it("should add all attributes not in the schema to the URL and query string", () => {
+      fetch.reset();
+      fetchRequests.reset();
+      reactiveRecordTest.performAsync({ type: "@CREATE(Person)", _attributes: {
+        name: "Kyle",
+        source: "signup-page",
+        partner: "StateFarm"
+      }});
+      expect(fetch).to.have.been.called.with(
+        "/people?source=signup-page&partner=StateFarm",
+        {
+          method: "POST",
+          body: { name: "Kyle" },
+          headers: {
+            "Accept": "application/json",
+            "Content-Type": "application/json"
+          },
+          credentials: "same-origin"
+        }
+      )
+    });
+
+    it("should interpolate url tokens, including ones not in the schema", () => {
+      const Mammal = reactiveRecordTest.model("Mammal", class extends Model {
+        static routes = {
+          index: ":prefix/:modelname/:special_attribute_not_in_schema/:species_id"
+        }
+        static schema = {
+          species_id: String
+        }
+      });
+      const oldPrefix = reactiveRecordTest.API.prefix;
+      reactiveRecordTest.API.prefix = "/my-custom-prefix";
+
+      fetch.reset();
+      fetchRequests.reset();
+      reactiveRecordTest.performAsync({
+        type: "@INDEX(Mammal)",
+        _attributes: {
+          species_id: "123",
+          special_attribute_not_in_schema: "happiness"
+        }
+      });
+      expect(fetch).to.have.been.called.with("/my-custom-prefix/mammals/happiness/123")
+      reactiveRecordTest.API.prefix = oldPrefix;
+    });
+
+    it("should resolve all 2xx HTTP status codes", () => {
+      // handleSuccess(responseStatus, method, action, model, _primaryKey, actionName, modelName, resolve, data)
+      reactiveRecordTest.handleSuccess(
+        201,
+        "POST",
+        { type: "@CREATE(Person)", _attributes: { name: "Kyle" }},
+        Person,
+        "id",
+        "CREATE",
+        "Person",
+        function(){},
+        { id: 123, name: "Kyle" }
+      )
+      console.log(JSON.stringify(dispatchSpy.__spy.calls[dispatchSpy.__spy.calls.length - 1][0], null, 2))
+      reactiveRecordTest.handleSuccess(
+        200,
+        "GET",
+        { type: "@INDEX(Person)", _attributes: {}},
+        Person,
+        "id",
+        "INDEX",
+        "Person",
+        function(){},
+        [{ id: 123, name: "Kyle" }, { id: 124, name: "Thom" }]
+      )
+      console.log(JSON.stringify(dispatchSpy.__spy.calls[dispatchSpy.__spy.calls.length - 1][0], null, 2))
+
+    });
+
+    it("should reject all 4xx - 5xx status codes", () => {
+      
+    });
+
+    it("should reject a JSON parse error", () => {
+      
+    });
+
+    
+
+    // it("should ", () => {
+    //   fetch.reset();
+    //   fetchRequests.reset();
+    //   reactiveRecordTest.performAsync({ type: "@INDEX(Person)" });
+    //   const request = [
+    //           "/people",
+    //           { method: "GET",
+    //             body: {},
+    //             headers: { "Accept": "application/json", "Content-Type": "application/json" },
+    //             credentials: "same-origin" }
+    //         ],
+    //         [ resolve ] = fetchRequests.get(request),
+    //         response = new FetchResponse({
+    //           status: 200,
+    //           body: JSON.stringify([{ id: 123, name: "Kyle" }, { id: 124, name: "Thomas" }])
+    //         });
+    //   resolve(response);
+    //
+    // });
   });
 });
 
-// it("should add to query string for every type of operation where the attribute does not exist", () => {
-//   reactiveRecordTest.dispatch.reset();
-// });
+// model should apply new version of the resource to itself after actions which dispatch
+// this should happen before the model resolves to the next step
 //
-// it("should not add to query string if the attribute in the query was used to build the URL", () => {
-//   reactiveRecordTest.dispatch.reset();
-// });
 //
-// it("should interpolate URL tokens that are not in the schema", () => {
-//   reactiveRecordTest.dispatch.reset();
-// });
-// it("should give models access to the ReactiveRecord instance", ()=>{
-//   reactiveRecordTest.model("Person", class extends Model {
-//     static schema = {
-//       name: String
-//     }
-//   });
+// const _request = new Request({ status: 200, body:{}, dispatch, action });
+// _request.serialize();
+//
+// const responseArr = [{},{}];
+// const _primaryKey = "id";
+//
+// const collection = new Collection(Object.assign(responseArr, { _request, _primaryKey }));
+//
+// collection.serialize()
+// collection.reload()
+//
+//
+// Model
+//   it should dispatch the previous action on reload
+// Collection
+//   it should dispatch the previous action on reload

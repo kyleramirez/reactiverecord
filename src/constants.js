@@ -12,21 +12,19 @@ export const ACTION_METHODS = {
                update:"PUTTING",
                destroy:"DELETING"
              },
-             requestProps = {
-               _request: {
-                 status: null,
-                 body: null,
-                 original: null
-               }
+             _request = {
+               status: null,
+               body: null,
+               action: null
              },
              memberProps = {
-               ...requestProps,
+               _request,
                _attributes: {},
                _errors: {}
              },
              collectionProps = {
-               ...requestProps,
-               collection: {}
+               _request,
+               _collection: {}
              },
              ACTION_MATCHER = /^@(OK_|ERROR_)?(INDEX|CREATE|SHOW|UPDATE|DESTROY)\(([^\)]+)\)$/,
              ROUTE_TOKENIZER = /:([^\/\?]*)/g,

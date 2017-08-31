@@ -1,13 +1,34 @@
-export default class ReactiveRecordRequest {
-  constructor({ status=null, body=null }){
-    this.status=status;
-    this.body=body;
+
+function noop() {}
+
+export default class Request {
+  constructor({ status=null, body=null, dispatch=noop, action=null }){
+    this.status = status;
+    this.body = body;
+    this.dispatch = dispatch;
+    this.action = action;
   }
 
-  get clear(){
-    return () => {
-      this.status=null;
-      this.body=null;
+  reload(query={}) {
+    const action = {
+      ...this.action,
+      attributes:{
+        ...this.action.attributes,
+        ...query
+      }
+    }
+    return this.dispatch(action);
+  }
+
+  get canReload() {
+    return !!this.action
+  }
+
+  serialize() {
+    return {
+      status: this.status,
+      body: this.body,
+      action: this.action
     }
   }
 }

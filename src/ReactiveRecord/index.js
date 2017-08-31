@@ -90,13 +90,16 @@ export default class ReactiveRecord {
 
       if (!model) throw new MODEL_NOT_FOUND_ERROR(modelName);
 
-      const { store:{ singleton=false } } = model,
-            { attributes={} } = action,
+      const {
+              store: { singleton=false },
+              schema: { _primaryKey="id" }
+            } = model,
+            { _attributes={} } = action,
             { headers, credentials, ...apiConfig } = this.API,
             routeTemplate = model.routes[actionName.toLowerCase()],
             method = ACTION_METHODS[actionName.toLowerCase()],
-            query = method == "GET" ? attributes : attributes::without(...Object.keys(model.schema)),
-            body = method == "GET" ? {} : attributes::pick(...Object.keys(model.schema));
+            query = method == "GET" ? _attributes : _attributes::without(...Object.keys(model.schema)),
+            body = method == "GET" ? {} : _attributes::pick(...Object.keys(model.schema));
 
       if (!routeTemplate) throw new ROUTE_NOT_FOUND_ERROR;
 
@@ -112,32 +115,50 @@ export default class ReactiveRecord {
           responseStatus = res.status;
           return res.json()
         })
-        .then(data=>{
-          /* Getting this far means no errors occured */
-          const isCollection = data instanceof Array;
-          let resource = null;
-          const _request = { status: responseStatus, original:{ route, request } }
-          if (!isCollection) {
-            resource = new model({...data, _request }, true)
-          }
-          else {
-            const collection = data.map( attrs => (new model({...attrs, _request:{ status: responseStatus } }, true)))
-            resource = new Collection(...collection)
-            resource._request = new Request({ ..._request })
-          }
-          resolve(resource)
-          this.dispatch({ ...resource.serialize(), type:`@OK_${actionName}(${modelName})` })
-        })
-        .catch(({ status, response }) =>{
-          response.json().then(body=>{
-            // const wasCollection = actionName == "INDEX" || actionName == "SHOW"
-            // if (wasCollection) reject({ status, body })
-            // else {
-            //
-            // }
-          })
-        })
+        .then(this.handleSuccess.bind(this, responseStatus, method, action, model, _primaryKey, actionName, modelName, resolve))
+        .catch(this.handleError.bind(this, actionName, reject))
     })
+  }
+
+  handleSuccess(responseStatus, method, action, model, _primaryKey, actionName, modelName, resolve, data) {
+    /* 
+     *  Getting this far means no errors occured processing
+     *  the returned JSON or with the HTTP statuses
+     */
+    const isCollection = data instanceof Array;
+    let resource = null;
+    const _request = { status: responseStatus, dispatch: this.dispatch }
+    if (method == "GET") _request.action = action;
+    /* Successful requests don't need a body */
+    if (!isCollection) {
+      resource = new model({ ...data, _request }, true)
+    }
+    else {
+      const _collection = data.map( attrs => new model({...attrs, _request: { status: responseStatus }}, true) )
+      resource = new Collection({ _collection, _request, _primaryKey });
+    }
+    resolve(resource)
+    this.dispatch({ ...resource.serialize(), type:`@OK_${actionName}(${modelName})` })
+  }
+
+  handleError(actionName, reject, error) {
+    const { status, response } = error;
+    /* 
+     *  If the error does not have a response property,
+     *  it's a generic error, which should be rejected
+     *  immediately.
+     */
+    if (!response) return reject(error);
+
+    if (response && response.hasOwnProperty("json")) {
+      response.json().then( body =>{
+        const wasCollection = actionName == "INDEX" || actionName == "SHOW"
+        if (wasCollection) reject({ status, body })
+        else {
+
+        }
+      })
+    }
   }
 
   get initialState() {

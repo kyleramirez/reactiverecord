@@ -1,4 +1,4 @@
-export default class ReactiveRecordErrors {
+export default class Errors {
   //Each attribute in the schema gets an array, empty or not
   // Also provide a clear function
   // Errors populate in real time according to the value of the

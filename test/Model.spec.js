@@ -155,7 +155,7 @@ describe("Model", ()=>{
       Person.create()
       expect(reactiveRecordTest.dispatch).to.have.been.called.with({
         type: "@CREATE(Person)",
-        attributes: { level: "customer" }
+        _attributes: { level: "customer" }
       })
     });
   });
@@ -324,7 +324,7 @@ describe("Model", ()=>{
       News.create(attributes, { query });
       expect(reactiveRecordTest.dispatch).to.have.been.called.with({
         type: "@CREATE(News)",
-        attributes: { ...attributes, ...query }
+        _attributes: { ...attributes, ...query }
       });
     });
   });
@@ -337,7 +337,7 @@ describe("Model", ()=>{
       news.updateAttributes({ title: "Update: Nandos never actually on fire" })
       expect(reactiveRecordTest.dispatch).to.have.been.called.with({
         type: "@UPDATE(News)",
-        attributes: {
+        _attributes: {
           title: "Update: Nandos never actually on fire",
           slug: "nandos-on-fire"
         }
@@ -350,7 +350,7 @@ describe("Model", ()=>{
       guy.updateAttributes({ name: "Craig" })
       expect(reactiveRecordTest.dispatch).to.have.been.called.with({
         type: "@UPDATE(Person)",
-        attributes: { id: 123, name: "Craig", level: "customer" }
+        _attributes: { id: 123, name: "Craig", level: "customer" }
       });
     });
   });
@@ -362,7 +362,7 @@ describe("Model", ()=>{
       news.updateAttribute("title", "Update: Nandos never actually on fire")
       expect(reactiveRecordTest.dispatch).to.have.been.called.with({
         type: "@UPDATE(News)",
-        attributes: {
+        _attributes: {
           title: "Update: Nandos never actually on fire",
           slug: "nandos-on-fire"
         }
@@ -375,7 +375,7 @@ describe("Model", ()=>{
       guy.updateAttribute("name", "Craig")
       expect(reactiveRecordTest.dispatch).to.have.been.called.with({
         type: "@UPDATE(Person)",
-        attributes: { id: 123, name: "Craig", level: "customer" }
+        _attributes: { id: 123, name: "Craig", level: "customer" }
       });
     });
   });
@@ -388,7 +388,7 @@ describe("Model", ()=>{
       person.save()
       expect(reactiveRecordTest.dispatch).to.have.been.called.with({
         type: "@UPDATE(Person)",
-        attributes: { id: 123, name: "Shaka" }
+        _attributes: { id: 123, name: "Shaka" }
       });
     });
 
@@ -399,7 +399,7 @@ describe("Model", ()=>{
       person.save()
       expect(reactiveRecordTest.dispatch).to.have.been.called.with({
         type: "@CREATE(Person)",
-        attributes: { name: "Shaka", level: "Zulu" }
+        _attributes: { name: "Shaka", level: "Zulu" }
       });
     });
 
@@ -410,7 +410,7 @@ describe("Model", ()=>{
       person.save()
       expect(reactiveRecordTest.dispatch).to.have.been.called.with({
         type: "@UPDATE(Person)",
-        attributes: { id: 123, name: "Shaka", level: "customer" }
+        _attributes: { id: 123, name: "Shaka", level: "customer" }
       });
     });
   });
@@ -422,7 +422,7 @@ describe("Model", ()=>{
       person.destroy()
       expect(reactiveRecordTest.dispatch).to.have.been.called.with({
         type: "@DESTROY(Person)",
-        attributes: { id: 123 }
+        _attributes: { id: 123 }
       });
     });
 
@@ -432,7 +432,7 @@ describe("Model", ()=>{
       leadMessage.destroy({ unit_id: 50, lead_id: 500, reason: "Trump" });
       expect(reactiveRecordTest.dispatch).to.have.been.called.with({
         type: "@DESTROY(LeadMessage)",
-        attributes: { id: 124, unit_id: 50, lead_id: 500, reason: "Trump" }
+        _attributes: { id: 124, unit_id: 50, lead_id: 500, reason: "Trump" }
       });
     });
   });
@@ -443,7 +443,7 @@ describe("Model", ()=>{
       News.destroy("nandos-on-fire")
       expect(reactiveRecordTest.dispatch).to.have.been.called.with({
         type: "@DESTROY(News)",
-        attributes: { slug: "nandos-on-fire" }
+        _attributes: { slug: "nandos-on-fire" }
       });
     });
 
@@ -452,7 +452,7 @@ describe("Model", ()=>{
       LeadMessage.destroy(124,{ unit_id: 50, lead_id: 500, reason: "Trump" })
       expect(reactiveRecordTest.dispatch).to.have.been.called.with({
         type: "@DESTROY(LeadMessage)",
-        attributes: { id: 124, reason: "Trump", unit_id: 50, lead_id: 500 }
+        _attributes: { id: 124, reason: "Trump", unit_id: 50, lead_id: 500 }
       });
     });
   });
@@ -462,7 +462,7 @@ describe("Model", ()=>{
       News.find("nandos-on-fire")
       expect(reactiveRecordTest.dispatch).to.have.been.called.with({
         type: "@SHOW(News)",
-        attributes: { slug: "nandos-on-fire" }
+        _attributes: { slug: "nandos-on-fire" }
       });
     });
   });
@@ -472,7 +472,7 @@ describe("Model", ()=>{
       News.all()
       expect(reactiveRecordTest.dispatch).to.have.been.called.with({
         type: "@INDEX(News)",
-        attributes: {}
+        _attributes: {}
       });
     });
   });
@@ -482,7 +482,7 @@ describe("Model", ()=>{
       News.load()
       expect(reactiveRecordTest.dispatch).to.have.been.called.with({
         type: "@INDEX(News)",
-        attributes: {}
+        _attributes: {}
       });
     });
   });
@@ -493,7 +493,7 @@ describe("Model", ()=>{
       currentUser.reload();
       expect(reactiveRecordTest.dispatch).to.have.been.called.with({
         type: "@INDEX(CurrentUser)",
-        attributes: {}
+        _attributes: {}
       });
     });
     it("should dispatch a SHOW action for non-singleton resoures", () => {
@@ -501,7 +501,7 @@ describe("Model", ()=>{
       person.reload();
       expect(reactiveRecordTest.dispatch).to.have.been.called.with({
         type: "@SHOW(Person)",
-        attributes: { id: 123 }
+        _attributes: { id: 123 }
       });
     });
   });
@@ -512,7 +512,7 @@ describe("Model", ()=>{
       Person.create({ name: "Thomas" }, { query: { generic: "attribute" } })
       expect(reactiveRecordTest.dispatch).to.have.been.called.with({
         type: "@CREATE(Person)",
-        attributes: {
+        _attributes: {
           name: "Thomas",
           level: "customer",
           generic: "attribute"
@@ -522,7 +522,7 @@ describe("Model", ()=>{
       Person.create({ name: "Thomas" }, { query: "?generic=attribute" })
       expect(reactiveRecordTest.dispatch).to.have.been.called.with({
         type: "@CREATE(Person)",
-        attributes: {
+        _attributes: {
           name: "Thomas",
           level: "customer",
           generic: "attribute"
@@ -535,7 +535,7 @@ describe("Model", ()=>{
       Person.destroy(123, { generic: "attribute" })
       expect(reactiveRecordTest.dispatch).to.have.been.called.with({
         type: "@DESTROY(Person)",
-        attributes: {
+        _attributes: {
           id: 123,
           generic: "attribute"
         }
@@ -544,7 +544,7 @@ describe("Model", ()=>{
       Person.destroy(123, "?generic=attribute")
       expect(reactiveRecordTest.dispatch).to.have.been.called.with({
         type: "@DESTROY(Person)",
-        attributes: {
+        _attributes: {
           id: 123,
           generic: "attribute"
         }
@@ -556,7 +556,7 @@ describe("Model", ()=>{
       Person.find(123, { generic: "attribute" })
       expect(reactiveRecordTest.dispatch).to.have.been.called.with({
         type: "@SHOW(Person)",
-        attributes: {
+        _attributes: {
           id: 123,
           generic: "attribute"
         }
@@ -565,7 +565,7 @@ describe("Model", ()=>{
       Person.find(123, "?generic=attribute")
       expect(reactiveRecordTest.dispatch).to.have.been.called.with({
         type: "@SHOW(Person)",
-        attributes: {
+        _attributes: {
           id: 123,
           generic: "attribute"
         }
@@ -577,13 +577,13 @@ describe("Model", ()=>{
       Person.all({ generic: "attribute" })
       expect(reactiveRecordTest.dispatch).to.have.been.called.with({
         type: "@INDEX(Person)",
-        attributes: { generic: "attribute" }
+        _attributes: { generic: "attribute" }
       })
       
       Person.all("?generic=attribute")
       expect(reactiveRecordTest.dispatch).to.have.been.called.with({
         type: "@INDEX(Person)",
-        attributes: { generic: "attribute" }
+        _attributes: { generic: "attribute" }
       })
     });
 
@@ -592,13 +592,13 @@ describe("Model", ()=>{
       Person.load({ generic: "attribute" })
       expect(reactiveRecordTest.dispatch).to.have.been.called.with({
         type: "@INDEX(Person)",
-        attributes: { generic: "attribute" }
+        _attributes: { generic: "attribute" }
       })
       
       Person.load("?generic=attribute")
       expect(reactiveRecordTest.dispatch).to.have.been.called.with({
         type: "@INDEX(Person)",
-        attributes: { generic: "attribute" }
+        _attributes: { generic: "attribute" }
       })
     });
 
@@ -608,7 +608,7 @@ describe("Model", ()=>{
       person.updateAttributes({ name: "Thomas" }, { query: { generic: "attribute" } })
       expect(reactiveRecordTest.dispatch).to.have.been.called.with({
         type: "@CREATE(Person)",
-        attributes: {
+        _attributes: {
           name: "Thomas",
           level: "customer",
           generic: "attribute"
@@ -618,7 +618,7 @@ describe("Model", ()=>{
       person.updateAttributes({ name: "Thomas" }, { query: "?generic=attribute" })
       expect(reactiveRecordTest.dispatch).to.have.been.called.with({
         type: "@CREATE(Person)",
-        attributes: {
+        _attributes: {
           name: "Thomas",
           level: "customer",
           generic: "attribute"
@@ -632,7 +632,7 @@ describe("Model", ()=>{
       person.updateAttribute("name", "Thomas", { query: { generic: "attribute" } })
       expect(reactiveRecordTest.dispatch).to.have.been.called.with({
         type: "@CREATE(Person)",
-        attributes: {
+        _attributes: {
           name: "Thomas",
           level: "customer",
           generic: "attribute"
@@ -642,7 +642,7 @@ describe("Model", ()=>{
       person.updateAttribute("name", "Thomas", { query: "?generic=attribute" })
       expect(reactiveRecordTest.dispatch).to.have.been.called.with({
         type: "@CREATE(Person)",
-        attributes: {
+        _attributes: {
           name: "Thomas",
           level: "customer",
           generic: "attribute"
@@ -656,7 +656,7 @@ describe("Model", ()=>{
       person.save({ query: { generic: "attribute" } })
       expect(reactiveRecordTest.dispatch).to.have.been.called.with({
         type: "@CREATE(Person)",
-        attributes: {
+        _attributes: {
           level: "customer",
           generic: "attribute"
         }
@@ -665,7 +665,7 @@ describe("Model", ()=>{
       person.save({ query: "?generic=attribute" })
       expect(reactiveRecordTest.dispatch).to.have.been.called.with({
         type: "@CREATE(Person)",
-        attributes: {
+        _attributes: {
           level: "customer",
           generic: "attribute"
         }
@@ -678,13 +678,13 @@ describe("Model", ()=>{
       lastPerson.destroy({ generic: "attribute" })
       expect(reactiveRecordTest.dispatch).to.have.been.called.with({
         type: "@DESTROY(Person)",
-        attributes: { id: 123, generic: "attribute" }
+        _attributes: { id: 123, generic: "attribute" }
       })
       
       lastPerson.destroy("?generic=attribute")
       expect(reactiveRecordTest.dispatch).to.have.been.called.with({
         type: "@DESTROY(Person)",
-        attributes: { id: 123, generic: "attribute" }
+        _attributes: { id: 123, generic: "attribute" }
       })
     });
 
@@ -694,7 +694,7 @@ describe("Model", ()=>{
       lastPerson.reload({ generic: "attribute" })
       expect(reactiveRecordTest.dispatch).to.have.been.called.with({
         type: "@SHOW(Person)",
-        attributes: {
+        _attributes: {
           id: 123,
           generic: "attribute"
         }
@@ -703,7 +703,7 @@ describe("Model", ()=>{
       lastPerson.reload("?generic=attribute")
       expect(reactiveRecordTest.dispatch).to.have.been.called.with({
         type: "@SHOW(Person)",
-        attributes: {
+        _attributes: {
           id: 123,
           generic: "attribute"
         }
