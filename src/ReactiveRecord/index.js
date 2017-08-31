@@ -94,49 +94,49 @@ export default class ReactiveRecord {
             { attributes={} } = action,
             { headers, credentials, ...apiConfig } = this.API,
             routeTemplate = model.routes[actionName.toLowerCase()],
-            query = attributes::without(...Object.keys(model.schema)),
-            body = attributes::pick(...Object.keys(model.schema));
+            method = ACTION_METHODS[actionName.toLowerCase()],
+            query = method == "GET" ? attributes : attributes::without(...Object.keys(model.schema)),
+            body = method == "GET" ? {} : attributes::pick(...Object.keys(model.schema));
 
       if (!routeTemplate) throw new ROUTE_NOT_FOUND_ERROR;
 
       /* interpolateRoute will mutate body as needed */
-      const route = interpolateRoute(routeTemplate, body, modelName, singleton, apiConfig, query),
-            method = ACTION_METHODS[actionName.toLowerCase()];
+      const route = interpolateRoute(routeTemplate, body, modelName, singleton, apiConfig, query);
       /* skinnyObject will remove body if it it's null */
       const request = skinnyObject({ method, body, headers, credentials });
 
       let responseStatus = null;
       fetch(route, request)
-        // .then(checkResponseStatus)
-        // .then(res=>{
-        //   responseStatus = res.status;
-        //   return res.json()
-        // })
-        // .then(data=>{
-        //   /* Getting this far means no errors occured */
-        //   const isCollection = data instanceof Array;
-        //   let resource = null;
-        //   const _request = { status: responseStatus, original:{ route, request } }
-        //   if (!isCollection) {
-        //     resource = new model({...data, _request }, true)
-        //   }
-        //   else {
-        //     const collection = data.map( attrs => (new model({...attrs, _request:{ status: responseStatus } }, true)))
-        //     resource = new Collection(...collection)
-        //     resource._request = new Request({ ..._request })
-        //   }
-        //   resolve(resource)
-        //   this.dispatch({ ...resource.serialize(), type:`@OK_${actionName}(${modelName})` })
-        // })
-        // .catch(({ status, response }) =>{
-        //   response.json().then(body=>{
-        //     // const wasCollection = actionName == "INDEX" || actionName == "SHOW"
-        //     // if (wasCollection) reject({ status, body })
-        //     // else {
-        //     //
-        //     // }
-        //   })
-        // })
+        .then(checkResponseStatus)
+        .then(res=>{
+          responseStatus = res.status;
+          return res.json()
+        })
+        .then(data=>{
+          /* Getting this far means no errors occured */
+          const isCollection = data instanceof Array;
+          let resource = null;
+          const _request = { status: responseStatus, original:{ route, request } }
+          if (!isCollection) {
+            resource = new model({...data, _request }, true)
+          }
+          else {
+            const collection = data.map( attrs => (new model({...attrs, _request:{ status: responseStatus } }, true)))
+            resource = new Collection(...collection)
+            resource._request = new Request({ ..._request })
+          }
+          resolve(resource)
+          this.dispatch({ ...resource.serialize(), type:`@OK_${actionName}(${modelName})` })
+        })
+        .catch(({ status, response }) =>{
+          response.json().then(body=>{
+            // const wasCollection = actionName == "INDEX" || actionName == "SHOW"
+            // if (wasCollection) reject({ status, body })
+            // else {
+            //
+            // }
+          })
+        })
     })
   }
 

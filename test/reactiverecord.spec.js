@@ -1,6 +1,6 @@
 import { expect } from "chai"
 import { ReactiveRecord, Model } from "../src"
-import "./test-utils"
+import { fetchRequests, FetchResponse } from "./test-utils"
 
 describe("ReactiveRecord", ()=>{
   describe("#model", ()=>{
@@ -144,9 +144,23 @@ describe("ReactiveRecord", ()=>{
           Person = reactiveRecordTest.model("Person", class extends Model {});
           Person.schema = { name: String }
     fetch.reset();
+
+    // WRITE TESTS FOR ASYNC
+
+
     it("should dispatch correct actions", () => {
       reactiveRecordTest.performAsync({ type: "@CREATE(Person)", attributes: { name: "Kyle" } })
-      console.log(fetch.__spy.calls[0])
+      const request = [
+        "/people",
+        { method: "POST",
+          body: { name: "Kyle" },
+          headers: { "Accept": "application/json", "Content-Type": "application/json" },
+          credentials: "same-origin" }
+      ]
+      expect(fetch).to.have.been.called.with(...request);
+
+      // reactiveRecordTest.performAsync({ type: "@INDEX(Person)", attributes: { name: "Carl", id: 123 } })
+      // console.log(fetch.__spy.calls[fetch.__spy.calls.length - 1])
     });
   });
 });
