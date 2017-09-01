@@ -8,17 +8,18 @@ export default function mapStateToProps(state, { for:Model }) {
           Object.values(state).filter( statePiece => statePiece.instanceId === instanceId);
 
   if (singleton) {
-    const { attributes, errors:_errors, request:_request } = stateModels[displayName];
+    const { _attributes, _errors, _request } = stateModels[displayName];
     return { resource: new Model({ ...attributes, _errors, _request }, true) }
   }
   else {
-    const { collection, request } = stateModels[displayName],
-          transformedCollection = Object.values(collection)
-                                        .map(function({ attributes, errors:_errors, request:_request }) {
-                                          return new Model({ ...attributes, _errors, _request }, true)
+    const { _collection, _request } = stateModels[displayName];
+          const transformedCollection = Object.values(_collection)
+                                        .map(function({ _attributes, _errors, _request }) {
+                                          return new Model({ ..._attributes, _errors, _request }, true)
                                         }),
-          resource = new ReactiveRecordCollection(...transformedCollection);
-    resource._request = request;
+          resource = new Collection({ _collection: transformedCollection });
+
+    resource._request = _request;
     return { resource  }
   }
 }

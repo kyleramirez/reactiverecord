@@ -1,7 +1,8 @@
 import {
   MODEL_NOT_FOUND_ERROR,
   ACTION_MATCHER,
-  ACTION_STATUSES
+  ACTION_STATUSES,
+  memberProps
 } from "./constants"
 
 /*
@@ -13,25 +14,23 @@ import {
  *                   _request            _request
  *
  *  @CREATE(Model)   @OK_CREATE(Model)   @ERROR_CREATE(Model)
- *  _attributes†     _attributes
+ *  _attributes      _attributes
  *                   _request            _request
  *                                       _errors
  *
  *  @SHOW(Model)     @OK_SHOW(Model)     @ERROR_SHOW(Model)
- *  _attributes†     _attributes
+ *  _attributes      _attributes
  *                   _request            _request
  *
  *  @UPDATE(Model)   @OK_UPDATE(Model)   @ERROR_UPDATE(Model)
- *  _attributes†     _attributes
+ *  _attributes      _attributes
  *                   _request            _request
  *                                       _errors
  *
  *  @DESTROY(Model)  @OK_DESTROY(Model)  @ERROR_DESTROY(Model)
- *  _attributes†
+ *  _attributes
  *                                       _request
  *
- *  † : We need the primary key from this resource to update
- *      the store with the resource being created || updated
  */
 
 export default function reducer() {
@@ -44,31 +43,96 @@ export default function reducer() {
           { schema:{ _primaryKey="id" } } = modelClass;
 
     if (!modelClass) throw new MODEL_NOT_FOUND_ERROR(modelName)
-    const { _attributes:{ [_primaryKey]:key }={} } = action,
-          { [modelName]:{ collection:{ [key]:member }={} } } = nextState;
 
-    let nextModel = nextState[modelName];
+    const {
+            _collection:actionCollection={},
+            _request:actionRequest={},
+            _attributes:actionAttributes={},
+            _attributes:{
+              [_primaryKey]:key
+            }={},
+            _errors:actionErrors={}
+          } = action,
+          {
+            [modelName]:{
+              _collection,
+              _collection:{
+                [key]:member=memberProps,
+                [key]:{
+                  _request:memberRequest={},
+                  _attributes:memberAttributes={},
+                  _errors:memberErrors={}
+                }={}
+              }={} 
+          } } = nextState;
+
     if (!asyncStatus) {
-      nextState[modelName] = {
-        ...nextModel,
-        request: {
-          ...nextModel.request,
-          status: ACTION_STATUSES[actionName]
+      /* Update the request status for the model */
+      if (!key) {
+        nextState[modelName] = {
+          ...nextState[modelName],
+          _request: {
+            ...nextState[modelName]._request,
+            status: ACTION_STATUSES[actionName]
+          }
         }
       }
-      if (member) {
-        nextState[modelName].collection = {
-          ...nextModel.collection,
+      if (_collection && key) {
+        /* Update or create request status on the member */
+        nextState[modelName]._collection = {
+          ..._collection,
           [key]: {
             ...member,
-            request: {
-              ...member.request,
+            _request: {
+              ...memberRequest,
               status: ACTION_STATUSES[actionName]
             }
           }
         }
       }
     }
+
+    if (asyncStatus) {
+      if (_collection) {
+        nextState[modelName]._collection = {
+          ..._collection,
+          ...actionCollection
+        }
+      }
+      if (!key || !_collection) {
+        nextState[modelName]._request = {
+          ...nextState[modelName]._request,
+          ...actionRequest
+        }
+      }
+      if (!_collection) {
+        nextState[modelName]._attributes = {
+          ...nextState[modelName]._attributes,
+          ...actionAttributes
+        }
+      }
+      if (key && actionName != "index") {
+        nextState[modelName]._collection = {
+          ...nextState[modelName]._collection,
+          [key]: {
+            ...member,
+            _request: {
+              ...memberRequest,
+              ...actionRequest
+            },
+            _attributes: {
+              ...memberAttributes,
+              ...actionAttributes
+            },
+            _errors: {
+              ...memberErrors,
+              ...actionErrors
+            }
+          }
+        }
+      }
+    }
+
     return nextState;
   }
 }

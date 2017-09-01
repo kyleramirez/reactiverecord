@@ -1,7 +1,7 @@
 import chai, { expect } from "chai"
 import { ReactiveRecord, Model } from "../src"
 import { fetchRequests, FetchResponse } from "./test-utils"
-
+/*
 describe("ReactiveRecord", ()=>{
   describe("#model", ()=>{
     const reactiveRecordTest = new ReactiveRecord();
@@ -314,34 +314,34 @@ describe("ReactiveRecord", ()=>{
       reactiveRecordTest.API.prefix = oldPrefix;
     });
 
-    it("should resolve all 2xx HTTP status codes", () => {
-      // handleSuccess(responseStatus, method, action, model, _primaryKey, actionName, modelName, resolve, data)
-      reactiveRecordTest.handleSuccess(
-        201,
-        "POST",
-        { type: "@CREATE(Person)", _attributes: { name: "Kyle" }},
-        Person,
-        "id",
-        "CREATE",
-        "Person",
-        function(){},
-        { id: 123, name: "Kyle" }
-      )
-      console.log(JSON.stringify(dispatchSpy.__spy.calls[dispatchSpy.__spy.calls.length - 1][0], null, 2))
-      reactiveRecordTest.handleSuccess(
-        200,
-        "GET",
-        { type: "@INDEX(Person)", _attributes: {}},
-        Person,
-        "id",
-        "INDEX",
-        "Person",
-        function(){},
-        [{ id: 123, name: "Kyle" }, { id: 124, name: "Thom" }]
-      )
-      console.log(JSON.stringify(dispatchSpy.__spy.calls[dispatchSpy.__spy.calls.length - 1][0], null, 2))
-
-    });
+    // it("should resolve all 2xx HTTP status codes", () => {
+   //    // handleSuccess(responseStatus, method, action, model, _primaryKey, actionName, modelName, resolve, data)
+   //    reactiveRecordTest.handleSuccess(
+   //      201,
+   //      "POST",
+   //      { type: "@CREATE(Person)", _attributes: { name: "Kyle" }},
+   //      Person,
+   //      "id",
+   //      "CREATE",
+   //      "Person",
+   //      function(){},
+   //      { id: 123, name: "Kyle" }
+   //    )
+   //    console.log(JSON.stringify(dispatchSpy.__spy.calls[dispatchSpy.__spy.calls.length - 1][0], null, 2))
+   //    reactiveRecordTest.handleSuccess(
+   //      200,
+   //      "GET",
+   //      { type: "@INDEX(Person)", _attributes: {}},
+   //      Person,
+   //      "id",
+   //      "INDEX",
+   //      "Person",
+   //      function(){},
+   //      [{ id: 123, name: "Kyle" }, { id: 124, name: "Thom" }]
+   //    )
+   //    console.log(JSON.stringify(dispatchSpy.__spy.calls[dispatchSpy.__spy.calls.length - 1][0], null, 2))
+   //
+   //  });
 
     it("should reject all 4xx - 5xx status codes", () => {
       
@@ -374,7 +374,7 @@ describe("ReactiveRecord", ()=>{
     // });
   });
 });
-
+*/
 // model should apply new version of the resource to itself after actions which dispatch
 // this should happen before the model resolves to the next step
 //

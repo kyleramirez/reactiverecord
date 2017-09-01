@@ -2,8 +2,8 @@ import React, { Component } from "react";
 import ReactiveRecord, { reducer, middleware, Collection } from "./reactiverecord"
 import { createStore, applyMiddleware, compose } from "redux"
 import { Provider } from "react-redux"
-import "./models/Post"
-
+import Post from "./models/Post"
+window.Post = Post
 const reduxDevTools = window.devToolsExtension ? window.devToolsExtension() : f => f;
 
 const store = createStore(
@@ -24,7 +24,6 @@ export default class App extends Component {
         <Collection for={ReactiveRecord.model("Post")}>
           {(POSTS) => (
             <div>
-            {console.log(POSTS) || null}
             {
               POSTS?
                 POSTS.map(POST => <ShowPost POST={POST} key={POST.id} />)

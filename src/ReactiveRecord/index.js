@@ -13,7 +13,8 @@ import {
   ACTION_METHODS,
   ROUTE_NOT_FOUND_ERROR,
   MODEL_NOT_FOUND_ERROR,
-  MODEL_NOT_VALID_ERROR
+  MODEL_NOT_VALID_ERROR,
+  memberProps
 } from "../constants"
 import Collection from "./Collection"
 import Request from "./Request"
