@@ -162,16 +162,16 @@ export default class ReactiveRecord {
     }
   }
 
-  get initialState() {
-    const { models } = this;
-    this.instanceId = generateId();
-
-    return Object.keys(models).reduce(function(state, modelName){
-      state[modelName] = models[modelName].store.singleton?
-        {...memberProps}
-      :
-        {...collectionProps}
-      return state;
-    }, { instanceId: this.instanceId })
-  }
+  // get initialState() {
+  //   const { models } = this;
+  //   this.instanceId = generateId();
+  //
+  //   return Object.keys(models).reduce(function(state, modelName){
+  //     state[modelName] = models[modelName].store.singleton?
+  //       {...memberProps}
+  //     :
+  //       {...collectionProps}
+  //     return state;
+  //   }, { instanceId: this.instanceId })
+  // }
 }
