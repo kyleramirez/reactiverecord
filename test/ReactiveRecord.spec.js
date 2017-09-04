@@ -1,7 +1,7 @@
 import chai, { expect } from "chai"
 import { ReactiveRecord, Model } from "../src"
 import { fetchRequests, FetchResponse } from "./test-utils"
-/*
+
 describe("ReactiveRecord", ()=>{
   describe("#model", ()=>{
     const reactiveRecordTest = new ReactiveRecord();
@@ -119,6 +119,38 @@ describe("ReactiveRecord", ()=>{
         }
       });
       expect(reactiveRecordTest.models).to.have.property("Person")
+    });
+
+    it("should set the model's store configuration as not singleton unless otherwise specified", ()=>{
+      const reactiveRecordTest = new ReactiveRecord(),
+            Person = reactiveRecordTest.model("Person", class extends Model {}),
+            CurrentUser = reactiveRecordTest.model("CurrentUser", class extends Person {
+              static store = { singleton: true }
+            });
+      expect(Person.store.singleton).to.equal(false);
+      expect(CurrentUser.store.singleton).to.equal(true);
+    });
+
+    it("should add either a singleton or collection reducer to the model's store configuration", ()=>{
+      const reactiveRecordTest = new ReactiveRecord(),
+            Person = reactiveRecordTest.model("Person", class extends Model {}),
+            CurrentUser = reactiveRecordTest.model("CurrentUser", class extends Person {
+              static store = { singleton: true }
+            });
+      expect(Person.store.reducer.name).to.equal("bound collectionReducer");
+      expect(CurrentUser.store.reducer.name).to.equal("bound singletonReducer");
+    });
+
+    it("should not replace an existing reducer in the model's store configuration", ()=>{
+      function myReducer(state={}, action) { return state }
+      const reactiveRecordTest = new ReactiveRecord(),
+            Person = reactiveRecordTest.model("Person", class extends Model {
+              static store = {
+                reducer: myReducer
+              }
+            });
+      expect(Person.store.reducer).to.equal(myReducer);
+      expect(Person.store.singleton).to.equal(false);
     });
   });
 
@@ -374,7 +406,7 @@ describe("ReactiveRecord", ()=>{
     // });
   });
 });
-*/
+
 // model should apply new version of the resource to itself after actions which dispatch
 // this should happen before the model resolves to the next step
 //

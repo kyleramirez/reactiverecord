@@ -16,6 +16,8 @@ import {
   MODEL_NOT_VALID_ERROR,
   memberProps
 } from "../constants"
+import singletonReducer from "../reducer/singletonReducer"
+import collectionReducer from "../reducer/collectionReducer"
 import Collection from "./Collection"
 import Request from "./Request"
 
@@ -43,7 +45,9 @@ export default class ReactiveRecord {
             }={},
             schema:{
               _primaryKey="id"
-            }
+            },
+            store={},
+            store:{ singleton=false }={}
           } = modelClass,
           defaultRoutes = ["index", "create", "show", "update", "destroy"]
             // Removes routes if except defined
@@ -57,6 +61,14 @@ export default class ReactiveRecord {
       return routes;
     }, definedRoutes)
 
+    modelClass.store = {
+      singleton,
+      reducer: singleton ?
+                 singletonReducer.bind(this, modelStr, _primaryKey)
+               :
+                 collectionReducer.bind(this, modelStr, _primaryKey),
+      ...store
+    }
     // Assign the model
     return this.models[modelStr] = modelClass;
   }
@@ -161,17 +173,4 @@ export default class ReactiveRecord {
       })
     }
   }
-
-  // get initialState() {
-  //   const { models } = this;
-  //   this.instanceId = generateId();
-  //
-  //   return Object.keys(models).reduce(function(state, modelName){
-  //     state[modelName] = models[modelName].store.singleton?
-  //       {...memberProps}
-  //     :
-  //       {...collectionProps}
-  //     return state;
-  //   }, { instanceId: this.instanceId })
-  // }
 }

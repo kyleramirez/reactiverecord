@@ -1,70 +1,12 @@
 import { combineReducers } from "redux"
-import {
-  MODEL_NOT_FOUND_ERROR,
-  ACTION_MATCHER,
-  ACTION_STATUSES,
-  memberProps,
-} from "./constants"
-import { generateId } from "./utils"
-
-/*
- *  @INDEX(Model)    @OK_INDEX(Model)    @ERROR_INDEX(Model)
- *                   _collection         _collection
- *                   _request            _request
- *                   ** singleton **     ** singleton **
- *                   _attributes
- *                   _request            _request
- *
- *  @CREATE(Model)   @OK_CREATE(Model)   @ERROR_CREATE(Model)
- *  _attributes      _attributes
- *                   _request            _request
- *                                       _errors
- *
- *  @SHOW(Model)     @OK_SHOW(Model)     @ERROR_SHOW(Model)
- *  _attributes      _attributes
- *                   _request            _request
- *
- *  @UPDATE(Model)   @OK_UPDATE(Model)   @ERROR_UPDATE(Model)
- *  _attributes      _attributes
- *                   _request            _request
- *                                       _errors
- *
- *  @DESTROY(Model)  @OK_DESTROY(Model)  @ERROR_DESTROY(Model)
- *  _attributes
- *                                       _request
- *
- */
-
-// const { models } = this;
-// this.instanceId = generateId();
-//
-// return Object.keys(models).reduce(function(state, modelName){
-//   state[modelName] = models[modelName].store.singleton?
-//     {...memberProps}
-//   :
-//     {...collectionProps}
-//   return state;
-// }, { instanceId: this.instanceId })
-
-function memberReducer(state, action) {
-  
-}
-
-function collectionReducer(state, action) {
-  
-}
 
 export default function reducer() {
-  this.instanceId = generateId()
-
-  const models = Object.keys(this.models).reduce((final, modelName) => {
-    const { store:{ singleton } } = this.models[modelName];
-    final[modelName] = singleton ? memberReducer : collectionReducer;
-    return final;
-  }, {})
-
-  return combineReducers(models)
+  return combineReducers(Object.keys(this.models).reduce((finalReducer, modelName) => {
+    finalReducer[modelName] = this.models[modelName].store.reducer;
+    return finalReducer;
+  }, { _isReactiveRecord: ()=>true }))
 }
+
 
 // export default function reducer() {
 //   return (state = this.initialState, action) => {

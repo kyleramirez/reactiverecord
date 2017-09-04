@@ -14,8 +14,7 @@ export const ACTION_METHODS = {
              },
              _request = {
                status: null,
-               body: null,
-               action: null
+               body: null
              },
              memberProps = {
                _request,

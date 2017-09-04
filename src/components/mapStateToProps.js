@@ -1,11 +1,19 @@
 import Collection from "../ReactiveRecord/Collection"
 
+function onlyObjects(obj) { return typeof obj === "object" }
+
+function onlyReactiveRecord() {
+  if ("_isReactiveRecord" in this) return this;
+  const chunks = Object.values(this).filter(onlyObjects)
+  for(i=0; i < chunks.length; i++) {
+    if ("_isReactiveRecord" in chunks[i]) return chunks[i];
+    chunks.push(...Object.values(chunks[i]).filter(onlyObjects))
+  }
+}
+
 export default function mapStateToProps(state, { for:Model }) {
-  const { ReactiveRecord:{ instanceId }, store:{ singleton }, displayName } = Model,
-        stateModels = state.instanceId === instanceId ?
-          state
-        :
-          Object.values(state).filter( statePiece => statePiece.instanceId === instanceId);
+  const { store:{ singleton }, displayName } = Model,
+        stateModels = state::onlyReactiveRecord();
 
   if (singleton) {
     const { _attributes, _errors, _request } = stateModels[displayName];
