@@ -374,3 +374,28 @@ export function assignLeft() {
   }
   return objects;
 }
+/* ReactiveRecord */
+export function select(fn) {
+  return this.filter(fn)
+}
+/* ReactiveRecord */
+export function where(obj) {
+  return this.filter(function(item){
+    for (let key in obj) {
+      if (item.hasOwnProperty(key))
+        if (item[key] == obj[key]) continue;
+      return false;
+    }
+    return true;
+  })
+}
+export function onlyObjects(obj) { return typeof obj === "object" }
+
+export function onlyReactiveRecord() {
+  if ("_isReactiveRecord" in this) return this;
+  const chunks = Object.values(this).filter(onlyObjects)
+  for(i=0; i < chunks.length; i++) {
+    if ("_isReactiveRecord" in chunks[i]) return chunks[i];
+    chunks.push(...Object.values(chunks[i]).filter(onlyObjects))
+  }
+}

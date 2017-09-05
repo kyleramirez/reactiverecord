@@ -1,5 +1,5 @@
 import chai, { expect } from "chai"
-import { ReactiveRecord, Model, reducer } from "../src"
+import { reducer } from "../src"
 import { without } from "../src/utils"
 import singletonReducer from "../src/reducer/singletonReducer"
 import collectionReducer from "../src/reducer/collectionReducer"

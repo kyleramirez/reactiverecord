@@ -113,13 +113,12 @@ export default class ReactiveRecord {
             method = ACTION_METHODS[actionName.toLowerCase()],
             query = method == "GET" ? _attributes : _attributes::without(...Object.keys(model.schema)),
             body = method == "GET" ? {} : _attributes::pick(...Object.keys(model.schema));
-
       if (!routeTemplate) throw new ROUTE_NOT_FOUND_ERROR;
 
-      /* interpolateRoute will mutate body as needed */
       const route = interpolateRoute(routeTemplate, body, modelName, singleton, apiConfig, query);
-      /* skinnyObject will remove body if it it's null */
       const request = skinnyObject({ method, body, headers, credentials });
+
+      request.body = method == "GET" ? undefined : JSON.stringify(request.body)
 
       let responseStatus = null;
       fetch(route, request)
@@ -128,7 +127,7 @@ export default class ReactiveRecord {
           responseStatus = res.status;
           return res.json()
         })
-        .then(this.handleSuccess.bind(this, responseStatus, method, action, model, _primaryKey, actionName, modelName, resolve))
+        .then( data => this.handleSuccess(responseStatus, method, action, model, _primaryKey, actionName, modelName, resolve, data))
         .catch(this.handleError.bind(this, actionName, reject))
     })
   }
@@ -140,14 +139,18 @@ export default class ReactiveRecord {
      */
     const isCollection = data instanceof Array;
     let resource = null;
-    const _request = { status: responseStatus, dispatch: this.dispatch }
-    if (method == "GET") _request.action = action;
     /* Successful requests don't need a body */
+    const _request = { status: responseStatus }
     if (!isCollection) {
+      if (!data.hasOwnProperty(_primaryKey)
+       && action._attributes
+       && action._attributes.hasOwnProperty(_primaryKey)) {
+         data[_primaryKey] = action._attributes[_primaryKey];
+       }
       resource = new model({ ...data, _request }, true)
     }
     else {
-      const _collection = data.map( attrs => new model({...attrs, _request: { status: responseStatus }}, true) )
+      const _collection = data.map( attrs => new model({...attrs, _request }, true))
       resource = new Collection({ _collection, _request, _primaryKey });
     }
     resolve(resource)

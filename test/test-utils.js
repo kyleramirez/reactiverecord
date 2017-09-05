@@ -16,11 +16,23 @@ export const fetchRequests = {
     return req;
   },
   set: function(key, value) {
-    return fetchMap.set(JSON.stringify(key), value);
+    const storedResponse = fetchMap.get(JSON.stringify(key));
+    if (storedResponse) {
+      const [ actualResponse ] = storedResponse.filter(Boolean);
+      if (actualResponse) {
+        fetchMap.delete(JSON.stringify(key));
+        return value[storedResponse.indexOf(actualResponse)](actualResponse)
+      }
+    }
+    fetchMap.set(JSON.stringify(key), value);
   },
   reset: function(){
     return fetchMap.clear()
-  }
+  },
+  expect: (request) => ({
+    andResolveWith: (response) => fetchMap.set(JSON.stringify(request), [response, null]),
+    andRejectWith: (response) => fetchMap.set(JSON.stringify(request), [null, response])
+  })
 }
 
 export class FetchResponse {

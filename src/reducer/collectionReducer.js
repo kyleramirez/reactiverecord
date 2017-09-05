@@ -3,9 +3,7 @@ import {
   ACTION_STATUSES,
   memberProps, collectionProps
 } from "../constants"
-import {
-  without
-} from "../utils"
+import { without } from "../utils"
 
 export default function collectionReducer(modelName, _primaryKey, state=collectionProps, action) {
   if (!ACTION_MATCHER.test(action.type)) return state
@@ -35,7 +33,10 @@ export default function collectionReducer(modelName, _primaryKey, state=collecti
 
   if (startingAsync) {
     if (actionName == "index") {
-      nextState._request.status = ACTION_STATUSES[actionName];
+      nextState._request = {
+        ...nextState._request,
+        status: ACTION_STATUSES[actionName]
+      }
     }
     if (hasMemberToUpdate) {
       nextState._collection = {
