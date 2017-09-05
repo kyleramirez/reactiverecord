@@ -116,9 +116,10 @@ export default class ReactiveRecord {
       if (!routeTemplate) throw new ROUTE_NOT_FOUND_ERROR;
 
       const route = interpolateRoute(routeTemplate, body, modelName, singleton, apiConfig, query);
-      const request = skinnyObject({ method, body, headers, credentials });
-
-      request.body = method == "GET" ? undefined : JSON.stringify(request.body)
+      const request = method == "GET" ?
+              { method, headers, credentials }
+            :
+              { method, body:JSON.stringify(body), headers, credentials };
 
       let responseStatus = null;
       fetch(route, request)

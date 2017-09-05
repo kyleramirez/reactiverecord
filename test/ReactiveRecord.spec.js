@@ -226,38 +226,37 @@ describe("ReactiveRecord", ()=>{
       const index = [
         "/people",
         { method: "GET",
-          body: {},
           headers: { "Accept": "application/json", "Content-Type": "application/json" },
           credentials: "same-origin" }
       ]
       const create = [
         "/people",
         { method: "POST",
-          body: { name: "O'Doyle" },
+          body: JSON.stringify({ name: "O'Doyle" }),
           headers: { "Accept": "application/json", "Content-Type": "application/json" },
           credentials: "same-origin" }
       ]
       const show = [
         "/people/123",
         { method: "GET",
-          body: {},
           headers: { "Accept": "application/json", "Content-Type": "application/json" },
           credentials: "same-origin" }
       ]
       const update = [
         "/people/123",
         { method: "PUT",
-          body: { name: "Happy" },
+          body: JSON.stringify({ name: "Happy" }),
           headers: { "Accept": "application/json", "Content-Type": "application/json" },
           credentials: "same-origin" }
       ]
       const destroy = [
         "/people/123",
         { method: "DELETE",
-          body: {},
+          body: JSON.stringify({}),
           headers: { "Accept": "application/json", "Content-Type": "application/json" },
           credentials: "same-origin" }
       ]
+      // console.log(JSON.stringify(fetch.__spy.calls, null, 2))
       expect(fetch).to.have.been.called.with(...index);
       expect(fetch).to.have.been.called.with(...create);
       expect(fetch).to.have.been.called.with(...show);
@@ -270,7 +269,6 @@ describe("ReactiveRecord", ()=>{
       fetchRequests.reset();
       const requestWithNoBody = {
         method: "GET",
-        body: {},
         headers: {
           "Accept": "application/json",
           "Content-Type": "application/json"
@@ -307,11 +305,12 @@ describe("ReactiveRecord", ()=>{
         source: "signup-page",
         partner: "StateFarm"
       }});
+
       expect(fetch).to.have.been.called.with(
         "/people?source=signup-page&partner=StateFarm",
         {
           method: "POST",
-          body: { name: "Kyle" },
+          body: JSON.stringify({ name: "Kyle" }),
           headers: {
             "Accept": "application/json",
             "Content-Type": "application/json"

@@ -1,0 +1,14 @@
+<!DOCTYPE html><%= react_component(
+                     "Application",
+                     {
+                       layoutProps: {
+                         applicationSrc: asset_pack_path("application.js"),
+                         component: "#{controller_name}/#{action_name.camelize}"
+                       },
+                       props: @props || {}
+                     },
+                     prerender: :static
+                   )
+                    .sub(/<[^>]*>/,"")
+                    .chomp("</div>")
+                    .html_safe %>

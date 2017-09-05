@@ -1,0 +1,10 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>ReactiveRecord</title>
+  </head>
+  <body>
+    <%= react_component("#{controller_name}/#{action_name.camelize}", @props || {}) %>
+    <%= javascript_pack_tag "application" %>
+  </body>
+</html>

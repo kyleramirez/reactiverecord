@@ -32,13 +32,12 @@ describe("Integrations", ()=>{
   describe("Model.all(query)", () => {
     it("should ", () => {
       const request = [
-              '/posts',
-              { method: 'GET',
-                body: {},
+              "/posts",
+              { method: "GET",
                 headers:
-                 { Accept: 'application/json',
-                   'Content-Type': 'application/json' },
-                credentials: 'same-origin' }
+                 { Accept: "application/json",
+                   "Content-Type": "application/json" },
+                credentials: "same-origin" }
             ],
             response = {
               status: 200,
