@@ -1,9 +1,4 @@
 dist
-_site
-.sass-cache
-.jekyll-metadata
-.ruby-gemset
-.ruby-version
 
 # Logs
 logs

@@ -1,11 +1,9 @@
 <!DOCTYPE html><%= react_component(
-                     "Application",
+                     "Root",
                      {
-                       layoutProps: {
-                         applicationSrc: asset_pack_path("application.js"),
-                         component: "#{controller_name}/#{action_name.camelize}"
-                       },
-                       props: @props || {}
+                       location: request.fullpath,
+                       INITIAL_STATE: @INITIAL_STATE,
+                       applicationSrc: asset_pack_path("application.js")
                      },
                      prerender: :static
                    )

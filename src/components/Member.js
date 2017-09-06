@@ -10,9 +10,6 @@ export default function Member(props) {
         }
   
   const Member = connect(mapStateToProps, null, null, connectOptions)(class Member extends Component {
-    static defaultProps = {
-      find: {}
-    }
 
     componentDidMount() {
       const { store: { singleton=false } } = this.props.for

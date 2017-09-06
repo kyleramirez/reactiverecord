@@ -1,5 +1,6 @@
 import Sugar from "./sugar"
 import { ROUTE_TOKENIZER, ROUTE_NOT_FOUND_ERROR } from "./constants"
+
 /* ReactiveRecord */
 export function skinnyObject(...args) {
   return args.reduce(function(final, arg){
@@ -391,11 +392,19 @@ export function where(obj) {
 }
 export function onlyObjects(obj) { return typeof obj === "object" }
 
+export function values() {
+  const val = [];
+  for (let key in this) {
+    if (this.hasOwnProperty(key)) val.push(this[key])
+  }
+  return val;
+}
+
 export function onlyReactiveRecord() {
   if ("_isReactiveRecord" in this) return this;
-  const chunks = Object.values(this).filter(onlyObjects)
-  for(i=0; i < chunks.length; i++) {
+  const chunks = this::values().filter(onlyObjects)
+  for(let i=0; i < chunks.length; i++) {
     if ("_isReactiveRecord" in chunks[i]) return chunks[i];
-    chunks.push(...Object.values(chunks[i]).filter(onlyObjects))
+    chunks.push(...chunks[i]::values().filter(onlyObjects))
   }
 }

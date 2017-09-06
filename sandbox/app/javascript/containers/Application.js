@@ -1,24 +1,26 @@
+// FRONT END VERSION
 import React from "react"
-import DocumentTitle from "react-document-title"
+import { Provider } from "react-redux"
+import storeBuilder from "storeBuilder"
+import { BrowserRouter, Route } from "react-router-dom"
+import ReactiveRecord from "reactiverecord"
+import Home from "./welcome/Home"
+import { DogResources } from "./dog-breeds"
 
-export default function Application({ layoutProps, props }) {
+export default function Application({ INITIAL_STATE }) {
 
-  const initialRender = ReactRailsUJS.serverRender("renderToString", layoutProps.component, props),
-        title = DocumentTitle.rewind();
+  const store = storeBuilder(INITIAL_STATE);
+  ReactiveRecord.setAPI({ prefix: "/api" })
+  ReactiveRecord.dispatch = store.dispatch;
 
   return(
-    <html>
-      <head>
-        <title>{title}</title>
-      </head>
-      <body>
-        <div
-          data-react-class={layoutProps.component}
-          data-react-props={JSON.stringify(props)}
-          dangerouslySetInnerHTML={{ __html: initialRender }}
-        />
-        <script type="text/javascript" src={layoutProps.applicationSrc}></script>
-      </body>
-    </html>
+    <Provider store={store}>
+      <BrowserRouter>
+        <div>
+          <Route path="/" exact component={Home} />
+          {DogResources}
+        </div>
+      </BrowserRouter>
+    </Provider>
   )
 }

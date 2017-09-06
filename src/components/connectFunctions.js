@@ -1,13 +1,12 @@
 import Collection from "../ReactiveRecord/Collection"
-import { where, select, onlyReactiveRecord, queryStringToObj } from "../utils"
+import { where, select, onlyReactiveRecord, queryStringToObj, values } from "../utils"
 import diff from "object-diff"
 
 function defaultSelect() { return true }
 
-export function mapStateToProps(state, { for:Model, find:_find, where:_where, select:_select=defaultSelect }) {
+export function mapStateToProps(state, { for:Model, find, where:_where, select:_select=defaultSelect }) {
   const { store:{ singleton }, schema:{ _primaryKey="id" }, displayName } = Model,
         stateModels = state::onlyReactiveRecord(),
-        find = _find ? typeof _find === "string" ? queryStringToObj(_find) : _find : false,
         whereQuery = _where ? typeof _where === "string" ? queryStringToObj(_where) : _where : false;
 
   if (singleton || find) {
@@ -20,7 +19,7 @@ export function mapStateToProps(state, { for:Model, find:_find, where:_where, se
         }, true)
       }
     }
-    const [member] = Object.values(stateModels[displayName]._collection)::where(find);
+    const member = stateModels[displayName]._collection[find];
     if (member) {
       return {
         resource: new Model({
@@ -34,7 +33,7 @@ export function mapStateToProps(state, { for:Model, find:_find, where:_where, se
   }
 
   const { _collection, _request } = stateModels[displayName],
-        transformedCollection = Object.values(_collection)
+        transformedCollection = _collection::values()
                                       .map( ({ _attributes, _request, _errors }) => new Model({
                                         ..._attributes,
                                         _errors,

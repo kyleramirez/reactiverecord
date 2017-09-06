@@ -1,13 +1,13 @@
 import React from "react"
 import DocumentTitle from "react-document-title"
+import { Link } from "react-router-dom"
 
-export default function Home(props) {
+export default function Home() {
   return(
-    <DocumentTitle title="Welcome, Homie">
+    <DocumentTitle title="Welcome">
       <div>
-        Welcome, yo.
-        <pre>Here are my props: {JSON.stringify(props, null, 2)}</pre>
-        <button onClick={()=>console.log("Ya clicked meh.")}>Click my button, man.</button>
+        <h3>Welcome to <code>ReactiveRecord</code></h3>
+        <Link to="/dog-breeds">Go see some dogs</Link>
       </div>
     </DocumentTitle>
   )

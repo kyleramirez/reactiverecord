@@ -286,3 +286,45 @@ If you are running your build through something like Uglify, or part of a Webpac
 // store.dispatch({"type":"@UPDATE(Fart)","attributes":{"cling":"sing"},"query":{"page":2}})
 // store.dispatch({"type":"@DESTROY(Fart)","query":{"page":2},"attributes":{}})
 
+Model.prototype.updateAttributes(attrs, { query })
+Model.prototype.updateAttribute(name, value, { query })
+Model.prototype.save({ query })
+Model.prototype.destroy(query)
+Model.prototype.reload(query)
+Model.all(query)
+Model.load(query)
+Model.create(attrs, { query })
+Model.destroy(key, query)
+Model.find(key, query)
+
+"@INDEX(Person)"
+"@OK_INDEX(Person)"
+"@ERROR_INDEX(Person)"
+"@CREATE(Person)"
+"@OK_CREATE(Person)"
+"@ERROR_CREATE(Person)"
+"@SHOW(Person)"
+"@OK_SHOW(Person)"
+"@ERROR_SHOW(Person)"
+"@UPDATE(Person)"
+"@OK_UPDATE(Person)"
+"@ERROR_UPDATE(Person)"
+"@DESTROY(Person)"
+"@OK_DESTROY(Person)"
+"@ERROR_DESTROY(Person)"
+
+`Only initialized collections and resources which where initialized after a successful get request
+should be "reloadable" from their _request object. This information shouldn't be serialized because
+not every request is the same, so a reload serialized from one request could grab the incorrect
+information if given to another collection. All collections and resources should support a reload
+method which firsts checks the request for a specific reload, or falls back to the default action
+  - so remove that whole functionality from the models and collections, and from performAsync
+  - remove that whole functionality from the default store props
+  - make sure no actions even mention doing it, remove tests for it since the functionality technically never existed
+
+
+performAsync should apply the 200 status to every single resource in the collection for an index
+
+errors in performAsync should also dispatch the original attributes requested, so the reducer knows what to update
+`
+
