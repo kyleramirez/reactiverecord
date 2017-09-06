@@ -1,14 +1,21 @@
 import Sugar from "./sugar"
-import { actionMatch, singleRecordProps, recordProps, versioningProps, restVerbs } from "./constants"
+import { ROUTE_TOKENIZER, ROUTE_NOT_FOUND_ERROR } from "./constants"
 
+/* ReactiveRecord */
+export function skinnyObject(...args) {
+  return args.reduce(function(final, arg){
+    return Object.assign(final, JSON.parse(JSON.stringify(arg)));
+  }, Object.create(null, {}))
+}
+/* ReactiveRecord */
 export function isEmptyObject(obj){
   for (let name in obj) {
     return false;
   }
   return true;
 }
-
-export function generateID() {
+/* ReactiveRecord */
+export function generateId() {
   function s4(){
     return Math
       .floor((1 + Math.random()) * 0x10000)
@@ -58,15 +65,14 @@ export function regexIndexOf(regex, string, startpos=0){
   var indexOf = string.substring(startpos).search(regex);
   return (indexOf >= 0) ? (indexOf + (startpos || 0)) : indexOf;
 }
-
+/* ReactiveRecord */
 export function checkResponseStatus(response){
-  const {status} = response,
+  const { status } = response,
         error = new Error;
-  // If no error, great, return the response.
+  /* If no error, great, return the response. */
   if (status >= 200 && status < 300)
     return response
-
-  // Begin parsing this error
+  /* Begin parsing this error */
   error.status = status
   error.response = response
   throw error
@@ -94,130 +100,137 @@ export function generateRoute(name, method, apiDelimiter, prefix, index=false, i
         id = method === "POST" || index ? "" : "/:id";
   return `${prefix}${modelWithDelimiter}${id}`
 }
-
-export function interpolateRoute(route, record) {
-  return route.replace(/:([^\/\?]*)/g, (match, capture)=>(
-    record.hasOwnProperty(capture) && record[capture] ? record[capture] : match
-  ))
+/* ReactiveRecord */
+export function interpolateRoute(route, attributes, resourceName, singular, apiConfig, query) {
+  const { prefix } = apiConfig,
+        delimiter = delimiterType(apiConfig.delimiter),
+        modelInflection = singular ? resourceName : Sugar.String.pluralize(resourceName),
+        modelWithDelimiter = `${Sugar.String[delimiter](modelInflection)}`;
+  
+  return route.replace(":modelname", modelWithDelimiter)
+              .replace(":prefix", prefix)
+              .replace(ROUTE_TOKENIZER, (token, attributeName)=>{
+                let match = null
+                if (attributes.hasOwnProperty(attributeName)) {
+                  match = attributes[attributeName]
+                }
+                if (query.hasOwnProperty(attributeName)) {
+                  match = query[attributeName]
+                }
+                delete attributes[attributeName]
+                delete query[attributeName]
+                return match || token;
+              }) + objToQueryString(query);
 }
-
+/* ReactiveRecord */
 export function delimiterType(delim="") {
   if (delim.match(/^(underscores?|_)$/)) return "underscore"
   return "dasherize"
 }
+/* ReactiveRecord */
+export function setReadOnlyProps(attrs, persisted) {
+  const { constructor } = this,
+        { schema:{ _primaryKey="id", _timestamps} } = constructor,
+        {
+          // Single primary key
+          [_primaryKey]:tmpKeyValue=null,
+          // Allow id or _id by default
+          [_primaryKey=="id"? "_id" : _primaryKey]:finalKeyValue=tmpKeyValue
+        } = attrs;
+        this._attributes[_primaryKey] = finalKeyValue;
 
-export function setReadOnlyProps(params, _timestamps, modelName, _obj, reactiveRecord){
-  const { id, _id } = params;
-  // Establish the ID, also _id
-  if (id || _id) _obj.record.id = id || _id;
+  Object.defineProperty(this, "_persisted", { value: !!persisted, configurable: true })
 
-  Object.defineProperty(_obj, "id", {
+  Object.defineProperty(this, _primaryKey, {
     enumerable: true,
-    get: ()=>(_obj.record.id || null),
-    // ID can only be set on instantiation, otherwise it stays undefined
-    set: ()=>{throw new TypeError(`#<${modelName}> property \`id\` cannot be redefined.`)}
-  })
-
-  const defineVersion = function(newValue){
-    delete this._version;
-    Object.defineProperty(this, "_version", {
-      enumerable: false,
-      configurable: true,
-      get:()=>(newValue || 0),
-      set:defineVersion.bind(this)
-    })
-  }
-  defineVersion.call(_obj, params._version)
-
-  Object.defineProperty(_obj, "_request", {
-    enumerable: false,
-    value:{
-      version: 0,
-      status: null,
-      body: null,
-      ...params._request
-    }
-  })
-  Object.defineProperty(_obj._request, "clear", {
-    enumerable: false,
-    value: ()=>{
-      for (let property in _obj._request) {
-        if (property != "clear" && property != "version")
-          _obj._request[property] = null
-        if (property == "version")
-          _obj._request[property] = 0
-      }
-    }
-  })
-  Object.defineProperty(_obj, "errors", {
-    enumerable: false,
-    value:{...params.errors}
-  })
-  Object.defineProperty(_obj.errors, "clear", {
-    enumerable: false,
-    value: ()=>{for (let property in _obj.errors) if (property != "clear") delete _obj.errors[property]}
-  })
+    value: this._attributes[_primaryKey],
+    configurable: true
+  });
 
   if (_timestamps) {
     // Timestamps aren't something we're going to ever
     // update on the record, so let's separate it early on
-    Object.defineProperty(_obj, "timestamps", {
-      enumerable: false,
-      value: {}
-    })
-    // Handle the createdAt
-    // Let it be undefined if nothing was given
-    _obj.timestamps.createdAt = params.created_at || params.createdAt || null
-    Object.defineProperty(_obj, "createdAt", {
+    // createdAt and updatedAt can be either created_at or updated_at on the model
+
+    const createdAt = attrs.created_at || attrs.createdAt || null
+    Object.defineProperty(this, "createdAt", {
       enumerable: true,
-      get: ()=>(_obj.timestamps.createdAt ? new Date(_obj.timestamps.createdAt) : null),
-      // createdAt can only be set on instantiation, otherwise it stays undefined
-      set: ()=>{throw new TypeError(`#<${modelName}> property \`createdAt\` cannot be redefined.`)}
+      value: createdAt? new Date(createdAt) : null,
+      configurable: true
     })
 
-    // Handle the updatedAt
-    // Let it be undefined if nothing was given
-    _obj.timestamps.updatedAt = params.updated_at || params.updatedAt || null
-    Object.defineProperty(_obj, "updatedAt", {
+    const updatedAt = attrs.updated_at || attrs.updatedAt || null
+    Object.defineProperty(this, "updatedAt", {
       enumerable: true,
-      get: ()=>(_obj.timestamps.updatedAt ? new Date(_obj.timestamps.updatedAt) : null),
-      // updatedAt can only be set on instantiation, otherwise it stays undefined
-      set: ()=>{throw new TypeError(`#<${modelName}> property \`updatedAt\` cannot be redefined.`)}
+      value: updatedAt? new Date(updatedAt) : null,
+      configurable: true
     })
   }
 }
-
-export function setWriteableProps(params, schema, _obj, reactiveRecord){
+/* ReactiveRecord */
+export function setWriteableProps(attrs) {
+  const { constructor } = this,
+        { schema:{ _primaryKey, _timestamps, ...schema }, prototype } = constructor;
   for (let prop in schema){
-    const initialValue = params.hasOwnProperty(prop) ? params[prop] : null;
-    _obj.record[prop] = initialValue
+    const hasDescriptor = typeof schema[prop] === "object" && schema[prop].hasOwnProperty("type"),
+          // Establish initial value but fallback to default value
+          initialValue = JSON.parse(JSON.stringify(attrs.hasOwnProperty(prop) ? attrs[prop] : null)),
+          // Establish type from descriptor
+          type = hasDescriptor? schema[prop].type.displayName || schema[prop].type.name : schema[prop].name;
 
-    let get = ()=>(_obj.record[prop])
-    // @TODO: The set function should dispatch an action that something was set, which
-    // would be used to increase the version number, and thus invalidate errors
-    let set = (newValue)=>{
-      reactiveRecord.setModel(_obj) //, prop, newValue)
-      return _obj.record[prop] = newValue
+    // Write default value
+    this._attributes[prop] = initialValue;
+
+    const manuallyDefinedGetter = (Object.getOwnPropertyDescriptor(prototype, prop) || {})["get"],
+          manuallyDefinedSetter = (Object.getOwnPropertyDescriptor(prototype, prop) || {})["set"];
+
+    let get = manuallyDefinedGetter;
+
+    let set = manuallyDefinedSetter;
+
+    if (!manuallyDefinedGetter) {
+      get = ()=>(this._attributes[prop]);
+      if (type == "Object") {
+        get = ()=> (this._attributes[prop] || {})
+      }
+      if (type == "Array") {
+        get = ()=> (this._attributes[prop] || [])
+      }
+      if (type == "Date") {
+        get = ()=> (this._attributes[prop] === null ? null : new Date(this._attributes[prop]))
+      }
+      if (type == "Number") {
+        get = ()=> (this._attributes[prop] === null ? null : Number(this._attributes[prop]))
+      }
     }
 
-    if (schema[prop].name === "Array")
-      get = ()=> (_obj.record[prop] || [])
-    if (schema[prop].name === "Date")
-      get = ()=> (_obj.record[prop] === null ? null : new Date(_obj.record[prop]))
-    if (schema[prop].name === "Number")
-      get = ()=> (_obj.record[prop] === null ? null : Number(_obj.record[prop]))
-    if (schema[prop].name === "Boolean") {
-      if (_obj.record[prop] !== null) {
-        _obj.record[prop] = initialValue === "false" ? false : Boolean(initialValue)
-      }
-      set = (newValue)=>{
-        reactiveRecord.setModel(_obj) //, prop, newValue)
-        return _obj.record[prop] = newValue === "false" ? false : Boolean(newValue)
+    if (!manuallyDefinedSetter) {
+      set = (newValue) => (this._attributes[prop] = newValue);
+      if (type == "Boolean") {
+        set = (newValue)=>{
+          return this._attributes[prop] = newValue === "false" ? false : Boolean(newValue)
+        }
       }
     }
 
-    Object.defineProperty(_obj, prop, { get, set, enumerable: true })
+    if (type == "Boolean") {
+      if (this._attributes[prop] !== null) {
+        this._attributes[prop] = initialValue === "false" ? false : Boolean(initialValue)
+      }
+    }
+
+    Object.defineProperty(this, prop, { get, set, enumerable: true, configurable: true })
   }
+}
+/* ReactiveRecord */
+export function recordDiff(a,b) {
+  if (a instanceof Array && b instanceof Array)
+    return JSON.stringify(a) === JSON.stringify(b);
+  if (a instanceof Date && b instanceof Date)
+    return JSON.stringify(a) === JSON.stringify(b);
+  if (a !== null && typeof a === "object" && b !== null && typeof b === "object")
+    return JSON.stringify(a) === JSON.stringify(b);
+  return a === b;
 }
 
 export function mergeRecordsIntoCache(cache, records, keyStr, model) {
@@ -248,12 +261,152 @@ export function tmpRecordProps(){
     creating: false
   });
 };
-
+/* ReactiveRecord */
 export function objToQueryString(obj) {
-  return Object.keys(obj).reduce( (final, current) => {
+  return Object.keys(obj).reduce( function(final, current) {
     const prefix = final.length? "&" : "?",
           key = encodeURIComponent(current),
           value = encodeURIComponent(obj[current]);
     return `${final}${prefix}${key}=${value}`;
-  }, "" )
+  }, "")
+}
+/* ReactiveRecord */
+export function queryStringToObj(str) {
+  return str?
+    JSON.parse(
+      `{"${str.replace(/^\?/, "")
+              .replace(/#[^$&]*$/, "")
+              .replace(/&/g, '","')
+              .replace(/=/g,'":"')}"}`,
+      (k,v) => (k === ""? v : decodeURIComponent(v) )
+    )
+  :
+    {}
+}
+/* ReactiveRecord */
+export function buildRouteFromInstance(action, query) {
+  const {
+    constructor: { routes, displayName, store: { singleton:singular=false }={} },
+    _attributes,
+    ReactiveRecord:{ API:config }
+  } = this;
+
+  if (!routes[action]) throw new ROUTE_NOT_FOUND_ERROR;
+
+  return interpolateRoute(
+    routes[action],
+    _attributes,
+    displayName,
+    singular,
+    config,
+    query
+  );
+}
+/* ReactiveRecord */
+export function getKey() {
+  const {
+    constructor:{
+      schema:{
+        _primaryKey="id"
+      }
+    },
+    [_primaryKey]:key
+  } = this;
+  return [_primaryKey, key];
+}
+/* ReactiveRecord */
+export function getRouteAttributes(action, query) {
+  const { constructor:{ routes:{ [action.toLowerCase()]:routeTemplate } } } = this,
+        attributes = {};
+  if (!routeTemplate) throw new ROUTE_NOT_FOUND_ERROR;
+  let matchArr = null;
+  while(matchArr = ROUTE_TOKENIZER.exec(routeTemplate)) {
+    const [, token] = matchArr;
+    if (this[token] || query[token]) attributes[token] = this[token] || query[token]
+  }
+  return attributes;
+}
+/* ReactiveRecord */
+export function setDefaultValues(attrs) {
+  const { schema } = this.constructor;
+
+  for (let prop in schema) {
+
+    const hasInitialValue = attrs.hasOwnProperty(prop);
+    if (hasInitialValue) continue;
+
+    const hasDescriptor = typeof schema[prop] === "object";
+    if (!hasDescriptor) continue;
+
+    const hasDefaultValue = schema[prop].hasOwnProperty("default");
+    if (!hasDefaultValue) continue;
+
+    this[prop] = schema[prop].default;
+  }
+}
+/* ReactiveRecord */
+export function without() {
+  const obj = {},
+        { indexOf } = Array.prototype;
+  for (let i in this) {
+    if (arguments::indexOf(i) >= 0) continue;
+    if (!Object.prototype.hasOwnProperty.call(this, i)) continue;
+    obj[i] = this[i];
+  }
+  return obj;
+}
+/* ReactiveRecord */
+export function pick() {
+  const obj = {};
+  for(let i = 0; i < arguments.length; i++) {
+    if(this.hasOwnProperty([arguments[i]])) obj[arguments[i]] = this[arguments[i]];
+  }
+  return obj;
+}
+/* ReactiveRecord */
+export function assignLeft() {
+  const objects = [];
+  for (let i = arguments.length; i-- > 0; ) {
+    if (i) {
+      objects[i - 1] = Object.assign(
+        arguments[i - 1],
+        arguments[i]::pick(...Object.keys(arguments[i - 1]))
+      )
+      objects[i] = arguments[i]::without(...Object.keys(objects[i - 1]))
+    }
+  }
+  return objects;
+}
+/* ReactiveRecord */
+export function select(fn) {
+  return this.filter(fn)
+}
+/* ReactiveRecord */
+export function where(obj) {
+  return this.filter(function(item){
+    for (let key in obj) {
+      if (item.hasOwnProperty(key))
+        if (item[key] == obj[key]) continue;
+      return false;
+    }
+    return true;
+  })
+}
+export function onlyObjects(obj) { return typeof obj === "object" }
+
+export function values() {
+  const val = [];
+  for (let key in this) {
+    if (this.hasOwnProperty(key)) val.push(this[key])
+  }
+  return val;
+}
+
+export function onlyReactiveRecord() {
+  if ("_isReactiveRecord" in this) return this;
+  const chunks = this::values().filter(onlyObjects)
+  for(let i=0; i < chunks.length; i++) {
+    if ("_isReactiveRecord" in chunks[i]) return chunks[i];
+    chunks.push(...chunks[i]::values().filter(onlyObjects))
+  }
 }

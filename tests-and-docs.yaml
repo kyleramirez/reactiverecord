@@ -1,0 +1,62 @@
+tests:
+  - ReactiveRecord.model("Post", Post) should return that model
+docs:
+  notes:
+    - If you're setting _primaryKey in schema, don't include that property in the schema. It'll now be managed by ReactiveRecord
+    - "Dont define created_at, updated_at, just to _timestamps: true"
+  crud_signatures:
+    persistence:
+      - Post.create(attrs, options)
+      - post.updateAttributes(attrs, options)
+      - post.updateAttribute(name, value, options)
+      - post.save(options)
+      - post.destroy(query)
+      - Post.destroy(key, query)
+    remote:
+      - Post.find(key, query)
+      - Post.all(query)
+      - Post.load(query)
+      - post.reload(query)
+  routes:
+    route interpolations :
+      - :prefix
+      - :modelname
+      - :"any attribute"
+      - :"any attribute that will be passed in as part of the query object / string"
+      - at runtime, you can pass in extra query parameters. These parameters will replace attributes
+        in the current resource. If you pass in a query parameter that needs to be part of the route,
+        it will be removed from the query string.
+          
+    query_parameters:
+      - a GET request will always result in attributes as part of the query string, as GET requests cannot contain a request body
+      - ReactiveRecord accepts a query to be added to each type of request, for example ...
+        "persistence"
+          Post.create(attrs, { query })
+          post.updateAttributes(attrs, { query })
+          post.updateAttribute(name, value, { query })
+          post.save({ query })
+          post.destroy(query)
+          Post.destroy(key, query)
+        "remote"
+          Post.find(key, query)
+          Post.all(query)
+          Post.load(query)
+          post.reload(query)
+      - a query can be either a string or an object, which will be converted to a string
+      - once a query is passed in, it will be dissected into the request body, the URL and the query string
+      - "If you pass in { title: 'Harvey now a hurricane, heading for Texas', feed: 'breaking', version:'final' } as the query for Post.create, a few checks will happen ...
+        - Because title is an attribute on the model, it will be removed from the query and be in the request body
+        - Because feed is a tokenized part of the URL, it will be removed from the query and be in the URL
+        - Any attribute in the query which is not a URL token or model attribute will stay as part of the final query string
+        - In this scenario, the final request would look like:
+          REQUEST:
+            Method: POST
+            URL: /api/posts/breaking?version=final
+            Data: {
+              title: 'Harvey now a hurricane, heading for Texas',
+              body: 'A hurricane hunter plane flying through Harvey has found the storm is now a Category 1 hurricane, with sustained winds of 80 mph, according to the National Hurricane Center.'
+            }
+    route only and except: |
+      only and accept can take a string or an array of strings
+      only: "create"
+      except: ["destroy","update"]
