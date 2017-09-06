@@ -72,7 +72,6 @@ export function checkResponseStatus(response){
   /* If no error, great, return the response. */
   if (status >= 200 && status < 300)
     return response
-
   /* Begin parsing this error */
   error.status = status
   error.response = response
@@ -140,11 +139,12 @@ export function setReadOnlyProps(attrs, persisted) {
         } = attrs;
         this._attributes[_primaryKey] = finalKeyValue;
 
-  Object.defineProperty(this, "_persisted", { value: !!persisted })
+  Object.defineProperty(this, "_persisted", { value: !!persisted, configurable: true })
 
   Object.defineProperty(this, _primaryKey, {
     enumerable: true,
-    value: this._attributes[_primaryKey]
+    value: this._attributes[_primaryKey],
+    configurable: true
   });
 
   if (_timestamps) {
@@ -155,13 +155,15 @@ export function setReadOnlyProps(attrs, persisted) {
     const createdAt = attrs.created_at || attrs.createdAt || null
     Object.defineProperty(this, "createdAt", {
       enumerable: true,
-      value: createdAt? new Date(createdAt) : null
+      value: createdAt? new Date(createdAt) : null,
+      configurable: true
     })
 
     const updatedAt = attrs.updated_at || attrs.updatedAt || null
     Object.defineProperty(this, "updatedAt", {
       enumerable: true,
-      value: updatedAt? new Date(updatedAt) : null
+      value: updatedAt? new Date(updatedAt) : null,
+      configurable: true
     })
   }
 }
@@ -217,7 +219,7 @@ export function setWriteableProps(attrs) {
       }
     }
 
-    Object.defineProperty(this, prop, { get, set, enumerable: true })
+    Object.defineProperty(this, prop, { get, set, enumerable: true, configurable: true })
   }
 }
 /* ReactiveRecord */

@@ -5,7 +5,7 @@ import storeBuilder from "storeBuilder"
 import { Route } from "react-router-dom"
 import { StaticRouter } from "react-router"
 import Home from "containers/welcome/Home"
-import { DogResources } from "containers/dog-breeds"
+import { Index as DogBreedIndex } from "containers/dog-breeds"
 
 export default function Application({ INITIAL_STATE, location }) {
   return(
@@ -13,7 +13,7 @@ export default function Application({ INITIAL_STATE, location }) {
       <StaticRouter location={location} context={{}}>
         <div>
           <Route path="/" exact component={Home} />
-          {DogResources}
+          <Route path="/dog-breeds" component={DogBreedIndex} />
         </div>
       </StaticRouter>
     </Provider>

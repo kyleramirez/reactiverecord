@@ -3,9 +3,11 @@ import { Link } from "react-router-dom"
 import DocumentTitle from "react-document-title"
 import ReactiveRecord, { Member } from "reactiverecord"
 
+const DogBreed = ReactiveRecord.model("DogBreed");
+
 export default function Show({ match:{ params:{ id } } }) {
   return(
-    <Member for={ReactiveRecord.model("DogBreed")} find={id}>
+    <Member for={DogBreed} find={parseInt(id)}>
       { breed => (
         <DocumentTitle title={breed.name || "Untitled"}>
           <div>

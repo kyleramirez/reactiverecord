@@ -328,3 +328,7 @@ performAsync should apply the 200 status to every single resource in the collect
 errors in performAsync should also dispatch the original attributes requested, so the reducer knows what to update
 `
 
+Declare models like .model("ModelName", ModelClass)
+No need for mangling exceptions
+added method .serialize to model, returns JSON safe object
+define _primaryKey in model, not in schema with _key

@@ -32,7 +32,7 @@ class DogBreedsController < ApplicationController
 
   def destroy
     if dog_breed.destroy
-      render json: {}, status: :no_content
+      render json: {}, status: :ok
     else
       render json: { errors: dog_breed.errors.messages }, status: :unprocessable_entity
     end

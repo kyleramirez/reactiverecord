@@ -15,12 +15,12 @@ export default class Model {
 
     Object.defineProperty(this, "_attributes", { value:{} })
     Object.defineProperty(this, "_request", { value: new Request({...attrs._request}) });
-    Object.defineProperty(this, "_errors", { value: new Errors({...attrs._errors}) });
 
     this::setReadOnlyProps(attrs, persisted);
     this::setWriteableProps(attrs);
 
-    Object.defineProperty(this, "_pristine", { value: skinnyObject(this._attributes) })
+    Object.defineProperty(this, "_errors", { value: new Errors({ ...attrs._errors, _schema:model.schema }) });
+    Object.defineProperty(this, "_pristine", { value: skinnyObject(this._attributes), configurable: true });
     Object.freeze(this._pristine)
 
     this::setDefaultValues(attrs)
@@ -39,7 +39,7 @@ export default class Model {
   /* Serialization */
   serialize() {
     return skinnyObject({
-      _attributes: this._attributes,
+      _attributes: {...this},
       _errors: this._errors,
       _request: this._request.serialize()
     })
@@ -93,19 +93,45 @@ export default class Model {
   get save() {
     const action = this._persisted ? "UPDATE" : "CREATE";
     return ({ query:_query={} }={}) => {
-      const shouldDiff = this.ReactiveRecord.API.patchMode,
-            attributesForRequest = shouldDiff ? this.diff : skinnyObject(this._attributes),
-            query = typeof _query === "string" ? queryStringToObj(_query) : _query,
-            _attributes = Object.assign(attributesForRequest, this.routeAttributes(action, query), query);
-      return this.constructor.dispatch({ action, _attributes })
+      return new Promise( (resolve, reject) => {
+        const shouldDiff = this.ReactiveRecord.API.patchMode,
+              attributesForRequest = shouldDiff ? this.diff : skinnyObject(this._attributes),
+              query = typeof _query === "string" ? queryStringToObj(_query) : _query,
+              _attributes = Object.assign(attributesForRequest, this.routeAttributes(action, query), query);
+              this.constructor
+                  .dispatch({ action, _attributes })
+                  .then( resource => {
+                    Object.assign(this._request, resource._request);
+                    this::setReadOnlyProps({...resource}, true);
+                    this::setWriteableProps({ ...this, ...resource });
+                    Object.defineProperty(this, "_pristine", { value: skinnyObject(this._attributes), configurable: true });
+                    Object.freeze(this._pristine);
+                    resolve(this);
+                  })
+                  .catch( ({ _errors={}, _request={} }) => {
+                    Object.assign(this._errors, _errors);
+                    Object.assign(this._request, _request);
+                    reject(this);
+                  })
+      })
     }
   }
   get destroy() {
     const action = "DESTROY";
     return (_query={}) => {
-      const query = typeof _query === "string" ? queryStringToObj(_query) : _query,
-            _attributes = Object.assign(this.routeAttributes(action, query), query);
-      return this.constructor.dispatch({ action:"DESTROY", _attributes })
+      return new Promise( (resolve, reject) => {
+        const query = typeof _query === "string" ? queryStringToObj(_query) : _query,
+              _attributes = Object.assign(this.routeAttributes(action, query), query);
+        this.constructor
+            .dispatch({ action:"DESTROY", _attributes })
+            .then(resolve)
+            .catch( ({ _errors={}, _request={} }) => {
+              Object.assign(this._errors, _errors);
+              Object.assign(this._request, _request);
+              reject(this);
+            })
+      })
+
     }
   }
 
@@ -130,14 +156,28 @@ export default class Model {
   static load(query) { return this.all(query) }
   get reload() {
     const { singleton=false } = this.constructor.store;
-    return _query => {
+    return _query => new Promise( (resolve, reject) => {
       const query = typeof _query === "string" ? queryStringToObj(_query) : _query;
       if (this._request.canReload) return this._request.reload(query)
       if (singleton) return this.constructor.all(query)
       const [ _primaryKey, key ] = this::getKey(),
             findQuery = Object.assign(this.routeAttributes("SHOW", query), query)
-      return this.constructor.find(findQuery[_primaryKey] || key, findQuery::without(_primaryKey))
-    } 
+      this.constructor
+          .find(findQuery[_primaryKey] || key, findQuery::without(_primaryKey))
+          .then( resource => {
+            Object.assign(this._request, resource._request);
+            this::setReadOnlyProps({...resource}, true);
+            this::setWriteableProps({ ...this, ...resource });
+            Object.defineProperty(this, "_pristine", { value: skinnyObject(this._attributes), configurable: true });
+            Object.freeze(this._pristine);
+            resolve(this);
+          })
+          .catch( ({ _errors={}, _request={} }) => {
+            Object.assign(this._errors, _errors);
+            Object.assign(this._request, _request);
+            reject(this);
+          })
+    })
   }
 
   /* Validations */

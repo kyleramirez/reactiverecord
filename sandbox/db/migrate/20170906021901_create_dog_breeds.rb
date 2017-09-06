@@ -4,6 +4,7 @@ class CreateDogBreeds < ActiveRecord::Migration[5.1]
       t.string :name
       t.text :description
       t.boolean :akc_recognized
+      t.timestamps
     end
   end
 end

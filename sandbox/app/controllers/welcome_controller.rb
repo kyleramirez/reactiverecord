@@ -1,6 +1,7 @@
 class WelcomeController < ApplicationController
   def home
     @INITIAL_STATE = stubbed_redux_state
+    render partial: "react_page_prerendered", layout: false
   end
 
   def index

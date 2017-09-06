@@ -9,7 +9,7 @@ import Show from "./show"
 const DogBreed = ReactiveRecord.model("DogBreed");
 if (typeof window === "object") window.DogBreed = DogBreed;
 
-function Index() {
+export function Index() {
   return(
     <DocumentTitle title="Dogs">
       <div>
@@ -17,21 +17,29 @@ function Index() {
           <Link to="/dog-breeds">All Breeds</Link><br />
           <Link to="/dog-breeds/new">New Breed</Link>
         </pre>
-        <Route path="/dog-breeds" exact render={() => (
-          <Collection for={DogBreed}>
-            { breeds => (
-              <div>
-                <h3>Index of Dog Breeds</h3>
-                { breeds.map( breed => (
-                  <pre key={breed.id}>
-                    <Link to={`/dog-breeds/${breed.id}`}>{breed.name}</Link>&nbsp;
-                    {JSON.stringify(breed, null, 2)}
-                  </pre>
-                ))}
-              </div>
-            )}
-          </Collection>
-        )} />
+        <Route
+          path="/dog-breeds"
+          exact
+          render={()=>(
+            <Collection for={DogBreed}>
+              { breeds => (
+                <div>
+                  <h3>Index of Dog Breeds</h3>
+                  { breeds.map( breed => (
+                    <pre key={breed.id}>
+                      <Link to={`/dog-breeds/${breed.id}`}>{breed.name}</Link>&nbsp;
+                      {JSON.stringify(breed, null, 2)}
+                      &nbsp;<a href="delete" onClick={e => {
+                        e.preventDefault();
+                        if (confirm("Are ya sure?")) breed.destroy()
+                      }}>Delete</a>
+                    </pre>
+                  ))}
+                </div>
+              )}
+            </Collection>
+          )}
+        />
         <Switch>
           <Route key="new" path="/dog-breeds/new" component={New} />
           <Route key="show" path="/dog-breeds/:id" exact component={Show} />
@@ -41,7 +49,3 @@ function Index() {
     </DocumentTitle>
   )
 }
-
-export const DogResources = [
-  <Route key="index" path="/dog-breeds" component={Index} />,
-]

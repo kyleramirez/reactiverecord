@@ -1,9 +1,20 @@
 import React from "react"
+import DocumentTitle from "react-document-title"
+import ReactiveRecord from "reactiverecord"
+import Form from "./form"
 
-export default function New() {
+const DogBreed = ReactiveRecord.model("DogBreed"),
+      title = "New dog breed";
+
+
+export default function New({ history:{ push } }) {
+  function goToResource({ id }){ return push(`/dog-breeds/${id}`) }
   return(
-    <div>
-      The New Page
-    </div>
+    <DocumentTitle title={title}>
+      <div>
+        <h3>{title}</h3>
+        <Form resource={new DogBreed} onSuccess={goToResource} />
+      </div>
+    </DocumentTitle>
   )
 }

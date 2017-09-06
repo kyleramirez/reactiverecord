@@ -7,7 +7,8 @@ class DogBreed extends Model {
     akc_recognized: {
       default: false,
       type: Boolean
-    }
+    },
+    _timestamps: true
   }
 }
 

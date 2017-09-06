@@ -129,7 +129,7 @@ export default class ReactiveRecord {
           return res.json()
         })
         .then( data => this.handleSuccess(responseStatus, method, action, model, _primaryKey, actionName, modelName, resolve, data))
-        .catch(this.handleError.bind(this, actionName, reject))
+        .catch(error => this.handleError(actionName, model, modelName, _primaryKey, _attributes[_primaryKey], reject, error))
     })
   }
 
@@ -158,7 +158,7 @@ export default class ReactiveRecord {
     this.dispatch({ ...resource.serialize(), type:`@OK_${actionName}(${modelName})` })
   }
 
-  handleError(actionName, reject, error) {
+  handleError(actionName, model, modelName, _primaryKey, key, reject, error) {
     const { status, response } = error;
     /* 
      *  If the error does not have a response property,
@@ -166,15 +166,21 @@ export default class ReactiveRecord {
      *  immediately.
      */
     if (!response) return reject(error);
+    const handleBody = (body) => {
+      const wasCollection = actionName == "INDEX",
+            hasErrors = body.hasOwnProperty("errors"),
+            _request = { status, body },
+            _errors = hasErrors ? body.errors : {},
+            errorObj = { _request };
 
-    if (response && response.hasOwnProperty("json")) {
-      response.json().then( body =>{
-        const wasCollection = actionName == "INDEX" || actionName == "SHOW"
-        if (wasCollection) reject({ status, body })
-        else {
-
-        }
-      })
+      if (!wasCollection) errorObj._attributes = { [_primaryKey]:key }
+      if (hasErrors) errorObj._errors = _errors
+      reject(errorObj);
+      this.dispatch({ ...errorObj, type:`@ERROR_${actionName}(${modelName})` });
     }
+
+    response.json()
+            .then(handleBody)
+            .catch(()=>handleBody({ message: "Error processing JSON response." }))
   }
 }

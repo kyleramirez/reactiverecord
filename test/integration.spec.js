@@ -55,11 +55,8 @@ describe("Integrations", ()=>{
       })
     });
   });
-  /*
-  describe("Model.load(query)", () => {
-    it("should ", () => {
-    });
-  });
+/*
+  describe("Model.load(query)");
 
   describe("Model.create(attrs, { query })", () => {
     it("should ", () => {

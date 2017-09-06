@@ -1,6 +1,6 @@
 {
   "name": "reactiverecord",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "Object data-store mapping in React",
   "main": "dist/index.js",
   "scripts": {
@@ -42,11 +42,9 @@
     "whatwg-fetch": "^2.0.3"
   },
   "peerDependencies": {
-    "es6-promise": "^4.0.0",
     "react": "^0.14.0 || ^15.0.0-0 || ^16.0.0-0",
     "react-redux": "^5.0.0",
-    "redux": "^2.0.0 || ^3.0.0",
-    "whatwg-fetch": "^2.0.0"
+    "redux": "^2.0.0 || ^3.0.0"
   },
   "dependencies": {
     "object-diff": "^0.0.4"

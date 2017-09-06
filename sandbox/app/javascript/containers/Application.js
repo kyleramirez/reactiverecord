@@ -5,7 +5,7 @@ import storeBuilder from "storeBuilder"
 import { BrowserRouter, Route } from "react-router-dom"
 import ReactiveRecord from "reactiverecord"
 import Home from "./welcome/Home"
-import { DogResources } from "./dog-breeds"
+import { Index as DogBreedIndex } from "./dog-breeds"
 
 export default function Application({ INITIAL_STATE }) {
 
@@ -18,7 +18,7 @@ export default function Application({ INITIAL_STATE }) {
       <BrowserRouter>
         <div>
           <Route path="/" exact component={Home} />
-          {DogResources}
+          <Route path="/dog-breeds" component={DogBreedIndex} />
         </div>
       </BrowserRouter>
     </Provider>

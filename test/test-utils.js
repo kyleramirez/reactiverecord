@@ -55,14 +55,16 @@ function fetch(...args) {
 
 global.fetch = chai.spy(fetch);
 
-// const request = [
-//   "/people",
-//   { method: "POST",
-//     body: { name: "Kyle" },
-//     headers: { "Accept": "application/json", "Content-Type": "application/json" },
-//     credentials: "same-origin" }
-// ]
-// expect(fetch).to.have.been.called.with(...request);
-// const [ resolve, reject ] = fetchRequests.get(request);
-// resolve(new FetchResponse({ status: 200, body: { id: 123, name: "Kyle", level: "customer" } }))
-// fetchRequests.reset()
+/* Stub out a fetch
+const request = [
+  "/people",
+  { method: "POST",
+    body: { name: "Kyle" },
+    headers: { "Accept": "application/json", "Content-Type": "application/json" },
+    credentials: "same-origin" }
+]
+expect(fetch).to.have.been.called.with(...request);
+const [ resolve, reject ] = fetchRequests.get(request);
+resolve(new FetchResponse({ status: 200, body: { id: 123, name: "Kyle", level: "customer" } }))
+fetchRequests.reset()
+*/

@@ -256,7 +256,6 @@ describe("ReactiveRecord", ()=>{
           headers: { "Accept": "application/json", "Content-Type": "application/json" },
           credentials: "same-origin" }
       ]
-      // console.log(JSON.stringify(fetch.__spy.calls, null, 2))
       expect(fetch).to.have.been.called.with(...index);
       expect(fetch).to.have.been.called.with(...create);
       expect(fetch).to.have.been.called.with(...show);
@@ -345,84 +344,10 @@ describe("ReactiveRecord", ()=>{
       reactiveRecordTest.API.prefix = oldPrefix;
     });
 
-    // it("should resolve all 2xx HTTP status codes", () => {
-   //    // handleSuccess(responseStatus, method, action, model, _primaryKey, actionName, modelName, resolve, data)
-   //    reactiveRecordTest.handleSuccess(
-   //      201,
-   //      "POST",
-   //      { type: "@CREATE(Person)", _attributes: { name: "Kyle" }},
-   //      Person,
-   //      "id",
-   //      "CREATE",
-   //      "Person",
-   //      function(){},
-   //      { id: 123, name: "Kyle" }
-   //    )
-   //    console.log(JSON.stringify(dispatchSpy.__spy.calls[dispatchSpy.__spy.calls.length - 1][0], null, 2))
-   //    reactiveRecordTest.handleSuccess(
-   //      200,
-   //      "GET",
-   //      { type: "@INDEX(Person)", _attributes: {}},
-   //      Person,
-   //      "id",
-   //      "INDEX",
-   //      "Person",
-   //      function(){},
-   //      [{ id: 123, name: "Kyle" }, { id: 124, name: "Thom" }]
-   //    )
-   //    console.log(JSON.stringify(dispatchSpy.__spy.calls[dispatchSpy.__spy.calls.length - 1][0], null, 2))
-   //
-   //  });
+    it("should resolve all 2xx HTTP status codes");
 
-    it("should reject all 4xx - 5xx status codes", () => {
-      
-    });
+    it("should reject all 4xx - 5xx status codes");
 
-    it("should reject a JSON parse error", () => {
-      
-    });
-
-    
-
-    // it("should ", () => {
-    //   fetch.reset();
-    //   fetchRequests.reset();
-    //   reactiveRecordTest.performAsync({ type: "@INDEX(Person)" });
-    //   const request = [
-    //           "/people",
-    //           { method: "GET",
-    //             body: {},
-    //             headers: { "Accept": "application/json", "Content-Type": "application/json" },
-    //             credentials: "same-origin" }
-    //         ],
-    //         [ resolve ] = fetchRequests.get(request),
-    //         response = new FetchResponse({
-    //           status: 200,
-    //           body: JSON.stringify([{ id: 123, name: "Kyle" }, { id: 124, name: "Thomas" }])
-    //         });
-    //   resolve(response);
-    //
-    // });
+    it("should reject a JSON parse error");
   });
 });
-
-// model should apply new version of the resource to itself after actions which dispatch
-// this should happen before the model resolves to the next step
-//
-//
-// const _request = new Request({ status: 200, body:{}, dispatch, action });
-// _request.serialize();
-//
-// const responseArr = [{},{}];
-// const _primaryKey = "id";
-//
-// const collection = new Collection(Object.assign(responseArr, { _request, _primaryKey }));
-//
-// collection.serialize()
-// collection.reload()
-//
-//
-// Model
-//   it should dispatch the previous action on reload
-// Collection
-//   it should dispatch the previous action on reload

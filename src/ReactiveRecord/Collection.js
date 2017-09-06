@@ -2,7 +2,7 @@ import { skinnyObject } from "../utils"
 import Request from "./Request"
 
 export default class Collection extends Array {
-  constructor({ _collection, _request, _primaryKey }) {
+  constructor({ _collection=[], _request, _primaryKey }) {
     super(..._collection);
 
     this._request = new Request({ ..._request });
