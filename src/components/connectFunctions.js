@@ -1,3 +1,4 @@
+import React, { Children } from "react"
 import Collection from "../ReactiveRecord/Collection"
 import { where, select, onlyReactiveRecord, queryStringToObj, values } from "../utils"
 
@@ -50,3 +51,8 @@ export const areStatePropsEqual = (prev, next) => {
 export const areStatesEqual = ({ for: { displayName } }) => (prev, next) => {
   return (prev::onlyReactiveRecord()[displayName] === next::onlyReactiveRecord()[displayName])
 }
+
+export function ReactiveResource({ children, resource }) {
+  return Children.only(children(resource));
+}
+ReactiveResource.displayName = "ReactiveResource";

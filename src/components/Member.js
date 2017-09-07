@@ -1,6 +1,11 @@
-import React, { Component, Children } from "react"
+import React, { Component } from "react"
 import { connect } from "react-redux"
-import { mapStateToProps, areStatesEqual, areStatePropsEqual } from "./connectFunctions"
+import {
+  mapStateToProps,
+  areStatesEqual,
+  areStatePropsEqual,
+  ReactiveResource
+} from "./connectFunctions"
 
 export default class Member extends Component {
   constructor(props, context) {
@@ -9,7 +14,7 @@ export default class Member extends Component {
             areStatesEqual: areStatesEqual(props),
             areStatePropsEqual
           }
-    this.Member = connect(mapStateToProps, null, null, connectOptions)(({ children, resource })=>Children.only(children(resource)))
+    this.Member = connect(mapStateToProps, null, null, connectOptions)(ReactiveResource)
   }
 
   componentDidMount() {
