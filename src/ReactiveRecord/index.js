@@ -1,25 +1,19 @@
 import Model from "../Model"
 import {
-  isEmptyObject,
-  generateId,
   interpolateRoute,
-  skinnyObject,
   checkResponseStatus,
   without, pick
 } from "../utils"
 import {
-  collectionProps,
   ACTION_MATCHER,
   ACTION_METHODS,
   ROUTE_NOT_FOUND_ERROR,
   MODEL_NOT_FOUND_ERROR,
-  MODEL_NOT_VALID_ERROR,
-  memberProps
+  MODEL_NOT_VALID_ERROR
 } from "../constants"
 import singletonReducer from "../reducer/singletonReducer"
 import collectionReducer from "../reducer/collectionReducer"
 import Collection from "./Collection"
-import Request from "./Request"
 
 export default class ReactiveRecord {
   models = {}
@@ -51,7 +45,7 @@ export default class ReactiveRecord {
           } = modelClass,
           defaultRoutes = ["index", "create", "show", "update", "destroy"]
             // Removes routes if except defined
-            .filter(function(action){ return except.indexOf(action) == -1 })
+            .filter(function(action){ return except.indexOf(action) === -1 })
             // Remove routes if only defined
             .filter(function(action){ return !only.length || only.indexOf(action) > -1 });
     modelClass.routes = defaultRoutes.reduce((routes, action) => {
@@ -111,12 +105,12 @@ export default class ReactiveRecord {
             { headers, credentials, ...apiConfig } = this.API,
             routeTemplate = model.routes[actionName.toLowerCase()],
             method = ACTION_METHODS[actionName.toLowerCase()],
-            query = method == "GET" ? _attributes : _attributes::without(...Object.keys(model.schema)),
-            body = method == "GET" ? {} : _attributes::pick(...Object.keys(model.schema));
-      if (!routeTemplate) throw new ROUTE_NOT_FOUND_ERROR;
+            query = method === "GET" ? _attributes : _attributes::without(...Object.keys(model.schema)),
+            body = method === "GET" ? {} : _attributes::pick(...Object.keys(model.schema));
+      if (!routeTemplate) throw new ROUTE_NOT_FOUND_ERROR();
 
       const route = interpolateRoute(routeTemplate, body, modelName, singleton, apiConfig, query);
-      const request = method == "GET" ?
+      const request = method === "GET" ?
               { method, headers, credentials }
             :
               { method, body:JSON.stringify(body), headers, credentials };
@@ -167,7 +161,7 @@ export default class ReactiveRecord {
      */
     if (!response) return reject(error);
     const handleBody = (body) => {
-      const wasCollection = actionName == "INDEX",
+      const wasCollection = actionName === "INDEX",
             hasErrors = body.hasOwnProperty("errors"),
             _request = { status, body },
             _errors = hasErrors ? body.errors : {},

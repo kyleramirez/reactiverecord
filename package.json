@@ -4,10 +4,12 @@
   "description": "Object data-store mapping in React",
   "main": "dist/index.js",
   "scripts": {
+    "lint": "eslint src",
+    "lint:watch": "esw -w src",
     "test": "mocha -r babel-core/register",
-    "test-watch": "mocha -w -r babel-core/register",
+    "test:watch": "mocha -w -r babel-core/register",
     "dist": "babel -d dist src",
-    "dist-watch": "babel -w -d dist src",
+    "dist:watch": "babel -w -d dist src",
     "prepublish": "babel -d dist src"
   },
   "repository": {
@@ -16,11 +18,12 @@
   },
   "keywords": [
     "models",
+    "rails",
     "cache",
     "react",
     "redux"
   ],
-  "author": "Kyle Ramirez",
+  "author": "Kyle Ramirez <kyle@rentalutions.com> (https://kyles.work)",
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/rentalutions/reactiverecord/issues"
@@ -35,6 +38,9 @@
     "chai": "^3.5.0",
     "chai-spies": "^0.7.1",
     "es6-promise": "^4.1.1",
+    "eslint": "^4.6.1",
+    "eslint-plugin-react-app": "^1.0.2",
+    "eslint-watch": "^3.1.2",
     "mocha": "^3.3.0",
     "react": "^15.6.1",
     "react-redux": "^5.0.6",
@@ -45,8 +51,5 @@
     "react": "^0.14.0 || ^15.0.0-0 || ^16.0.0-0",
     "react-redux": "^5.0.0",
     "redux": "^2.0.0 || ^3.0.0"
-  },
-  "dependencies": {
-    "object-diff": "^0.0.4"
   }
 }

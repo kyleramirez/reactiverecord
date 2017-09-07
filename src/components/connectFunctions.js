@@ -1,6 +1,5 @@
 import Collection from "../ReactiveRecord/Collection"
 import { where, select, onlyReactiveRecord, queryStringToObj, values } from "../utils"
-import diff from "object-diff"
 
 function defaultSelect() { return true }
 

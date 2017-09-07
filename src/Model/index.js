@@ -1,8 +1,7 @@
-import diff from "object-diff"
 import {
   setReadOnlyProps, setWriteableProps, getKey,
-  skinnyObject, getRouteAttributes, recordDiff,
-  setDefaultValues, buildRouteFromInstance, assignLeft,
+  skinnyObject, getRouteAttributes, diff,
+  setDefaultValues, buildRouteFromInstance,
   without, queryStringToObj
 } from "../utils"
 import Request from "../ReactiveRecord/Request"
@@ -47,9 +46,8 @@ export default class Model {
 
   /* Dirty */
   get diff() {
-    return diff.custom(
-      { equal: recordDiff },
-      this._persisted ? this._pristine : (new this.constructor)._pristine,
+    return diff(
+      this._persisted ? this._pristine : (new this.constructor())._pristine,
       skinnyObject(this._attributes)
     )
   }

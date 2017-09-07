@@ -10,7 +10,7 @@ export default function collectionReducer(modelName, _primaryKey, state=collecti
   const [,asyncStatus, actionNameUpper, actionModelName] = action.type.match(ACTION_MATCHER),
         actionName = actionNameUpper.toLowerCase(),
         requestStatus = asyncStatus ? asyncStatus.replace("_","") : null;
-  if (actionModelName != modelName) return state;
+  if (actionModelName !== modelName) return state;
 
   const nextState = { ...state },
         {
@@ -22,17 +22,17 @@ export default function collectionReducer(modelName, _primaryKey, state=collecti
           }={},
           _errors:safeActionErrors={}
         } = action,
-        hasMemberToUpdate = actionName != "index" && !!key,
+        hasMemberToUpdate = actionName !== "index" && !!key,
         existingVersionOfMember = hasMemberToUpdate ?
             nextState._collection[key] || { ...memberProps }
           :
             null,
         startingAsync = !!!requestStatus,
         returningFromAsync = !!requestStatus,
-        statusOK = requestStatus == "OK";
+        statusOK = requestStatus === "OK";
 
   if (startingAsync) {
-    if (actionName == "index") {
+    if (actionName === "index") {
       nextState._request = {
         ...nextState._request,
         status: ACTION_STATUSES[actionName]
@@ -56,7 +56,7 @@ export default function collectionReducer(modelName, _primaryKey, state=collecti
     }
   }
 
-  if (returningFromAsync && actionName == "index") {
+  if (returningFromAsync && actionName === "index") {
     nextState._request = {
       ...nextState._request,
       ...safeActionRequest
@@ -71,7 +71,7 @@ export default function collectionReducer(modelName, _primaryKey, state=collecti
   }
 
   if (hasMemberToUpdate && returningFromAsync) {
-    if (!!(actionName.match(/(show|create|update)/) || actionName == "destroy" && !statusOK)) {
+    if (!!(actionName.match(/(show|create|update)/) || (actionName === "destroy" && !statusOK))) {
       nextState._collection = {
         ...nextState._collection,
         [key]: {
@@ -91,7 +91,7 @@ export default function collectionReducer(modelName, _primaryKey, state=collecti
       }
     }
 
-    if (!!(actionName == "destroy" && statusOK)) {
+    if (!!(actionName === "destroy" && statusOK)) {
       nextState._collection = nextState._collection::without(key.toString())
     }
   }

@@ -1,7 +1,7 @@
 import {
   ACTION_MATCHER,
   ACTION_STATUSES,
-  memberProps, collectionProps
+  memberProps
 } from "../constants"
 
 export default function singletonReducer(modelName, _primaryKey, state=memberProps, action) {
@@ -9,7 +9,7 @@ export default function singletonReducer(modelName, _primaryKey, state=memberPro
   const [,asyncStatus, actionNameUpper, actionModelName] = action.type.match(ACTION_MATCHER),
         actionName = actionNameUpper.toLowerCase(),
         requestStatus = asyncStatus ? asyncStatus.replace("_","") : null;
-  if (actionModelName != modelName) return state;
+  if (actionModelName !== modelName) return state;
 
   const nextState = { ...state },
         {
@@ -19,7 +19,7 @@ export default function singletonReducer(modelName, _primaryKey, state=memberPro
         } = action,
         startingAsync = !!!requestStatus,
         returningFromAsync = !!requestStatus,
-        statusOK = requestStatus == "OK";
+        statusOK = requestStatus === "OK";
 
   nextState._request = {
     ...nextState._request,
@@ -37,10 +37,11 @@ export default function singletonReducer(modelName, _primaryKey, state=memberPro
     }
   }
 
-  if (actionName == "destroy" && statusOK) {
+  if (actionName === "destroy" && statusOK) {
     nextState._attributes = {
       ...memberProps._attributes
-    },
+    }
+
     nextState._errors = {
       ...memberProps._errors
     }

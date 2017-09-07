@@ -1,7 +1,7 @@
 // import { expect } from "chai"
 // import reactiveRecord, { Model } from "../src"
 // import {
-//   isEmptyObject, generateID, pruneDeep,
+//   generateID, pruneDeep,
 //   pruneArray, regexIndexOf, checkResponseStatus,
 //   routePermitted, generateRoute,
 //   interpolateRoute, delimiterType, setReadOnlyProps,

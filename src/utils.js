@@ -1,74 +1,15 @@
 import Sugar from "./sugar"
 import { ROUTE_TOKENIZER, ROUTE_NOT_FOUND_ERROR } from "./constants"
 
-/* ReactiveRecord */
 export function skinnyObject(...args) {
   return args.reduce(function(final, arg){
     return Object.assign(final, JSON.parse(JSON.stringify(arg)));
   }, Object.create(null, {}))
 }
-/* ReactiveRecord */
-export function isEmptyObject(obj){
-  for (let name in obj) {
-    return false;
-  }
-  return true;
-}
-/* ReactiveRecord */
-export function generateId() {
-  function s4(){
-    return Math
-      .floor((1 + Math.random()) * 0x10000)
-      .toString(16)
-      .substring(1);
-  }
-  return `_${s4()+s4()+s4()}${s4()+s4()+s4()}`;
-}
 
-export function pruneDeep(obj){
-  return function prune(current){
-    for (let key in current) {
-      if (current.hasOwnProperty(key)) {
-        if (current[key] instanceof Array){
-          current[key] = pruneArray(current[key])
-        }
-
-        let value = current[key];
-        if (typeof value === "undefined" || value == null ||
-            (value != null && typeof value === "object" && isEmptyObject(prune(value))) ||
-            (value instanceof Array && value.length === 0)
-           ) {
-          delete current[key]
-        }
-      }
-    }
-    return current
-  }(Object.assign({}, obj))
-}
-
-export function pruneArray(arr) {
-  const newArray = new Array();
-  for (var i = 0; i < arr.length; i++) {
-    if (arr[i] != null && typeof arr[i] === "object")
-      arr[i] = pruneDeep(arr[i])
-
-    if (typeof arr[i] === "undefined" || arr[i] === null) continue;
-    if (typeof arr[i] === "object" && isEmptyObject(arr[i])) continue;
-    if (typeof arr[i] === "number" && isNaN(arr[i])) continue;
-
-    newArray.push(arr[i]);
-  }
-  return newArray;
-}
-
-export function regexIndexOf(regex, string, startpos=0){
-  var indexOf = string.substring(startpos).search(regex);
-  return (indexOf >= 0) ? (indexOf + (startpos || 0)) : indexOf;
-}
-/* ReactiveRecord */
 export function checkResponseStatus(response){
   const { status } = response,
-        error = new Error;
+        error = new Error();
   /* If no error, great, return the response. */
   if (status >= 200 && status < 300)
     return response
@@ -78,29 +19,6 @@ export function checkResponseStatus(response){
   throw error
 }
 
-export function routePermitted({ only, except }, method) {
-  if ((only instanceof Array && only.indexOf(method) === -1) || (typeof only === "string" && only !== method))
-    return false
-  if ((except instanceof Array && except.indexOf(method) !== -1) || (typeof except === "string" && except === method))
-    return false
-  return true
-}
-
-export function generateRoute(name, method, apiDelimiter, prefix, index=false, isSingleton) {
-  /*
-  GET    /stories      #index
-  GET    /stories/:id  #show
-  POST   /stories      #create
-  PUT    /stories/:id  #update
-  DELETE /stories/:id  #destroy
-  */
-  const delimiter = delimiterType(apiDelimiter),
-        modelInflection = isSingleton ? name : Sugar.String.pluralize(name),
-        modelWithDelimiter = `/${Sugar.String[delimiter](modelInflection)}`,
-        id = method === "POST" || index ? "" : "/:id";
-  return `${prefix}${modelWithDelimiter}${id}`
-}
-/* ReactiveRecord */
 export function interpolateRoute(route, attributes, resourceName, singular, apiConfig, query) {
   const { prefix } = apiConfig,
         delimiter = delimiterType(apiConfig.delimiter),
@@ -122,12 +40,12 @@ export function interpolateRoute(route, attributes, resourceName, singular, apiC
                 return match || token;
               }) + objToQueryString(query);
 }
-/* ReactiveRecord */
+
 export function delimiterType(delim="") {
   if (delim.match(/^(underscores?|_)$/)) return "underscore"
   return "dasherize"
 }
-/* ReactiveRecord */
+
 export function setReadOnlyProps(attrs, persisted) {
   const { constructor } = this,
         { schema:{ _primaryKey="id", _timestamps} } = constructor,
@@ -135,7 +53,7 @@ export function setReadOnlyProps(attrs, persisted) {
           // Single primary key
           [_primaryKey]:tmpKeyValue=null,
           // Allow id or _id by default
-          [_primaryKey=="id"? "_id" : _primaryKey]:finalKeyValue=tmpKeyValue
+          [_primaryKey === "id"? "_id" : _primaryKey]:finalKeyValue=tmpKeyValue
         } = attrs;
         this._attributes[_primaryKey] = finalKeyValue;
 
@@ -167,11 +85,12 @@ export function setReadOnlyProps(attrs, persisted) {
     })
   }
 }
-/* ReactiveRecord */
+
 export function setWriteableProps(attrs) {
   const { constructor } = this,
         { schema:{ _primaryKey, _timestamps, ...schema }, prototype } = constructor;
-  for (let prop in schema){
+  /* eslint-disable guard-for-in */
+  for (let prop in schema) {
     const hasDescriptor = typeof schema[prop] === "object" && schema[prop].hasOwnProperty("type"),
           // Establish initial value but fallback to default value
           initialValue = JSON.parse(JSON.stringify(attrs.hasOwnProperty(prop) ? attrs[prop] : null)),
@@ -190,30 +109,30 @@ export function setWriteableProps(attrs) {
 
     if (!manuallyDefinedGetter) {
       get = ()=>(this._attributes[prop]);
-      if (type == "Object") {
+      if (type === "Object") {
         get = ()=> (this._attributes[prop] || {})
       }
-      if (type == "Array") {
+      if (type === "Array") {
         get = ()=> (this._attributes[prop] || [])
       }
-      if (type == "Date") {
+      if (type === "Date") {
         get = ()=> (this._attributes[prop] === null ? null : new Date(this._attributes[prop]))
       }
-      if (type == "Number") {
+      if (type === "Number") {
         get = ()=> (this._attributes[prop] === null ? null : Number(this._attributes[prop]))
       }
     }
 
     if (!manuallyDefinedSetter) {
       set = (newValue) => (this._attributes[prop] = newValue);
-      if (type == "Boolean") {
+      if (type === "Boolean") {
         set = (newValue)=>{
           return this._attributes[prop] = newValue === "false" ? false : Boolean(newValue)
         }
       }
     }
 
-    if (type == "Boolean") {
+    if (type === "Boolean") {
       if (this._attributes[prop] !== null) {
         this._attributes[prop] = initialValue === "false" ? false : Boolean(initialValue)
       }
@@ -221,8 +140,9 @@ export function setWriteableProps(attrs) {
 
     Object.defineProperty(this, prop, { get, set, enumerable: true, configurable: true })
   }
+  /* eslint-enable guard-for-in */
 }
-/* ReactiveRecord */
+
 export function recordDiff(a,b) {
   if (a instanceof Array && b instanceof Array)
     return JSON.stringify(a) === JSON.stringify(b);
@@ -233,35 +153,22 @@ export function recordDiff(a,b) {
   return a === b;
 }
 
-export function mergeRecordsIntoCache(cache, records, keyStr, model) {
-  // Get the records ready for the cache
-  const recordsForCache = records.map(record=>({...singleRecordProps, record: createThisRecord(model, record)}));
-        // Remove anything in the cache that matches keys in the records
-  const filteredCache = cache.filter(cacheItem=>{
-          let match = false;
-          recordsForCache.map(recordsItem=>{
-            if (recordsItem.record[keyStr] == cacheItem.record[keyStr]) match = true
-          })
-          return !match
-        })
-  // Finally, merge the new records and the filtered records
-  return [].concat(filteredCache, recordsForCache);
+export function diff(...subjects) {
+  const length = subjects.length,
+        ref = subjects[0],
+        diff = {};
+  for (let i = 1; i < length; i++) {
+    const current = subjects[i],
+          keys = Object.keys(current),
+          keysLength = keys.length;
+    for (let u = 0;u < keysLength; u++) {
+      const key = keys[u];
+      if (!recordDiff(current[key], ref[key])) diff[key] = current[key];
+    }
+  }
+  return diff;
 }
 
-export function createThisRecord(model, rawRecord) {
-  const newInstance = new model(rawRecord)
-  return { ...newInstance.record, ...newInstance.timestamps }
-}
-
-export function tmpRecordProps(){
-  return({
-    id: generateID(),
-    ...versioningProps,
-    ...recordProps,
-    creating: false
-  });
-};
-/* ReactiveRecord */
 export function objToQueryString(obj) {
   return Object.keys(obj).reduce( function(final, current) {
     const prefix = final.length? "&" : "?",
@@ -270,7 +177,7 @@ export function objToQueryString(obj) {
     return `${final}${prefix}${key}=${value}`;
   }, "")
 }
-/* ReactiveRecord */
+
 export function queryStringToObj(str) {
   return str?
     JSON.parse(
@@ -283,7 +190,7 @@ export function queryStringToObj(str) {
   :
     {}
 }
-/* ReactiveRecord */
+
 export function buildRouteFromInstance(action, query) {
   const {
     constructor: { routes, displayName, store: { singleton:singular=false }={} },
@@ -291,7 +198,7 @@ export function buildRouteFromInstance(action, query) {
     ReactiveRecord:{ API:config }
   } = this;
 
-  if (!routes[action]) throw new ROUTE_NOT_FOUND_ERROR;
+  if (!routes[action]) throw new ROUTE_NOT_FOUND_ERROR();
 
   return interpolateRoute(
     routes[action],
@@ -302,7 +209,7 @@ export function buildRouteFromInstance(action, query) {
     query
   );
 }
-/* ReactiveRecord */
+
 export function getKey() {
   const {
     constructor:{
@@ -314,24 +221,26 @@ export function getKey() {
   } = this;
   return [_primaryKey, key];
 }
-/* ReactiveRecord */
+
 export function getRouteAttributes(action, query) {
   const { constructor:{ routes:{ [action.toLowerCase()]:routeTemplate } } } = this,
         attributes = {};
-  if (!routeTemplate) throw new ROUTE_NOT_FOUND_ERROR;
+  if (!routeTemplate) throw new ROUTE_NOT_FOUND_ERROR();
   let matchArr = null;
+  /* eslint-disable no-cond-assign */
   while(matchArr = ROUTE_TOKENIZER.exec(routeTemplate)) {
+  /* eslint-enable no-cond-assign */
     const [, token] = matchArr;
     if (this[token] || query[token]) attributes[token] = this[token] || query[token]
   }
   return attributes;
 }
-/* ReactiveRecord */
+
 export function setDefaultValues(attrs) {
   const { schema } = this.constructor;
-
+  /* eslint-disable guard-for-in */
   for (let prop in schema) {
-
+  /* eslint-enable guard-for-in */
     const hasInitialValue = attrs.hasOwnProperty(prop);
     if (hasInitialValue) continue;
 
@@ -344,7 +253,7 @@ export function setDefaultValues(attrs) {
     this[prop] = schema[prop].default;
   }
 }
-/* ReactiveRecord */
+
 export function without() {
   const obj = {},
         { indexOf } = Array.prototype;
@@ -355,7 +264,7 @@ export function without() {
   }
   return obj;
 }
-/* ReactiveRecord */
+
 export function pick() {
   const obj = {};
   for(let i = 0; i < arguments.length; i++) {
@@ -363,35 +272,22 @@ export function pick() {
   }
   return obj;
 }
-/* ReactiveRecord */
-export function assignLeft() {
-  const objects = [];
-  for (let i = arguments.length; i-- > 0; ) {
-    if (i) {
-      objects[i - 1] = Object.assign(
-        arguments[i - 1],
-        arguments[i]::pick(...Object.keys(arguments[i - 1]))
-      )
-      objects[i] = arguments[i]::without(...Object.keys(objects[i - 1]))
-    }
-  }
-  return objects;
-}
-/* ReactiveRecord */
+
 export function select(fn) {
   return this.filter(fn)
 }
-/* ReactiveRecord */
+
 export function where(obj) {
   return this.filter(function(item){
     for (let key in obj) {
       if (item.hasOwnProperty(key))
-        if (item[key] == obj[key]) continue;
+        if (item[key] === obj[key]) continue;
       return false;
     }
     return true;
   })
 }
+
 export function onlyObjects(obj) { return typeof obj === "object" }
 
 export function values() {
