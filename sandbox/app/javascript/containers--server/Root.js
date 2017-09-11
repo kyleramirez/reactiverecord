@@ -1,7 +1,7 @@
 import React from "react"
 import DocumentTitle from "react-document-title"
 
-export default function Root({ location, INITIAL_STATE, applicationSrc }) {
+export default function Root({ location, INITIAL_STATE, applicationSrc, applicationCSSSrc }) {
 
   const propsForApplication = { location, INITIAL_STATE },
         { PROPS_ATTR, CLASS_NAME_ATTR } = ReactRailsUJS,
@@ -17,6 +17,7 @@ export default function Root({ location, INITIAL_STATE, applicationSrc }) {
     <html>
       <head>
         <title>{title}</title>
+        <link rel="stylesheet" media="screen" href={applicationCSSSrc} />
       </head>
       <body>
         <div {...propsForReactRoot} />

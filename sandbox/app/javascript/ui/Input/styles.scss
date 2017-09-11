@@ -1,0 +1,258 @@
+$input-color: #404040;
+$focus-color: #315db8;
+$muted-color: #dddddd;
+$error-color: #e52726;
+$focus-label-color: #666666;
+$muted-label-color: #999999;
+
+.wrapper {
+  position:relative;
+  display:inline-block;
+  width:100%;
+  padding:0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
+  font-weight:normal;
+  text-rendering: optimizeLegibility;
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-font-smoothing: antialiased;
+
+  &,input,select,textarea,span {
+    -webkit-tap-highlight-color:transparent;
+  }
+  + .wrapper { margin-top:1.5em; }
+
+  input,
+  select,
+  textarea {
+    color: $input-color;
+    &, & ~ span {
+      font-family:inherit;
+      font-weight:inherit;
+    }
+    &:focus { outline:none; }
+    &:-webkit-autofill {
+      -webkit-box-shadow: 0 0 0px 100vw white inset;
+      -webkit-text-fill-color: $input-color !important;
+    }
+
+    &[disabled] {
+      cursor:not-allowed;
+      &, & ~ span {
+        opacity:0.5;
+        -webkit-touch-callout: none;
+          -webkit-user-select: none;
+             -moz-user-select: none;
+              -ms-user-select: none;
+                  user-select: none;
+      }
+    }
+    &[readonly] {
+      cursor: text;
+    }
+  }
+  &.hasError {
+    margin-bottom:1.5em;
+  }
+  .error {
+    color: $error-color;
+    position:absolute;
+    font-size:(14/16)+em;
+    bottom:-(20/14)+em;
+  }
+  &.text,&.select {
+    box-shadow: 0 0 0 1px $muted-color;
+    border-radius:3px;
+    transition:box-shadow 200ms;
+
+    input,select,textarea {
+      display:block;
+      width:100%;
+      margin:0;
+      padding:1.5em 0.5em 0.5em;
+      font-size:1em;
+      line-height:1.5;
+      background-color:transparent;
+      border:none;
+      box-sizing:border-box;
+      -webkit-appearance:none;
+    }
+    .label {
+      position:absolute;
+      line-height:1;
+      pointer-events:none;
+      white-space:nowrap;
+      -webkit-touch-callout: none;
+        -webkit-user-select: none;
+           -moz-user-select: none;
+            -ms-user-select: none;
+                user-select: none;
+    }
+    &.hasFocus:not(.hasError) {
+      box-shadow: 0 0 0 2px $focus-color;
+    }
+    &.hasError {
+      box-shadow: 0 0 0 2px $error-color;
+    }
+  }
+  &.select {
+    &:after {
+      content:"";
+      position:absolute;
+      top:0; right:0;
+      width:1em;
+      height:0.5em;
+      margin:0.5em 0;
+      padding:1em;
+      background: white url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 8'><polygon fill='#{$muted-label-color}' points='16 0 0 0 7.99 8 16 0'/></svg>") no-repeat center;
+      background-size: 1em 0.5em;
+      box-shadow: -1px 0 0 0 $muted-color;
+      pointer-events:none;
+    }
+    select {
+      cursor:pointer;
+      border-radius:0;
+      border-right: 3em solid transparent;
+    }
+    .label {
+      top: (8/14)+em;
+      left: (8/14)+em;
+      font-size:0.875em;
+      color:$focus-label-color;
+    }
+  }
+  &.text {
+    input:focus,
+    input[value],
+    &.hasValue input,
+    textarea:focus,
+    &.hasValue textarea {
+      ~ .label {
+        top:(1/3)+em;
+        transform:scale((14/24));
+        color:$focus-label-color;
+      }
+    }
+
+    textarea {
+      padding-top: 0;
+      border-top: 1.5em solid transparent;
+      resize:none;
+    }
+    .label {
+      top:(2/3)+em;
+      left:(1/3)+em;
+      color: $muted-label-color;
+      font-size:1.5em;
+      transition:transform 100ms, top 100ms, color 100ms;
+      transform-origin:top left;
+    }
+  }
+
+  &.radio,
+  &.checkbox {
+    display:table;
+    cursor:pointer;
+    input {
+      position: absolute;
+	    clip: rect(0 0 0 0);
+
+      &:checked ~ .label { color: $input-color; }
+    }
+
+    .label {
+      display: table-cell;
+      width:100%;
+      line-height:1.5;
+      color: darken($muted-label-color, 15%);
+      vertical-align:middle;
+    }
+    .error { left: (40/14)+em; }
+    &.hasError + .wrapper { margin-top:2.5em; }
+  }
+  &.radio {
+    .radio {
+      @extend %radio-checkbox-shared;
+      &:before {
+        border-radius: 0.75em;
+      }
+      &:after {
+        background-color: lighten(saturate($focus-color,10%),30%);
+        border-radius:0.75em;
+        transform:scale(0.5);
+      }
+    }
+    input[type="radio"] {
+      &:checked {
+        ~ .radio {
+          &:before {
+            box-shadow:inset 0 0 0 1em $focus-color;
+          }
+          &:after {
+            opacity:1;
+          }
+        }
+        &:focus {
+          ~ .radio:before {
+            box-shadow:inset 0 0 0 1em $focus-color, 0 0 0 2px lighten($focus-color,20%);
+          }
+        }
+      }
+    }
+  }
+  &.checkbox {
+    .checkbox {
+      @extend %radio-checkbox-shared; 
+      &:before {
+        border-radius: 0.3em;
+      }
+      &:after {
+        background: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 46.84 34.48'><path fill='#{white}' d='M1589.13,74.36l-25.27,25.33a5.2,5.2,0,0,1-3.2,1.33h-2.18a5.2,5.2,0,0,1-3.19-1.33l-11.9-12a1.88,1.88,0,0,1,0-2.65l4.68-4.68a1.88,1.88,0,0,1,2.65,0l7.6,7.59a1.88,1.88,0,0,0,2.65,0l20.84-20.89a1.88,1.88,0,0,1,2.65,0l4.66,4.63A1.87,1.87,0,0,1,1589.13,74.36Z' transform='translate(-1542.83 -66.54)'/></svg>") no-repeat center;
+        background-size: 1em;
+      }
+    }
+    input[type="checkbox"] {
+      &:checked {
+        ~ .checkbox{
+          &:before {
+            box-shadow:inset 0 0 0 1em $focus-color;
+          }
+          &:after {
+            opacity:1;
+          }
+        }
+        &:focus {
+          ~ .checkbox:before {
+            box-shadow:inset 0 0 0 1em $focus-color, 0 0 0 2px lighten($focus-color,25%);
+          }
+        }
+      }
+      &:focus {
+        ~ .checkbox:before {
+          box-shadow:inset 0 0 0 2px $muted-color, 0 0 0 2px $muted-color;
+        }
+      }
+    }
+  }
+}
+%radio-checkbox-shared {
+  display: table-cell;
+  vertical-align:middle;
+  padding-right:1em;
+  &:before,&:after {
+    content:"";
+    display:block;
+    width:1.5em;
+    height:1.5em;
+  }
+  &:before {
+    box-shadow:inset 0 0 0 2px $muted-color;
+    transition: box-shadow 100ms;
+  }
+  &:after {
+    position:absolute;
+    top:calc(50% - 0.75em);
+    opacity:0;
+    transition: opacity 100ms;
+    transition-delay:100ms;
+  }
+}

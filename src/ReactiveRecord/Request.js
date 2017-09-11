@@ -1,6 +1,6 @@
 
 export default class Request {
-  constructor({ status=null, body=null }){
+  constructor({ status="NEW", body=null }){
     this.status = status;
     this.body = body;
   }

@@ -25,7 +25,10 @@ export default function singletonReducer(modelName, _primaryKey, state=memberPro
     ...nextState._request,
     ...safeActionRequest,
   }
-  if (startingAsync) nextState._request.status = ACTION_STATUSES[actionName];
+  if (startingAsync) {
+    nextState._request.status = ACTION_STATUSES[actionName];
+    nextState._errors = {}
+  }
   if (returningFromAsync) {
     nextState._attributes = {
       ...nextState._attributes,

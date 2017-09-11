@@ -332,3 +332,57 @@ Declare models like .model("ModelName", ModelClass)
 No need for mangling exceptions
 added method .serialize to model, returns JSON safe object
 define _primaryKey in model, not in schema with _key
+
+
+Button must respond to
+  - disabled
+  - loading
+  - children
+
+Inputs must respond to
+  - errorText
+  - labelText
+  - defaultValue
+  - disabled
+
+/* Extending <Form /> with a custom builder */
+/*
+ * Builders take precendence over normal schema
+ * items, or don't have to exist in the schema
+ */
+function AddressBuilder(resource, fieldsObj) {
+  let {
+        address1:defaultAddress1, city:defaultCity,
+        region:defaultRegion, postal_code:defaultPostalCode,
+        country:defaultCountry
+      } = resource,
+      defaultValue = `${defaultAddress1}, ${defaultCity}, ${defaultRegion}`;
+  const addressFields = {
+    ref: ref => (fieldsObj.fields.address = ref)
+  }
+  if (defaultAddress1) {
+    addressFields.defaultValue = defaultValue;
+    addressFields.defaultAddress1 = defaultAddress1;
+    addressFields.defaultCity = defaultCity;
+    addressFields.defaultRegion = defaultRegion;
+    addressFields.defaultPostalCode = defaultPostalCode;
+  }
+  if (defaultCountry) {
+    addressFields.defaultValue += `, ${defaultCountry}`;
+    addressFields.defaultCountry = defaultCountry;
+  }
+  return { addressFields }
+}
+<Form builder={AddressBuilder} />
+/* combineFormBuilders */
+<Form builder={combineFormBuilders(AddressBuilder, ContactBuilder, AvatarBuilder)} />
+
+/* Return a function as value to get low-level access to the form object */
+/* in a component */
+/* normally */ get value() { /* return the value for the field name */ }
+value(valuesObject) {
+  /* must return an object immediately
+   * any properties returned not in the
+   * schema will be ignored
+   */
+}

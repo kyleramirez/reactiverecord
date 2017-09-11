@@ -1,4 +1,4 @@
-import React, { Children } from "react"
+import { Children } from "react"
 import Collection from "../ReactiveRecord/Collection"
 import { where, select, onlyReactiveRecord, queryStringToObj, values } from "../utils"
 

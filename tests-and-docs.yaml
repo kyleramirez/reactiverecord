@@ -1,5 +1,6 @@
 tests:
   - ReactiveRecord.model("Post", Post) should return that model
+  - Test that prerendering a resource with an error should show up on the form
 docs:
   notes:
     - If you're setting _primaryKey in schema, don't include that property in the schema. It'll now be managed by ReactiveRecord

@@ -1,7 +1,7 @@
 class WelcomeController < ApplicationController
   def home
     @INITIAL_STATE = stubbed_redux_state
-    render partial: "react_page_prerendered", layout: false
+    render partial: "react_page", layout: false
   end
 
   def index
@@ -15,12 +15,12 @@ class WelcomeController < ApplicationController
         }
       }
     })
-    render partial: "react_page_prerendered", layout: false
+    render partial: "react_page", layout: false
   end
 
   def new
     @INITIAL_STATE = stubbed_redux_state
-    render partial: "react_page_prerendered", layout: false
+    render partial: "react_page", layout: false
   end
 
   def show
@@ -34,7 +34,7 @@ class WelcomeController < ApplicationController
         }
       }
     })
-    render partial: "react_page_prerendered", layout: false
+    render partial: "react_page", layout: false
   end
 
   def edit
@@ -48,7 +48,7 @@ class WelcomeController < ApplicationController
         }
       }
     })
-    render partial: "react_page_prerendered", layout: false
+    render partial: "react_page", layout: false
   end
 
 end

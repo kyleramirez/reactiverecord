@@ -288,7 +288,7 @@ export function where(obj) {
   })
 }
 
-export function onlyObjects(obj) { return typeof obj === "object" }
+export function onlyObjects(obj) { return typeof obj === "object" && !(obj instanceof Array) }
 
 export function values() {
   const val = [];
@@ -305,4 +305,38 @@ export function onlyReactiveRecord() {
     if ("_isReactiveRecord" in chunks[i]) return chunks[i];
     chunks.push(...chunks[i]::values().filter(onlyObjects))
   }
+}
+
+export function uuid() {
+  function s4() {
+    return Math
+      .floor((1 + Math.random()) * 0x10000)
+      .toString(16)
+      .substring(1);
+  }
+  return s4()+s4()+s4();
+}
+
+export function getTypeName() {
+  const hasDescriptor = onlyObjects(this) && this.hasOwnProperty("type");
+  return hasDescriptor ? this.type.displayName || this.type.name : this.name;
+}
+
+export function handleFormEvent(attr, arg) {
+  if (typeof this.props[attr] === "function") {
+    return this.props[attr](arg)
+  }
+  return Promise.resolve(arg);
+}
+
+export function triggerEventForProps(type, e) {
+  const fn = this.props[`on${type}`];
+  if (typeof fn === "function") fn.call(this, e);
+}
+
+export function isEmptyObject() {
+  for (let name in this) {
+    return false;
+  }
+  return true;
 }

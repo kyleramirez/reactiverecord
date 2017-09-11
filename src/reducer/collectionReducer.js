@@ -50,7 +50,8 @@ export default function collectionReducer(modelName, _primaryKey, state=collecti
           _attributes: {
             ...existingVersionOfMember._attributes,
             [_primaryKey]: key
-          }
+          },
+          _errors: {}
         }
       }
     }
