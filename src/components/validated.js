@@ -106,6 +106,7 @@ export default function validated(WrappedComponent) {
       if (!validators || validators::isEmptyObject()) {
         this.setState({ errorText: null });
         callback(true);
+        return
       }
       const value = this.getValueInternal();
       /* 
@@ -117,21 +118,19 @@ export default function validated(WrappedComponent) {
       this.setState({ errorText });
       if (errorText) {
         callback(false);
-        /* Halt execution if a local error was found */
+        return
+      }
+      if (!doRemote) {
+        callback(true)
         return
       }
       /* No local errors found, but we're not out of the woods
          yet ... time to perform remote validations if needed
        */
-      if (doRemote) {
-        Validator.firstRemoteErrorMessage(validators, value, errorText => {
-          this.setState({ errorText })
-          callback(!!errorText)
-        });
-        return
-      }
-      /* No error and not doing remote. The field is valid */
-      callback(true)
+      Validator.firstRemoteErrorMessage(validators, value, errorText => {
+        this.setState({ errorText })
+        callback(!!!errorText)
+      });
     }
   }
 }

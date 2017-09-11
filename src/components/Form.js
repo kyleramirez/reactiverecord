@@ -166,6 +166,7 @@ export default class Form extends Component {
             }, {});
           },
           fieldValidator = isValid =>{
+            // debugger;
             fieldsChecked++;
             if (!isValid) allFieldsValid = false;
             if (fieldsChecked === fieldsToCheck) {
