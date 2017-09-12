@@ -538,3 +538,4 @@ Inputs must respond to
   - validators
   - validating
   
+  # TODO - add a way to validate the form like formRef.isValid(callback)
