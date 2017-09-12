@@ -333,18 +333,6 @@ No need for mangling exceptions
 added method .serialize to model, returns JSON safe object
 define _primaryKey in model, not in schema with _key
 
-
-Button must respond to
-  - disabled
-  - loading
-  - children
-
-Inputs must respond to
-  - errorText
-  - labelText
-  - defaultValue
-  - disabled
-
 /* Extending <Form /> with a custom builder */
 /*
  * Builders take precendence over normal schema
@@ -392,5 +380,161 @@ value(valuesObject) {
   - internationalization of validation messages
   - model validations like isValid
 
-### Remote validators
+### Validations
+- can use %{attribute} or %{value} in message
+/*
+       * attr: {
+         *   absence: [{ message: "%{attribute} must not be present" }]
+       * }
+       */
+/*
+      * attr: {
+        *   presence: [{ message: "%{attribute} must be present" }]
+      * }
+      */
+/*
+      * attr: {
+        *   acceptance: [
+        *     {
+        *       message: "%{attribute} must be accepted",
+      *       accept: true || "yes"
+      *     }
+      *   ]
+      * }
+      */
+/*
+      * attr: {
+        *   format: [
+        *     {
+        *       message: "Please enter a valid %{attribute}",
+      *       with: /regex/,
+      *       without: /regex/,
+      *       allow_blank: false|true
+      *     }
+      *   ]
+      * }
+      */
+/*
+      * attr: {
+        *   numericality: [
+        *     {
+        *       only_integer: true,
+        *       messages:{
+        *         only_integer: "%{attribute} must only be an integer."
+      *       }
+      *       ...
+      *       allow_blank: true,
+      *       messages: {
+        *         numericality: "%{attribute} must be a number."
+      *       }
+      *       ...
+      *       greater_than: 0 || "other_attr"
+      *       messages: {
+        *         greater_than: "%{attribute} must be greater than 0."
+      *       }
+      *       ...
+      *       odd: true,
+      *       messages: {
+        *         odd: "%{attribute} must be an odd number."
+      *       }
+      *       ...
+      *       even: true,
+      *       messages: {
+        *         even: "%{attribute} must be an even number."
+      *       }
+      *     }
+      *   ]
+      * }
+      */
+/*
+      * attr: {
+        *   length: [
+        *     {
+        *       allow_blank: true,
+        *       is: 10
+        *       messages: {
+        *         is: "%{attribute} must be 10 characters."
+      *       }
+      *     }
+      *     ...
+      *     {
+        *       minimum: 10,
+        *       maximum: 255,
+        *       messages: {
+        *         minimum: "%{attribute} must be at least 10 characters.",
+      *         maximum: "%{attribute} must be no more than 255 characters."
+      *       }
+      *     }
+      *     ...
+      *   ]
+      * }
+      */
+*
+      * attr: {
+        *   exclusion: [
+        *     {
+        *       allow_blank: true
+        *       in: ["Maryland, Texas"]
+      *       message: "%{attribute} is reserved."
+      *     }
+      *     ...
+      *     {
+        *       range: [18,24]
+        *       message: "%{attribute} is reserved."
+      *     }
+      *   ]
+      * }
+      */
+/*
+      * attr: {
+        *   inclusion: [
+        *     {
+        *       allow_blank: true
+        *       in: ["Rent, Security deposit"]
+      *       message: "%{attribute} is not included in the list."
+      *     }
+      *     ...
+      *     {
+        *       range: [1,12]
+        *       message: "%{attribute} is not included in the list."
+      *     }
+      *   ]
+      * }
+      */
+/*
+      * attr: {
+        *   confirmation: [
+        *     {
+        *       case_sensitive: true
+        *       message: "%{attribute} does not match %{} confirmation."
+      *     }
+      *   ]
+      * }
+
+
+### Custom local and remote validators
 import { Validator } from "reactiverecord"
+Validator.validators.local.phone_number = function(value, options, form, attribute) {
+  return message or null
+}
+Validator.validators.remote.routing_number = function(value, options, form, attribute, callback) {
+  return callback with message or null
+}
+
+- show loading state on form by access
+- form children function is passed (...attributes, submit, submitting, validating)
+  - show a loading state or validating state of the form by using the props here
+  - show different button text by using the props here "Save", "Saving"
+  - submit is disabled automatically during form submission or validation
+- disable validations completely by passing in validate={false} to form
+  
+Button must respond to
+  - disabled
+
+Inputs must respond to
+  - errorText
+  - labelText
+  - defaultValue
+  - validators
+  - validating
+  

@@ -114,10 +114,12 @@ export class Input extends Component {
       onFocus: this.onFocus,
       onChange: this.onChange,
       onBlur: this.onBlur,
+      disabled: this.props.validating,
       ...this.props::without(
         "id", "className", "style",
         "labelText", "errorText",
-        "onFocus", "onChange", "onBlur"
+        "onFocus", "onChange", "onBlur",
+        "validating"
       )
     }
   }

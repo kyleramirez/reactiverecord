@@ -16,7 +16,8 @@ export default function validated(WrappedComponent) {
       super(props, context);
       this.state = {
         errorText: null,
-        valueForPropsErrorText: null
+        valueForPropsErrorText: null,
+        validating: false,
       }
       if (props.errorText) {
         state.valueForPropsErrorText = props.value || props.defaultValue;
@@ -24,6 +25,7 @@ export default function validated(WrappedComponent) {
 
       this.onChange = this::this.onChange;
       this.onBlur = this::this.onBlur;
+      this.beginValidation = ()=>this.setState({ validating: true });
     }
 
     componentWillReceiveProps({ errorText }) {
@@ -35,11 +37,11 @@ export default function validated(WrappedComponent) {
     }
 
     render() {
-      const { onChange, onBlur, errorText } = this;
+      const { onChange, onBlur, errorText, state: { validating } } = this;
       
       return <WrappedComponent
                {...this.props::without("onChange", "onBlur", "errorText", "validators")}
-               {...{ onChange, onBlur, errorText }}
+               {...{ onChange, onBlur, errorText, validating }}
                ref={ ref => { this.input = ref }}
              />
     }
@@ -116,8 +118,9 @@ export default function validated(WrappedComponent) {
       /* No local errors found, but we're not out of the woods
          yet ... time to perform remote validations if needed
        */
-      Validator.firstRemoteErrorMessage(validators, value, errorText => {
-        this.setState({ errorText })
+      Validator.firstRemoteErrorMessage(validators, value, this.beginValidation, errorText => {
+        this.setState({ errorText, validating: false })
+        validators.form.decreaseValidation()
         callback(!!!errorText)
       });
     }

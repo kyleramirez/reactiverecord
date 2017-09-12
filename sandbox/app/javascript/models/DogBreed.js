@@ -1,4 +1,10 @@
-import ReactiveRecord, { Model } from "../reactiverecord"
+import ReactiveRecord, { Validator, Model } from "../reactiverecord"
+
+Validator.validators.remote.isFunny = function(value, options, form, attribute, callback) {
+  setTimeout(()=>{
+    callback(options.message)
+  }, 500)
+}
 
 class DogBreed extends Model {
   static schema = {
@@ -12,7 +18,16 @@ class DogBreed extends Model {
   }
   static validations = {
     name: {
-      presence: [{ message: "%{attr} must be present" }]
+      presence: [{ message: "%{attribute} must be present" }]
+    },
+    description: {
+      isFunny: [{message: "%{attribute} is not funny!!!!"}]
+    },
+    akc_recognized: {
+      acceptance: [{
+        accept: true,
+        message: "It must be AKC registered ..."
+      }]
     }
   }
 }

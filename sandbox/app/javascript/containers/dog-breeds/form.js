@@ -10,7 +10,9 @@ export default function ResourceForm({ resource, onSuccess, onError }) {
           <ValidatedInput {...fields.name} />
           <ValidatedTextarea {...fields.description} />
           <ValidatedCheckbox {...fields.akc_recognized} />
-          <button children="Save" {...fields.submit} />
+          <button {...fields.submit}>
+            {fields.validating ? "Validating" : fields.submitting ? "Saving" : "Save" } 
+          </button>
         </div>
       )}
     </Form>

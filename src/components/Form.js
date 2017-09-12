@@ -9,18 +9,21 @@ function isNewResource() {
 export default class Form extends Component {
   constructor(...args) {
     super(...args);
-    this.state = { submitting: false };
+    this.state = { submitting: false, validating: 0 };
     this.fields = [];
     this.handleSubmit = this::this.handleSubmit;
     this.commitResource = this::this.commitResource;
     this.fieldsFor = this::this.fieldsFor;
     this.buildFieldProps = this::this.buildFieldProps;
+    this.increaseValidation = this::this.increaseValidation;
+    this.decreaseValidation = this::this.decreaseValidation;
   }
 
   render() {
     const { handleSubmit, state, buildFieldProps } = this,
           { for:resource, children } = this.props,
-          submitting = resource._request.status.toString().match(/ING$/) || state.submitting,
+          submitting = !!(resource._request.status.toString().match(/ING$/) || state.submitting),
+          validating = !!state.validating,
           { schema={}, validations={} } = resource.constructor,
           props = this.props::without(
             "children", "for", "beforeValidation",
@@ -29,8 +32,7 @@ export default class Form extends Component {
           );
 
     const submit = {
-      disabled: !!submitting
-      // loading: !!submitting
+      disabled: submitting || validating
     }
     if (!!submitting) {
       submit.children = "Saving";
@@ -40,7 +42,7 @@ export default class Form extends Component {
 
     return(
       <form {...props} ref={ ref => this.form = ref } onSubmit={handleSubmit}>
-        {children({...formObject, submit })}
+        {children({...formObject, submit, submitting, validating })}
       </form>
     )
   }
@@ -59,7 +61,7 @@ export default class Form extends Component {
           defaultValue: resource[field]
         }
         if (resource._errors[field].length) form[field].errorText = resource._errors[field][0];
-        if (validations && validations[field]) form[field].validators = { ...validations[field], form:this };
+        if (validations && validations[field]) form[field].validators = { ...validations[field], form:this, attribute: field };
       }
 
       return form;
@@ -198,4 +200,11 @@ export default class Form extends Component {
                          })
   }
 
+  increaseValidation() {
+    this.setState({ validating: this.state.validating + 1 })
+  }
+
+  decreaseValidation() {
+    this.setState({ validating: Math.max(this.state.validating - 1, 0) })
+  }
 }

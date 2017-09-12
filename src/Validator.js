@@ -1,3 +1,6 @@
+import Sugar from "./sugar"
+import { formatWith } from "./utils"
+
 const Validator = {
   settings: {
     number_format: {
@@ -15,7 +18,7 @@ const Validator = {
     local: {
       /*
        * attr: {
-       *   absence: [{ message: "%{attr} must not be present" }]
+       *   absence: [{ message: "%{attribute} must not be present" }]
        * }
        */
       absence: function(value, options) {
@@ -25,7 +28,7 @@ const Validator = {
       },
      /*
       * attr: {
-      *   presence: [{ message: "%{attr} must be present" }]
+      *   presence: [{ message: "%{attribute} must be present" }]
       * }
       */
       presence: function(value, options) {
@@ -37,13 +40,13 @@ const Validator = {
       * attr: {
       *   acceptance: [
       *     {
-      *       message: "%{attr} must be accepted",
+      *       message: "%{attribute} must be accepted",
       *       accept: true || "yes"
       *     }
       *   ]
       * }
       */
-      acceptance: function(value, options=true) {
+      acceptance: function(value, options) {
         if (typeof options.accept === "boolean")
           if (!value) return options.message;
         if(value !== options.accept) return options.message;
@@ -52,7 +55,7 @@ const Validator = {
       * attr: {
       *   format: [
       *     {
-      *       message: "Please enter a valid %{attr}",
+      *       message: "Please enter a valid %{attribute}",
       *       with: /regex/,
       *       without: /regex/,
       *       allow_blank: false|true
@@ -75,27 +78,27 @@ const Validator = {
       *     {
       *       only_integer: true,
       *       messages:{
-      *         only_integer: "%{attr} must only be an integer."
+      *         only_integer: "%{attribute} must only be an integer."
       *       }
       *       ...
       *       allow_blank: true,
       *       messages: {
-      *         numericality: "%{attr} must be a number."
+      *         numericality: "%{attribute} must be a number."
       *       }
       *       ...
       *       greater_than: 0 || "other_attr"
       *       messages: {
-      *         greater_than: "%{attr} must be greater than 0."
+      *         greater_than: "%{attribute} must be greater than 0."
       *       }
       *       ...
       *       odd: true,
       *       messages: {
-      *         odd: "%{attr} must be an odd number."
+      *         odd: "%{attribute} must be an odd number."
       *       }
       *       ...
       *       even: true,
       *       messages: {
-      *         even: "%{attr} must be an even number."
+      *         even: "%{attribute} must be an even number."
       *       }
       *     }
       *   ]
@@ -129,7 +132,7 @@ const Validator = {
                 /* Is there a value in the form */
                 /* Is it a function type value */
                 typeof form.fields[options[check]].value === "function" ?
-                  form.fields[options[check]].value({})
+                  JSON.stringify(form.fields[options[check]].value({}))
                 :
                   /* If not, just a regular getter */
                   form.fields[options[check]].value
@@ -152,126 +155,176 @@ const Validator = {
       * attr: {
       *   length: [
       *     {
-      *       message: "",
+      *       allow_blank: true,
+      *       is: 10
+      *       messages: {
+      *         is: "%{attribute} must be 10 characters."
+      *       }
       *     }
+      *     ...
+      *     {
+      *       minimum: 10,
+      *       maximum: 255,
+      *       messages: {
+      *         minimum: "%{attribute} must be at least 10 characters.",
+      *         maximum: "%{attribute} must be no more than 255 characters."
+      *       }
+      *     }
+      *     ...
       *   ]
       * }
       */
       length: function(value, options) {
-        var CHECKS, blankOptions, check, fn, message, operator, tokenized_length, tokenizer;
-        tokenizer = options.js_tokenizer || "split('')";
-        tokenized_length = new Function('element', "return (element.val()." + tokenizer + " || '').length")(element);
-        CHECKS = {
-          is: '==',
-          minimum: '>=',
-          maximum: '<='
-        };
-        blankOptions = {};
-        blankOptions.message = options.is ? options.messages.is : options.minimum ? options.messages.minimum : void 0;
-        message = this.presence(element, blankOptions);
+        const valueLength = new Function("value", "return (value.split('') || '').length")(value),
+              CHECKS = {
+                is: "==",
+                minimum: ">=",
+                maximum: "<="
+              },
+              blankOptions = {};
+        if ("is" in options || "minimum" in options) {
+          blankOptions.message = "is" in options ? options.messages.is : options.messages.minimum;
+        }
+        if (options.allow_blank === true && this.presence(safeValue, { message: options.messages.numericality })) return;
+        const message = this.presence(value, blankOptions);
         if (message) {
-          if (options.allow_blank === true) {
-            return;
-          }
+          if (options.allow_blank === true) return
           return message;
         }
-        for (check in CHECKS) {
-          operator = CHECKS[check];
-          if (!options[check]) {
-            continue;
-          }
-          fn = new Function("return " + tokenized_length + " " + operator + " " + options[check]);
-          if (!fn()) {
-            return options.messages[check];
-          }
+        for (let check in CHECKS) {
+          const operator = CHECKS[check];
+          if (options[check] === undefined) continue;
+          const fn = new Function(`return ${valueLength} ${operator} ${options[check]}`);
+          if (!fn()) return options.messages[check];
         }
       },
-      exclusion: function(element, options) {
-        var lower, message, option, ref, upper;
-        message = this.presence(element, options);
+     /*
+      * attr: {
+      *   exclusion: [
+      *     {
+      *       allow_blank: true
+      *       in: ["Maryland, Texas"]
+      *       message: "%{attribute} is reserved."
+      *     }
+      *     ...
+      *     {
+      *       range: [18,24]
+      *       message: "%{attribute} is reserved."
+      *     }
+      *   ]
+      * }
+      */
+      exclusion: function(value, options) {
+        const message = this.presence(value, blankOptions);
         if (message) {
-          if (options.allow_blank === true) {
-            return;
-          }
+          if (options.allow_blank === true) return
           return message;
         }
-        if (options["in"]) {
-          if (ref = element.val(), indexOf.call((function() {
-            var i, len, ref1, results;
-            ref1 = options["in"];
-            results = [];
-            for (i = 0, len = ref1.length; i < len; i++) {
-              option = ref1[i];
-              results.push(option.toString());
-            }
-            return results;
-          })(), ref) >= 0) {
-            return options.message;
-          }
-        }
-        if (options.range) {
-          lower = options.range[0];
-          upper = options.range[1];
-          if (element.val() >= lower && element.val() <= upper) {
-            return options.message;
-          }
+        if ("in" in options && options.in.map(String).indexOf(value) >= 0) return options.message;
+        if ("range" in options) {
+          const [lower, upper] = options.range;
+          if (value >= lower && value <= upper) return options.message;
         }
       },
-      inclusion: function(element, options) {
-        var lower, message, option, ref, upper;
-        message = this.presence(element, options);
+     /*
+      * attr: {
+      *   inclusion: [
+      *     {
+      *       allow_blank: true
+      *       in: ["Rent, Security deposit"]
+      *       message: "%{attribute} is not included in the list."
+      *     }
+      *     ...
+      *     {
+      *       range: [1,12]
+      *       message: "%{attribute} is not included in the list."
+      *     }
+      *   ]
+      * }
+      */
+      inclusion: function(value, options) {
+        const message = this.presence(value, blankOptions);
         if (message) {
-          if (options.allow_blank === true) {
-            return;
-          }
+          if (options.allow_blank === true) return
           return message;
         }
-        if (options["in"]) {
-          if (ref = element.val(), indexOf.call((function() {
-            var i, len, ref1, results;
-            ref1 = options["in"];
-            results = [];
-            for (i = 0, len = ref1.length; i < len; i++) {
-              option = ref1[i];
-              results.push(option.toString());
-            }
-            return results;
-          })(), ref) >= 0) {
-            return;
-          }
-          return options.message;
-        }
-        if (options.range) {
-          lower = options.range[0];
-          upper = options.range[1];
-          if (element.val() >= lower && element.val() <= upper) {
-            return;
-          }
+        if ("in" in options && options.in.map(String).indexOf(value) === -1) return options.message;
+        if ("range" in options) {
+          const [lower, upper] = options.range;
+          if (value >= lower && value <= upper) return;
           return options.message;
         }
       },
-      confirmation: function(element, options) {
-        var confirmation_value, value;
-        value = element.val();
-        confirmation_value = $("#" + (element.attr('id')) + "_confirmation").val();
-        if (!options.case_sensitive) {
-          value = value.toLowerCase();
-          confirmation_value = confirmation_value.toLowerCase();
-        }
-        if (value !== confirmation_value) {
-          return options.message;
-        }
+     /*
+      * attr: {
+      *   confirmation: [
+      *     {
+      *       case_sensitive: true
+      *       message: "%{attribute} does not match %{} confirmation."
+      *     }
+      *   ]
+      * }
+      */
+      confirmation: function(value, options, form, attribute) {
+        const confirmationFieldName = `${attribute}_confirmation`,
+              confirmationValue = confirmationFieldName in form.fields ?
+                /* Is there a value in the form */
+                /* Is it a function type value */
+                typeof form.fields[confirmationFieldName].value === "function" ?
+                  JSON.stringify(form.fields[confirmationFieldName].value({}))
+                :
+                  /* If not, just a regular getter */
+                  form.fields[confirmationFieldName].value
+              :
+                undefined;
+        const stringFn = options.case_sensitive ? "toString" : "toLowerCase";
+        if (value[stringFn]() !== confirmationValue[stringFn]()) return options.message;
       }
     },
     remote: {}
   },
-  firstErrorMessage: function(validators, value) {
-    console.log(validators)
-    return (Math.random() >= 0.5) ? "BIG mistake, friendo!" : null
+  firstErrorMessage: function(validationObj, value) {
+    const { attribute, form, ...validators } = validationObj;
+    for (let validator in validators) {
+      const optionsArr = validators[validator];
+      if (validator in this.validators.local) {
+        for (let i = 0; i < optionsArr.length; i++) {
+          const options = optionsArr[i];
+          const msg = this.validators.local[validator](value, options, form, attribute);
+          if (msg) return msg::formatWith({
+            value,
+            attribute: Sugar.String.titleize(Sugar.String.humanize(attribute))
+          });
+        }
+      }
+    }
+    return null;
   },
-  firstRemoteErrorMessage: function(validators, value, callback) {
-    console.log("Performing remote validations")
-    callback((Math.random() >= 0.5) ? "REMOTELY big mistake, friendo!" : null)
+  firstRemoteErrorMessage: function(validationObj, value, beginValidation, callback) {
+    const { attribute, form, ...validators } = validationObj,
+          remoteValidators = Object.keys(validators).filter(validator => (Object.keys(this.validators.remote).indexOf(validator) >= 0)),
+          validatorsToCheck = remoteValidators.length;
+
+    let validatorsChecked = 0;
+
+    const runNextValidator = function(msg) {
+            validatorsChecked++;
+            if (msg)
+              return callback(msg::formatWith({
+                value,
+                attribute: Sugar.String.titleize(Sugar.String.humanize(attribute))
+              }));
+            if (validatorsToCheck === validatorsChecked) return callback(null);
+            const validator = remoteValidators[validatorsChecked],
+                  options = validators[validator][0];
+            this.validators.remote[validator](value, options, form, attribute, runNextValidator);
+          }
+    if (!validatorsToCheck) return callback(null);
+    form.increaseValidation()
+    beginValidation()
+    const validator = remoteValidators[validatorsChecked],
+          options = validators[validator][0];
+    this.validators.remote[validator](value, options, form, attribute, runNextValidator);
   },
 }
 export default Validator;
