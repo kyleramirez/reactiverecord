@@ -340,3 +340,24 @@ export function isEmptyObject() {
   }
   return true;
 }
+
+export function formatWith(obj) {
+  const pattern = /%{([^}]*)}/g,
+        matches = [];
+  let input = this,
+      match;
+  while((match = pattern.exec(input)) !== null) {
+    matches.push(match);
+  }
+  matches.reverse();
+  for (let i=0; i < matches.length; i++) {
+    if (obj.hasOwnProperty([matches[i][1]])) {
+      let startPoint = matches[i].index,
+          endPoint = matches[i].index + matches[i][0].length;
+      input = `${input.substring(0, startPoint)}${obj[matches[i][1]]}${input.substring(endPoint,input.length)}`;
+      continue;
+    }
+    throw new ReferenceError(`Translation key not found for ${matches[i][1]}`);  
+  }
+  return input;
+}

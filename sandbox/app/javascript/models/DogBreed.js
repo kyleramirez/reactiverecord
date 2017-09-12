@@ -10,6 +10,11 @@ class DogBreed extends Model {
     },
     _timestamps: true
   }
+  static validations = {
+    name: {
+      presence: [{ message: "%{attr} must be present" }]
+    }
+  }
 }
 
 export default ReactiveRecord.model("DogBreed", DogBreed)

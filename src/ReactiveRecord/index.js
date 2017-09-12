@@ -148,8 +148,8 @@ export default class ReactiveRecord {
       const _collection = data.map( attrs => new model({...attrs, _request }, true))
       resource = new Collection({ _collection, _request, _primaryKey });
     }
-    resolve(resource)
     this.dispatch({ ...resource.serialize(), type:`@OK_${actionName}(${modelName})` })
+    resolve(resource)
   }
 
   handleError(actionName, model, modelName, _primaryKey, key, reject, error) {
@@ -169,8 +169,8 @@ export default class ReactiveRecord {
 
       if (!wasCollection) errorObj._attributes = { [_primaryKey]:key }
       if (hasErrors) errorObj._errors = _errors
-      reject(errorObj);
       this.dispatch({ ...errorObj, type:`@ERROR_${actionName}(${modelName})` });
+      reject(errorObj);
     }
 
     response.json()

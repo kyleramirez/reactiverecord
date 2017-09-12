@@ -1,18 +1,7 @@
 import React, { Component } from "react"
 import { without, triggerEventForProps, isEmptyObject } from "../utils"
-
+import Validator from "../Validator"
 function noop() {}
-
-const Validator = {
-  firstErrorMessage: function(validators, value) {
-    console.log("Performing local validations")
-    return (Math.random() >= 0.5) ? "BIG mistake, friendo!" : null
-  },
-  firstRemoteErrorMessage: function(validators, value, callback) {
-    console.log("Performing remote validations")
-    callback((Math.random() >= 0.5) ? "REMOTELY big mistake, friendo!" : null)
-  },
-}
 
 export default function validated(WrappedComponent) {
   const {
@@ -49,7 +38,7 @@ export default function validated(WrappedComponent) {
       const { onChange, onBlur, errorText } = this;
       
       return <WrappedComponent
-               {...this.props::without("onChange", "onBlur", "errorText")}
+               {...this.props::without("onChange", "onBlur", "errorText", "validators")}
                {...{ onChange, onBlur, errorText }}
                ref={ ref => { this.input = ref }}
              />

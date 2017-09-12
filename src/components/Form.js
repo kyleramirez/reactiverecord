@@ -59,7 +59,7 @@ export default class Form extends Component {
           defaultValue: resource[field]
         }
         if (resource._errors[field].length) form[field].errorText = resource._errors[field][0];
-        if (validations && validations[field]) form[field].validators = validations[field];
+        if (validations && validations[field]) form[field].validators = { ...validations[field], form:this };
       }
 
       return form;

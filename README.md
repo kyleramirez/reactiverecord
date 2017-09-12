@@ -386,3 +386,11 @@ value(valuesObject) {
    * schema will be ignored
    */
 }
+
+### TODO
+  - be able to specify a pluralization inflection at the model, and have it be used everywhere
+  - internationalization of validation messages
+  - model validations like isValid
+
+### Remote validators
+import { Validator } from "reactiverecord"
