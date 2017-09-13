@@ -539,3 +539,6 @@ Inputs must respond to
   - validating
   
   # TODO - add a way to validate the form like formRef.isValid(callback)
+  # TODO add .babelrc to npm ignore
+  # TODO document that stage-0 is needed as well as need for babel loader to include this module
+    - exclude: /node_modules(?!\/reactiverecord).*$/,
