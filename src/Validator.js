@@ -105,7 +105,7 @@ const Validator = {
       * }
       */
       numericality: function(value, options, form) {
-        const { separator, delimiter } = Validator.settings.number_format,
+        const { separator } = Validator.settings.number_format,
               safeValue = value.replace(new RegExp(separator,"g"), ".");
         if (options.only_integer && !Validator.patterns.numericality.only_integer.test(safeValue))
           return options.messages.only_integer
@@ -120,10 +120,12 @@ const Validator = {
           less_than: "<",
           less_than_or_equal_to: "<="
         }
+        /* eslint-disable guard-for-in */
         for (let check in CHECKS) {
+        /* eslint-enable guard-for-in */
           const operator = CHECKS[check];
           if (options[check] !== undefined) {
-            checkValue = !isNaN(parseFloat(options[check])) && isFinite(options[check]) ?
+            const checkValue = !isNaN(parseFloat(options[check])) && isFinite(options[check]) ?
               /* The checkValue will be hardcoded in the validator */
               options[check]
             :
@@ -140,7 +142,9 @@ const Validator = {
                 /* Fallback to the Model instance */
                 form.props.for[options[check]]
             if (checkValue === undefined || checkValue === "") return;
+            /* eslint-disable no-new-func */
             const fn = new Function(`return ${safeValue} ${operator} ${checkValue}`)
+            /* eslint-enable no-new-func */
             if (!fn()) return options.messages[check]
           }
         }
@@ -175,7 +179,9 @@ const Validator = {
       * }
       */
       length: function(value, options) {
+        /* eslint-disable no-new-func */
         const valueLength = new Function("value", "return (value.split('') || '').length")(value),
+        /* eslint-enable no-new-func */
               CHECKS = {
                 is: "==",
                 minimum: ">=",
@@ -185,16 +191,20 @@ const Validator = {
         if ("is" in options || "minimum" in options) {
           blankOptions.message = "is" in options ? options.messages.is : options.messages.minimum;
         }
-        if (options.allow_blank === true && this.presence(safeValue, { message: options.messages.numericality })) return;
+        if (options.allow_blank === true && this.presence(value, { message: options.messages.numericality })) return;
         const message = this.presence(value, blankOptions);
         if (message) {
           if (options.allow_blank === true) return
           return message;
         }
+        /* eslint-disable guard-for-in */
         for (let check in CHECKS) {
+        /* eslint-enable guard-for-in */
           const operator = CHECKS[check];
           if (options[check] === undefined) continue;
+          /* eslint-disable no-new-func */
           const fn = new Function(`return ${valueLength} ${operator} ${options[check]}`);
+          /* eslint-enable no-new-func */
           if (!fn()) return options.messages[check];
         }
       },
@@ -215,7 +225,7 @@ const Validator = {
       * }
       */
       exclusion: function(value, options) {
-        const message = this.presence(value, blankOptions);
+        const message = this.presence(value, options);
         if (message) {
           if (options.allow_blank === true) return
           return message;
@@ -243,7 +253,7 @@ const Validator = {
       * }
       */
       inclusion: function(value, options) {
-        const message = this.presence(value, blankOptions);
+        const message = this.presence(value, options);
         if (message) {
           if (options.allow_blank === true) return
           return message;
@@ -285,7 +295,9 @@ const Validator = {
   },
   firstErrorMessage: function(validationObj, value) {
     const { attribute, form, ...validators } = validationObj;
+    /* eslint-disable guard-for-in */
     for (let validator in validators) {
+    /* eslint-enable guard-for-in */
       const optionsArr = validators[validator];
       if (validator in this.validators.local) {
         for (let i = 0; i < optionsArr.length; i++) {

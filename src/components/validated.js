@@ -14,7 +14,7 @@ export default function validated(WrappedComponent) {
 
     constructor(props, context) {
       super(props, context);
-      this.state = {
+      const state = {
         errorText: null,
         valueForPropsErrorText: null,
         validating: false,
@@ -22,6 +22,7 @@ export default function validated(WrappedComponent) {
       if (props.errorText) {
         state.valueForPropsErrorText = props.value || props.defaultValue;
       }
+      this.state = state;
 
       this.onChange = this::this.onChange;
       this.onBlur = this::this.onBlur;

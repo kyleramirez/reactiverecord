@@ -335,7 +335,9 @@ export function triggerEventForProps(type, e) {
 }
 
 export function isEmptyObject() {
+  /* eslint-disable guard-for-in */
   for (let name in this) {
+  /* eslint-enable guard-for-in */
     return false;
   }
   return true;
@@ -346,7 +348,9 @@ export function formatWith(obj) {
         matches = [];
   let input = this,
       match;
+  /* eslint-disable no-cond-assign */
   while((match = pattern.exec(input)) !== null) {
+  /* eslint-enable no-cond-assign */
     matches.push(match);
   }
   matches.reverse();
