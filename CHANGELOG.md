@@ -1,3 +1,5 @@
+### 0.2.1
+Bug fixes, linting.
 ## 0.2.0
 Added `validated` higher order component, which takes validations defined in
 the model. Still a huge need for documentation and testing.
