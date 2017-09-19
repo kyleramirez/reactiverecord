@@ -1,10 +1,10 @@
 import ReactiveRecord, { Validator, Model } from "../reactiverecord"
 
-Validator.validators.remote.isFunny = function(value, options, form, attribute, callback) {
-  setTimeout(()=>{
-    callback(options.message)
-  }, 500)
-}
+// Validator.validators.remote.isFunny = function(value, options, form, attribute, callback) {
+//   setTimeout(()=>{
+//     callback(options.message)
+//   }, 500)
+// }
 
 class DogBreed extends Model {
   static schema = {
@@ -16,6 +16,7 @@ class DogBreed extends Model {
     },
     _timestamps: true
   }
+
   static validations = {
     name: {
       presence: [{ message: "%{attribute} must be present" }]

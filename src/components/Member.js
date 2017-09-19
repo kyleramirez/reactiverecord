@@ -8,6 +8,10 @@ import {
 } from "./connectFunctions"
 
 export default class Member extends Component {
+  static defaultProps = {
+    then: ()=>{},
+    catch: e => { throw e; }
+  }
   constructor(props, context) {
     super(props, context);
     const connectOptions = {
@@ -18,10 +22,10 @@ export default class Member extends Component {
   }
 
   componentDidMount() {
-    const { store: { singleton=false } } = this.props.for
+    const { store: { singleton=false } } = this.props.for;
     this.props.for.ReactiveRecord.dispatch = this.props.for.ReactiveRecord.dispatch || this.props.dispatch;
-    if (singleton) return this.props.for.load()
-    this.props.for.find(this.props.find)
+    if (singleton) return this.props.for.load().then(this.props.then).catch(this.props.catch)
+    this.props.for.find(this.props.find).then(this.props.then).catch(this.props.catch)
   }
 
   render() {

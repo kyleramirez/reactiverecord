@@ -9,7 +9,9 @@ import {
 
 export default class Collection extends Component {
   static defaultProps = {
-    where: {}
+    where: {},
+    then: ()=>{},
+    catch: e => { throw e; }
   }
   constructor(props, context) {
     super(props, context);
@@ -22,7 +24,7 @@ export default class Collection extends Component {
 
   componentDidMount() {
     this.props.for.ReactiveRecord.dispatch = this.props.for.ReactiveRecord.dispatch || this.props.dispatch;
-    this.props.for.all(this.props.where)
+    this.props.for.all(this.props.where).then(this.props.then).catch(this.props.catch)
   }
 
   render() {

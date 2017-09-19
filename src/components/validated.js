@@ -26,12 +26,15 @@ export default function validated(WrappedComponent) {
 
       this.onChange = this::this.onChange;
       this.onBlur = this::this.onBlur;
-      this.beginValidation = ()=>this.setState({ validating: true });
+      this.safeSetState = (...args) => {
+        if (this.input) this.setState(...args)
+      }
+      this.beginValidation = ()=>this.safeSetState({ validating: true });
     }
 
     componentWillReceiveProps({ errorText }) {
       if (errorText && this.props.errorText !== errorText) {
-        this.setState({
+        this.safeSetState({
           valueForPropsErrorText: this.getValueInternal()
         })
       }
@@ -96,7 +99,7 @@ export default function validated(WrappedComponent) {
     runValidations(doRemote=false, callback=noop) {
       const { validators } = this.props;
       if (!validators || validators::isEmptyObject()) {
-        this.setState({ errorText: null });
+        this.safeSetState({ errorText: null });
         callback(true);
         return
       }
@@ -107,7 +110,7 @@ export default function validated(WrappedComponent) {
        * to perform remote validations, show it now.
        */
       const errorText = Validator.firstErrorMessage(validators, value);
-      this.setState({ errorText });
+      this.safeSetState({ errorText });
       if (errorText) {
         callback(false);
         return
@@ -120,7 +123,7 @@ export default function validated(WrappedComponent) {
          yet ... time to perform remote validations if needed
        */
       Validator.firstRemoteErrorMessage(validators, value, this.beginValidation, errorText => {
-        this.setState({ errorText, validating: false })
+        this.safeSetState({ errorText, validating: false })
         validators.form.decreaseValidation()
         callback(!!!errorText)
       });

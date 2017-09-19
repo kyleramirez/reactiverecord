@@ -1,3 +1,5 @@
+### 0.2.2
+Bug fixes
 ### 0.2.1
 Bug fixes, linting.
 ## 0.2.0

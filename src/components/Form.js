@@ -17,6 +17,9 @@ export default class Form extends Component {
     this.buildFieldProps = this::this.buildFieldProps;
     this.increaseValidation = this::this.increaseValidation;
     this.decreaseValidation = this::this.decreaseValidation;
+    this.safeSetState = (...args) => {
+      if (this.form) this.setState(...args)
+    }
   }
 
   render() {
@@ -186,25 +189,25 @@ export default class Form extends Component {
   }
 
   commitResource(attrs) {
-    if (this.props.for::isNewResource()) this.setState({ submitting: true })
+    if (this.props.for::isNewResource()) this.safeSetState({ submitting: true })
     return this.props.for.updateAttributes(attrs)
                          .then( resource => {
                            if (this.state.submitting)
-                             this.setState({ submitting: false })
+                             this.safeSetState({ submitting: false })
                            this::handleFormEvent("afterSave", resource)
                          })
                          .catch( resource => {
                            if (this.state.submitting)
-                             this.setState({ submitting: false })
+                             this.safeSetState({ submitting: false })
                            this::handleFormEvent("afterRollback", resource)
                          })
   }
 
   increaseValidation() {
-    this.setState({ validating: this.state.validating + 1 })
+    this.safeSetState({ validating: this.state.validating + 1 })
   }
 
   decreaseValidation() {
-    this.setState({ validating: Math.max(this.state.validating - 1, 0) })
+    this.safeSetState({ validating: Math.max(this.state.validating - 1, 0) })
   }
 }
