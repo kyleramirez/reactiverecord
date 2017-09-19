@@ -1,3 +1,5 @@
+### 0.2.3
+Adding query to Member component
 ### 0.2.2
 Bug fixes
 ### 0.2.1

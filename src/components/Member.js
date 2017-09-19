@@ -10,7 +10,8 @@ import {
 export default class Member extends Component {
   static defaultProps = {
     then: ()=>{},
-    catch: e => { throw e; }
+    catch: e => { throw e; },
+    where: {}
   }
   constructor(props, context) {
     super(props, context);
@@ -24,8 +25,8 @@ export default class Member extends Component {
   componentDidMount() {
     const { store: { singleton=false } } = this.props.for;
     this.props.for.ReactiveRecord.dispatch = this.props.for.ReactiveRecord.dispatch || this.props.dispatch;
-    if (singleton) return this.props.for.load().then(this.props.then).catch(this.props.catch)
-    this.props.for.find(this.props.find).then(this.props.then).catch(this.props.catch)
+    if (singleton) return this.props.for.load(this.props.where).then(this.props.then).catch(this.props.catch)
+    this.props.for.find(this.props.find, this.props.where).then(this.props.then).catch(this.props.catch)
   }
 
   render() {
