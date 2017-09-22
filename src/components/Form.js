@@ -1,6 +1,6 @@
 import React, { Component } from "react"
 import Sugar from "../sugar"
-import { without, uuid, getTypeName, handleFormEvent, onlyObjects } from "../utils"
+import { without, getTypeName, handleFormEvent, onlyObjects } from "../utils"
 
 function isNewResource() {
   return !!("_persisted" in this && !this._persisted)
@@ -180,7 +180,7 @@ export default class Form extends Component {
 
     this::handleFormEvent("beforeValidation", this.fields).then(()=>{
       relevantFields.map((key)=>{
-        if ("isValid" in field) return field.isValid(fieldValidator)
+        if ("isValid" in this.fields[key]) return this.fields[key].isValid(fieldValidator)
         return fieldValidator(true)
       })
     })
