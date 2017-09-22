@@ -1,5 +1,7 @@
+### 0.2.4
+Added "fetch" prop to Member and Collection, defaults to true
 ### 0.2.3
-Adding query to Member component
+Added query to Member component by way of "where" prop
 ### 0.2.2
 Bug fixes
 ### 0.2.1
