@@ -372,7 +372,7 @@ value(valuesObject) {
   /* must return an object immediately
    * any properties returned not in the
    * schema will be ignored
-   */
+   */ 
 }
 
 ### TODO
@@ -542,3 +542,15 @@ Inputs must respond to
   # TODO add .babelrc to npm ignore
   # TODO document that stage-0 is needed as well as need for babel loader to include this module
     - exclude: /node_modules(?!\/reactiverecord).*$/,
+---
+`fieldsFor`
+
+    { resource.applicants.map( (applicant, index) => (
+      /* Fields for real persisted applicants */
+      fields.fieldsFor("applicants", index, new Applicant)( applicantFields => (
+        <div style={{border:"1px solid black"}}>
+          <Input {...applicantFields.full_name} />
+          <Input {...applicantFields.email} />
+        </div>
+      ))
+    ))}

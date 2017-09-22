@@ -1,3 +1,6 @@
+### 0.2.5
+Added extra argument "key" to "fieldsFor" function in form object returned by
+Form component to avoid orphaned nested attributes. Other bug fixes.
 ### 0.2.4
 Added "fetch" prop to Member and Collection, defaults to true
 ### 0.2.3

@@ -63,7 +63,7 @@ export default class Form extends Component {
           labelText: fieldHumanizedAndTitleized,
           defaultValue: resource[field]
         }
-        if (resource._errors[field].length) form[field].errorText = resource._errors[field][0];
+        if (resource._errors && resource._errors[field].length) form[field].errorText = resource._errors[field][0];
         if (validations && validations[field]) form[field].validators = { ...validations[field], form:this, attribute: field };
       }
 
@@ -80,7 +80,7 @@ export default class Form extends Component {
     return {}
   }
 
-  fieldsFor(resourceType, existingResource={}) {
+  fieldsFor(resourceType, key, existingResource={}) {
     const { buildFieldProps } = this,
           { ReactiveRecord } = this.props.for,
           modelName = Sugar.String.camelize(Sugar.String.singularize(resourceType)),
@@ -88,7 +88,7 @@ export default class Form extends Component {
 
     const attributesName = `${resourceType}_attributes`,
           persisted = existingResource._persisted,
-          idForFields = persisted ? existingResource[_primaryKey] : uuid(),
+          idForFields = persisted ? existingResource[_primaryKey] : key,
           fieldsObj = { fields:{}, _primaryKey, persisted };
 
     const formObject = buildFieldProps(schema, validations, fieldsObj, existingResource);
@@ -112,7 +112,7 @@ export default class Form extends Component {
               };
         if (!relevantFields.length) return this::callback(true);
         relevantFields.map((field)=>{
-          if (field.hasOwnProperty("isValid") ) return field.isValid(fieldValidator)
+          if ("isValid" in field) return field.isValid(fieldValidator)
           return fieldValidator(true)
         })
       }
@@ -128,11 +128,9 @@ export default class Form extends Component {
                 attrs = Object.keys(fields)
                               .filter(fieldName => !!fields[fieldName])
                               .reduce((final, currentValue)=>{
-                                if (currentValue === "address") {
-                                  Object.assign(final, fields[currentValue].value);
-                                  return final
-                                }
-                                final[currentValue] = fields[currentValue].value === undefined ? fields[currentValue].getValue() : fields[currentValue].value;
+                                if (typeof this.fields[currentValue].value === "function")
+                                  return { ...final, ...this.fields[currentValue].value(final) }
+                                final[currentValue] = this.fields[currentValue].value;
                                 return final;
                               }, {});
 
@@ -165,7 +163,7 @@ export default class Form extends Component {
           getFieldValues = () => {
             return relevantFields.reduce((final, currentValue)=>{
               if (typeof this.fields[currentValue].value === "function")
-                return this.fields[currentValue].value(final)
+                return { ...final, ...this.fields[currentValue].value(final) }
               final[currentValue] = this.fields[currentValue].value;
               return final;
             }, {});
@@ -182,8 +180,8 @@ export default class Form extends Component {
 
     this::handleFormEvent("beforeValidation", this.fields).then(()=>{
       relevantFields.map((key)=>{
-        if (this.fields[key] === null || !this.fields[key].isValid) return fieldValidator(true)
-        return this.fields[key].isValid(fieldValidator)
+        if ("isValid" in field) return field.isValid(fieldValidator)
+        return fieldValidator(true)
       })
     })
   }

@@ -1,6 +1,6 @@
 {
   "name": "reactiverecord",
-  "version": "0.2.4",
+  "version": "0.2.5",
   "description": "Object data-store mapping in React",
   "main": "dist/index.js",
   "scripts": {
