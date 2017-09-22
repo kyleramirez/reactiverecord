@@ -1,3 +1,5 @@
+### 0.2.6
+Fixed a bug in Form component
 ### 0.2.5
 Added extra argument "key" to "fieldsFor" function in form object returned by
 Form component to avoid orphaned nested attributes. Other bug fixes.

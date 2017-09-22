@@ -128,9 +128,9 @@ export default class Form extends Component {
                 attrs = Object.keys(fields)
                               .filter(fieldName => !!fields[fieldName])
                               .reduce((final, currentValue)=>{
-                                if (typeof this.fields[currentValue].value === "function")
-                                  return { ...final, ...this.fields[currentValue].value(final) }
-                                final[currentValue] = this.fields[currentValue].value;
+                                if (typeof fields[currentValue].value === "function")
+                                  return { ...final, ...fields[currentValue].value(final) }
+                                final[currentValue] = fields[currentValue].value;
                                 return final;
                               }, {});
 
