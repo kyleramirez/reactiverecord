@@ -1,6 +1,6 @@
 import React, { Component } from "react"
 import Sugar from "../sugar"
-import { without, getTypeName, handleFormEvent, onlyObjects } from "../utils"
+import { without, getTypeName, handleFormEvent, onlyObjects, isEmptyObject } from "../utils"
 
 function isNewResource() {
   return !!("_persisted" in this && !this._persisted)
@@ -136,7 +136,7 @@ export default class Form extends Component {
 
           if (persisted) attrs[_primaryKey] = identifier;
           if (isMany) {
-            finalValue.push(attrs);
+            if (!attrs::isEmptyObject()) finalValue.push(attrs);
             return finalValue;
           }
           return attrs;

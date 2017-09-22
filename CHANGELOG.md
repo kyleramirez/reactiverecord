@@ -1,3 +1,5 @@
+### 0.2.7
+Removed empty fieldsets from Form
 ### 0.2.6
 Fixed a bug in Form component
 ### 0.2.5
