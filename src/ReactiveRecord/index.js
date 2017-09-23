@@ -120,7 +120,7 @@ export default class ReactiveRecord {
         .then(checkResponseStatus)
         .then(res=>{
           responseStatus = res.status;
-          return res.json()
+          return responseStatus === 204 ? {} : res.json()
         })
         .then( data => this.handleSuccess(responseStatus, method, action, model, _primaryKey, actionName, modelName, resolve, data))
         .catch(error => this.handleError(actionName, model, modelName, _primaryKey, _attributes[_primaryKey], reject, error))

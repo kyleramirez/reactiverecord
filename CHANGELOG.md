@@ -1,3 +1,5 @@
+### 0.2.8
+Handle 204 No Content responses properly
 ### 0.2.7
 Removed empty fieldsets from Form
 ### 0.2.6
