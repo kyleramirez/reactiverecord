@@ -1,3 +1,5 @@
+### 0.2.9
+Fixed a bug that would remove the existing primaryKey on an error
 ### 0.2.8
 Handle 204 No Content responses properly
 ### 0.2.7

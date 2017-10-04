@@ -167,7 +167,7 @@ export default class ReactiveRecord {
             _errors = hasErrors ? body.errors : {},
             errorObj = { _request };
 
-      if (!wasCollection) errorObj._attributes = { [_primaryKey]:key }
+      if (!wasCollection && key !== undefined) errorObj._attributes = { [_primaryKey]:key }
       if (hasErrors) errorObj._errors = _errors
       this.dispatch({ ...errorObj, type:`@ERROR_${actionName}(${modelName})` });
       reject(errorObj);
