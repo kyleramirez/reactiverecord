@@ -1,3 +1,5 @@
+### 0.3.1
+Fixed a bug that would submit empty nested attributes in a form
 ## 0.3.0
 Added diffing to fieldsFor in Form component. Nested attributes are no longer submitted if empty.
 ### 0.2.9

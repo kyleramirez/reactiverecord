@@ -134,16 +134,20 @@ export default class Form extends Component {
                                 return final;
                               }, {});
 
-          Object.assign(resource, attrs)
+          /* Don't submit empty form objects */
+          if (attrs::isEmptyObject()) return finalValue;
+
+          Object.assign(resource, attrs);
+
           const nextValue = resource.diff;
 
           if (persisted) nextValue[_primaryKey] = identifier;
 
           if (isMany) {
-            /* Submit only if the next value without the primary key is not empty */
-            if (!(nextValue::without(_primaryKey)::isEmptyObject())) finalValue.push(nextValue);
+            finalValue.push(nextValue);
             return finalValue
           }
+
           return { ...finalValue, ...attrs }
           /* returning attrs here is for singleton objects. It cascades down the form, as a normal form would.
              Example:
