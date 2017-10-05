@@ -80,7 +80,7 @@ export default class Form extends Component {
     return {}
   }
 
-  fieldsFor(resourceType, key, existingResource={}) {
+  fieldsFor(resourceType, key, existingResource) {
     const { buildFieldProps } = this,
           { ReactiveRecord } = this.props.for,
           modelName = Sugar.String.camelize(Sugar.String.singularize(resourceType)),
@@ -89,7 +89,7 @@ export default class Form extends Component {
     const attributesName = `${resourceType}_attributes`,
           persisted = existingResource._persisted,
           idForFields = persisted ? existingResource[_primaryKey] : key,
-          fieldsObj = { fields:{}, _primaryKey, persisted };
+          fieldsObj = { fields:{}, _primaryKey, persisted, resource:existingResource };
 
     const formObject = buildFieldProps(schema, validations, fieldsObj, existingResource);
 
@@ -124,7 +124,7 @@ export default class Form extends Component {
 
         return Object.keys(this.resources)
         .reduce( (finalValue, identifier) => {
-          const { fields, _primaryKey, persisted } = this.resources[identifier],
+          const { fields, _primaryKey, persisted, resource } = this.resources[identifier],
                 attrs = Object.keys(fields)
                               .filter(fieldName => !!fields[fieldName])
                               .reduce((final, currentValue)=>{
@@ -134,12 +134,32 @@ export default class Form extends Component {
                                 return final;
                               }, {});
 
-          if (persisted) attrs[_primaryKey] = identifier;
+          Object.assign(resource, attrs)
+          const nextValue = resource.diff;
+
+          if (persisted) nextValue[_primaryKey] = identifier;
+
           if (isMany) {
-            if (!attrs::isEmptyObject()) finalValue.push(attrs);
-            return finalValue;
+            /* Submit only if the next value without the primary key is not empty */
+            if (!(nextValue::without(_primaryKey)::isEmptyObject())) finalValue.push(nextValue);
+            return finalValue
           }
-          return attrs;
+          return { ...finalValue, ...attrs }
+          /* returning attrs here is for singleton objects. It cascades down the form, as a normal form would.
+             Example:
+              ...
+              f.fieldsFor("building_attributes", building.id, building)( buildingFields => (
+                <Input {...buildingFields.address1} />
+              ))
+              f.fieldsFor("building_attributes", building.id, building)( buildingFields => (
+                <Input {...buildingFields.address2} />
+              ))
+              f.fieldsFor("building_attributes", building.id, building)( buildingFields => (
+                <Input {...buildingFields.city} />
+              ))
+              ...
+              and final submitted attributes would be { building_attributes:{ address1:"...", address2:"...", city:"..." } }
+           */
         }, isMany ? [] : {})
       }
     })
@@ -162,14 +182,25 @@ export default class Form extends Component {
           fieldsToCheck = relevantFields.length,
           getFieldValues = () => {
             return relevantFields.reduce((final, currentValue)=>{
-              if (typeof this.fields[currentValue].value === "function")
-                return { ...final, ...this.fields[currentValue].value(final) }
-              final[currentValue] = this.fields[currentValue].value;
+              const fieldsCurrentValue = this.fields[currentValue].value;
+              if (typeof fieldsCurrentValue === "function")
+                return { ...final, ...fieldsCurrentValue(final) }
+              const originalValue = fieldsCurrentValue
+
+              /* If these are nested attributes as in fieldsFor */
+              if (currentValue.lastIndexOf("_attributes") === currentValue.length - "_attributes".length) {
+                /* If these nested attributes are empty */
+                /* If it's an empty array */
+                if (Array.isArray(originalValue) && !originalValue.length) return final;
+                /* If it's an empty object */
+                if (originalValue::isEmptyObject()) return final;
+              }
+
+              final[currentValue] = fieldsCurrentValue;
               return final;
             }, {});
           },
           fieldValidator = isValid =>{
-            // debugger;
             fieldsChecked++;
             if (!isValid) allFieldsValid = false;
             if (fieldsChecked === fieldsToCheck) {

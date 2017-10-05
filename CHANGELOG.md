@@ -1,3 +1,5 @@
+## 0.3.0
+Added diffing to fieldsFor in Form component. Nested attributes are no longer submitted if empty.
 ### 0.2.9
 Fixed a bug that would remove the existing primaryKey on an error
 ### 0.2.8
