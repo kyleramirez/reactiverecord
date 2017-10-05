@@ -134,12 +134,14 @@ export default class Form extends Component {
                                 return final;
                               }, {});
 
-          /* Don't submit empty form objects */
+          /* Don't submit deleted form objects */
           if (attrs::isEmptyObject()) return finalValue;
 
           Object.assign(resource, attrs);
-
           const nextValue = resource.diff;
+
+          /* Don't submit unchanged resources */
+          if (nextValue::isEmptyObject()) return finalValue;
 
           if (persisted) nextValue[_primaryKey] = identifier;
 
