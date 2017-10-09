@@ -1,3 +1,5 @@
+### 0.3.3
+Bug fix on `Model.prototype.reload`
 ### 0.3.2
 Bug fix on form
 ### 0.3.1

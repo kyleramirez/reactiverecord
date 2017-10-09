@@ -156,8 +156,8 @@ export default class Model {
     const { singleton=false } = this.constructor.store;
     return _query => new Promise( (resolve, reject) => {
       const query = typeof _query === "string" ? queryStringToObj(_query) : _query;
-      if (this._request.canReload) return this._request.reload(query)
-      if (singleton) return this.constructor.all(query)
+
+      if (singleton) return this.constructor.all(query).then(resolve).catch(reject)
       const [ _primaryKey, key ] = this::getKey(),
             findQuery = Object.assign(this.routeAttributes("SHOW", query), query)
       this.constructor
