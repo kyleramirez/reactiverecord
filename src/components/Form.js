@@ -194,7 +194,7 @@ export default class Form extends Component {
               const originalValue = fieldsCurrentValue
 
               /* If these are nested attributes as in fieldsFor */
-              if (currentValue.lastIndexOf("_attributes") === currentValue.length - "_attributes".length) {
+              if (currentValue.indexOf("_attributes") > -1 && currentValue.lastIndexOf("_attributes") === currentValue.length - "_attributes".length) {
                 /* If these nested attributes are empty */
                 /* If it's an empty array */
                 if (Array.isArray(originalValue) && !originalValue.length) return final;
