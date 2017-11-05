@@ -109,11 +109,11 @@ export default class ReactiveRecord {
             body = method === "GET" ? {} : _attributes::pick(...Object.keys(model.schema));
       if (!routeTemplate) throw new ROUTE_NOT_FOUND_ERROR();
 
-      const route = interpolateRoute(routeTemplate, body, modelName, singleton, apiConfig, query);
+      const [route, bodyWithoutInterpolations] = interpolateRoute(routeTemplate, body, modelName, singleton, apiConfig, query);
       const request = method === "GET" ?
               { method, headers, credentials }
             :
-              { method, body:JSON.stringify(body), headers, credentials };
+              { method, body:JSON.stringify(bodyWithoutInterpolations), headers, credentials };
 
       let responseStatus = null;
       fetch(route, request)

@@ -19,26 +19,28 @@ export function checkResponseStatus(response){
   throw error
 }
 
-export function interpolateRoute(route, attributes, resourceName, singular, apiConfig, query) {
+export function interpolateRoute(route, originalAttributes, resourceName, singular, apiConfig, originalQuery) {
+  let query = {...originalQuery}
+  let attributes = {...originalAttributes}
   const { prefix } = apiConfig,
         delimiter = delimiterType(apiConfig.delimiter),
         modelInflection = singular ? resourceName : Sugar.String.pluralize(resourceName),
         modelWithDelimiter = `${Sugar.String[delimiter](modelInflection)}`;
-  
-  return route.replace(":modelname", modelWithDelimiter)
-              .replace(":prefix", prefix)
-              .replace(ROUTE_TOKENIZER, (token, attributeName)=>{
-                let match = null
-                if (attributes.hasOwnProperty(attributeName)) {
-                  match = attributes[attributeName]
-                }
-                if (query.hasOwnProperty(attributeName)) {
-                  match = query[attributeName]
-                }
-                delete attributes[attributeName]
-                delete query[attributeName]
-                return match || token;
-              }) + objToQueryString(query);
+  const interpolatedRoute = route.replace(":modelname", modelWithDelimiter)
+    .replace(":prefix", prefix)
+    .replace(ROUTE_TOKENIZER, (token, attributeName)=>{
+      let match = null
+      if (attributes.hasOwnProperty(attributeName)) {
+        match = attributes[attributeName]
+      }
+      if (query.hasOwnProperty(attributeName)) {
+        match = query[attributeName]
+      }
+      attributes = attributes::without(attributeName)
+      query = query::without(attributeName)
+      return match || token;
+    }) + objToQueryString(query)
+  return [ interpolatedRoute, attributes ]
 }
 
 export function delimiterType(delim="") {
@@ -200,14 +202,16 @@ export function buildRouteFromInstance(action, query) {
 
   if (!routes[action]) throw new ROUTE_NOT_FOUND_ERROR();
 
-  return interpolateRoute(
+  const [route] = interpolateRoute(
     routes[action],
     _attributes,
     displayName,
     singular,
     config,
     query
-  );
+  )
+
+  return route 
 }
 
 export function getKey() {

@@ -1,3 +1,5 @@
+### 0.3.5
+Fixed a bug that would delete attributes after calling `Model.prototype.routeFor`
 ### 0.3.4
 Bug fix on `Model.prototype.reload`
 ### 0.3.3

@@ -297,6 +297,14 @@ describe("Model", ()=>{
         (new Smell).routeFor("destroy")
       }).to.throw(ReferenceError)
     });
+
+    it("should not destroy the current resource's attributes (BUG FIX)", ()=>{
+      const smell = new Smell({ id: 123 }, true)
+      expect(smell.routeFor("update"))
+        .to.equal("/smells/123")
+      expect(smell.routeFor("update"))
+        .to.equal("/smells/123")
+    });
   });
 
   describe("#routeAttributes", () => {
