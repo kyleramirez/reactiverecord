@@ -6,6 +6,7 @@ import {
   areStatePropsEqual,
   ReactiveResource
 } from "./connectFunctions"
+import { pick } from "../utils"
 
 export default class Collection extends Component {
   static defaultProps = {
@@ -24,9 +25,17 @@ export default class Collection extends Component {
   }
 
   componentDidMount() {
-    this.props.for.ReactiveRecord.dispatch = this.props.for.ReactiveRecord.dispatch || this.props.dispatch;
-    if (this.props.fetch) {
-      this.props.for.all(this.props.where).then(this.props.then).catch(this.props.catch)
+    this.props.for.ReactiveRecord.dispatch = this.props.for.ReactiveRecord.dispatch || this.props.dispatch
+    this.load()
+  }
+
+  componentDidUpdate(prevProps) {
+    let prop = null
+    for (prop in prevProps::pick("then", "catch", "for", "where", "select", "fetch")) {
+      if (prevProps[prop] !== this.props[prop]) {
+        this.load()
+        break
+      }
     }
   }
 
@@ -35,7 +44,13 @@ export default class Collection extends Component {
     return <Collection {...props}  />
   }
 
+  load() {
+    if (this.props.fetch) {
+      this.props.for.all(this.props.where).then(this.props.then).catch(this.props.catch)
+    }
+  }
+
   reload() {
-    this.componentDidMount()
+    this.load()
   }
 }

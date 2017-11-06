@@ -6,6 +6,7 @@ import {
   areStatePropsEqual,
   ReactiveResource
 } from "./connectFunctions"
+import { pick } from "../utils"
 
 export default class Member extends Component {
   static defaultProps = {
@@ -24,11 +25,17 @@ export default class Member extends Component {
   }
 
   componentDidMount() {
-    const { store: { singleton=false } } = this.props.for;
-    this.props.for.ReactiveRecord.dispatch = this.props.for.ReactiveRecord.dispatch || this.props.dispatch;
-    if (this.props.fetch) {
-      if (singleton) return this.props.for.load(this.props.where).then(this.props.then).catch(this.props.catch)
-      this.props.for.find(this.props.find, this.props.where).then(this.props.then).catch(this.props.catch)
+    this.props.for.ReactiveRecord.dispatch = this.props.for.ReactiveRecord.dispatch || this.props.dispatch
+    this.load()
+  }
+
+  componentDidUpdate(prevProps) {
+    let prop = null
+    for (prop in prevProps::pick("then", "catch", "for", "where", "find", "fetch")) {
+      if (prevProps[prop] !== this.props[prop]) {
+        this.load()
+        break
+      }
     }
   }
 
@@ -37,7 +44,15 @@ export default class Member extends Component {
     return <Member {...props}  />
   }
 
+  load() {
+    const { store: { singleton=false } } = this.props.for
+    if (this.props.fetch) {
+      if (singleton) return this.props.for.load(this.props.where).then(this.props.then).catch(this.props.catch)
+      this.props.for.find(this.props.find, this.props.where).then(this.props.then).catch(this.props.catch)
+    }
+  }
+
   reload() {
-    this.componentDidMount()
+    this.load()
   }
 }
