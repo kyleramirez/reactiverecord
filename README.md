@@ -183,6 +183,28 @@ Reactive Record uses `fetch` as its remote backend. You can register these setti
 - `patchMode` (default: `true`) This assumes you'd like to only send the changed fields in your update (`PUT`) requests to a resource. If you only changed a user's first name, no need to send the entire record. Turning this off will send the entire record every time regardless of changes.
 
 ### Model
+#### `Model.store`
+#### `Model.schema`
+#### `Model.create`
+#### `Model.destroy`
+#### `Model.find`
+#### `Model.all`
+#### `Model.load`
+#### `Model.prototype.diff`
+#### `Model.prototype.changedAttributes`
+#### `Model.prototype.isPristine`
+#### `Model.prototype.isDirty`
+#### `Model.prototype.attributeChanged`
+#### `Model.prototype.routeFor`
+#### `Model.prototype.routeAttributes`
+#### `Model.prototype.updateAttributes`
+#### `Model.prototype.updateAttribute`
+#### `Model.prototype.save`
+#### `Model.prototype.destroy`
+#### `Model.prototype.reload`
+#### `Model.prototype.ReactiveRecord`
+#### `Model.prototype.serialize`
+
 ### reducer
 ### middleware
 
