@@ -1,3 +1,5 @@
+### 0.3.7
+Fixed a bug that would continuously make API requests if props changed.
 ### 0.3.6
 Added the ability to re-run request if relevant props have changed for `Collection` and `Member`
 ### 0.3.5

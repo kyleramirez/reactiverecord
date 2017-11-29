@@ -31,8 +31,8 @@ export default class Collection extends Component {
 
   componentDidUpdate(prevProps) {
     let prop = null
-    for (prop in prevProps::pick("then", "catch", "for", "where", "select", "fetch")) {
-      if (prevProps[prop] !== this.props[prop]) {
+    for (prop in prevProps::pick("for", "where", "fetch")) {
+      if (JSON.stringify(prevProps[prop]) !== JSON.stringify(this.props[prop])) {
         this.load()
         break
       }
