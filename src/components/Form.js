@@ -3,7 +3,7 @@ import Sugar from "../sugar"
 import { without, getTypeName, handleFormEvent, onlyObjects, isEmptyObject } from "../utils"
 
 function isNewResource() {
-  return !!("_persisted" in this && !this._persisted)
+  return !!(("_persisted" in this && !this._persisted) || ("_request" in this && this._request.status === "NEW"))
 }
 
 export default class Form extends Component {

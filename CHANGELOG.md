@@ -1,3 +1,5 @@
+### 0.3.8
+Fixed a bug on the form that would not show submitting if a resource was not connected to the store.
 ### 0.3.7
 Fixed a bug that would continuously make API requests if props changed.
 ### 0.3.6
