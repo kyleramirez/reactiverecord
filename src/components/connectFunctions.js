@@ -1,13 +1,16 @@
 import { Children } from "react"
 import Collection from "../ReactiveRecord/Collection"
-import { where, select, onlyReactiveRecord, queryStringToObj, values } from "../utils"
+import { where, select, onlyReactiveRecord, queryStringToObj, values, pick, without } from "../utils"
 
 function defaultSelect() { return true }
 
 export function mapStateToProps(state, { for:Model, find, where:_where, select:_select=defaultSelect }) {
   const { store:{ singleton }, schema:{ _primaryKey="id" }, displayName } = Model,
-        stateModels = state::onlyReactiveRecord(),
-        whereQuery = _where ? typeof _where === "string" ? queryStringToObj(_where) : _where : false;
+        stateModels = state::onlyReactiveRecord()
+
+  let whereQuery = _where ? typeof _where === "string" ? queryStringToObj(_where) : _where : {};
+  const schemaAttrs = Object.keys(Model.schema::without("_primaryKey", "_timestamps"))
+  whereQuery = whereQuery::pick(...schemaAttrs)
 
   if (singleton || find) {
     if (singleton) {
@@ -39,7 +42,7 @@ export function mapStateToProps(state, { for:Model, find, where:_where, select:_
                                         _errors,
                                         _request
                                       }, true) )
-                                      ::where(whereQuery || {})
+                                      ::where(whereQuery)
                                       ::select(_select);
   return { resource: new Collection({ _collection: transformedCollection, _request, _primaryKey }) }
 }
