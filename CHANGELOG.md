@@ -1,3 +1,5 @@
+### 0.4.0
+Only apply confirmation validation if the confirmation field is part of the form object.
 ### 0.3.9
 Allow non-model parameters in `where` clause for `<Collection />` and `<Member />` components
 ### 0.3.8

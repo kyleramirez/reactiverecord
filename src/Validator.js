@@ -276,19 +276,13 @@ const Validator = {
       * }
       */
       confirmation: function(value, options, form, attribute) {
-        const confirmationFieldName = `${attribute}_confirmation`,
-              confirmationValue = confirmationFieldName in form.fields ?
-                /* Is there a value in the form */
-                /* Is it a function type value */
-                typeof form.fields[confirmationFieldName].value === "function" ?
-                  JSON.stringify(form.fields[confirmationFieldName].value({}))
-                :
-                  /* If not, just a regular getter */
-                  form.fields[confirmationFieldName].value
-              :
-                undefined;
-        const stringFn = options.case_sensitive ? "toString" : "toLowerCase";
-        if (value[stringFn]() !== confirmationValue[stringFn]()) return options.message;
+        const confirmationFieldName = `${attribute}_confirmation`
+        if (confirmationFieldName in form.fields) {
+          /* Is there a value in the form */
+          const confirmationValue = form.fields[confirmationFieldName].value
+          const stringFn = options.case_sensitive ? "toString" : "toLowerCase"
+          if (value[stringFn]() !== confirmationValue[stringFn]()) return options.message
+        }
       }
     },
     remote: {}
