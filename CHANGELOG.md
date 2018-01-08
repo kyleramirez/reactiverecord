@@ -1,3 +1,5 @@
+### 0.4.1
+Add optional query prop for `<Form />`
 ### 0.4.0
 Only apply confirmation validation if the confirmation field is part of the form object.
 ### 0.3.9

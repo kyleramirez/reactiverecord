@@ -31,7 +31,7 @@ export default class Form extends Component {
           props = this.props::without(
             "children", "for", "beforeValidation",
             "afterValidationFail", "beforeSave", "afterSave",
-            "afterRollback", "builder"
+            "afterRollback", "builder", "query"
           );
 
     const submit = {
@@ -225,7 +225,8 @@ export default class Form extends Component {
 
   commitResource(attrs) {
     if (this.props.for::isNewResource()) this.safeSetState({ submitting: true })
-    return this.props.for.updateAttributes(attrs)
+    const query = this.props.query || {}
+    return this.props.for.updateAttributes(attrs, { query })
                          .then( resource => {
                            if (this.state.submitting)
                              this.safeSetState({ submitting: false })
