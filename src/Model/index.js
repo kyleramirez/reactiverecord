@@ -8,12 +8,13 @@ import Request from "../ReactiveRecord/Request"
 import Errors from "./Errors"
 
 export default class Model {
-  constructor(attrs={}, persisted=false) {
+  constructor(attrs={}, persisted=false, isStoreManaged=false) {
     const modelName = this.constructor.displayName,
           model = this.ReactiveRecord.models[modelName];
 
     Object.defineProperty(this, "_attributes", { value:{} })
     Object.defineProperty(this, "_request", { value: new Request({...attrs._request}) });
+    Object.defineProperty(this, "_isStoreManaged", { value: isStoreManaged })
 
     this::setReadOnlyProps(attrs, persisted);
     this::setWriteableProps(attrs);

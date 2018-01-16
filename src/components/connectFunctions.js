@@ -19,7 +19,7 @@ export function mapStateToProps(state, { for:Model, find, where:_where, select:_
           ...stateModels[displayName]._attributes,
           _errors:stateModels[displayName]._errors,
           _request:stateModels[displayName]._request
-        }, true)
+        }, true, true)
       }
     }
     const member = stateModels[displayName]._collection[find];
@@ -29,10 +29,10 @@ export function mapStateToProps(state, { for:Model, find, where:_where, select:_
           ...member._attributes,
           _errors:member._errors,
           _request:member._request
-        }, true)
+        }, true, true)
       }
     }
-    return { resource: new Model({ _request:{ status: null } }) }
+    return { resource: new Model({ _request:{ status: null } }, false, true) }
   }
 
   const { _collection, _request } = stateModels[displayName],
@@ -41,7 +41,7 @@ export function mapStateToProps(state, { for:Model, find, where:_where, select:_
                                         ..._attributes,
                                         _errors,
                                         _request
-                                      }, true) )
+                                      }, true, true) )
                                       ::where(whereQuery)
                                       ::select(_select);
   return { resource: new Collection({ _collection: transformedCollection, _request, _primaryKey }) }

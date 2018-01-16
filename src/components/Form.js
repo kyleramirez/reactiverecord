@@ -2,8 +2,8 @@ import React, { Component } from "react"
 import Sugar from "../sugar"
 import { without, getTypeName, handleFormEvent, onlyObjects, isEmptyObject } from "../utils"
 
-function isNewResource() {
-  return !!(("_persisted" in this && !this._persisted) || ("_request" in this && this._request.status === "NEW"))
+function isStoreManaged() {
+  return !!("_isStoreManaged" in this && this._isStoreManaged)
 }
 
 export default class Form extends Component {
@@ -224,7 +224,10 @@ export default class Form extends Component {
   }
 
   commitResource(attrs) {
-    if (this.props.for::isNewResource()) this.safeSetState({ submitting: true })
+    if (!this.props.for::isStoreManaged()) {
+      this.props.for._errors.clear()
+      this.safeSetState({ submitting: true })
+    }
     const query = this.props.query || {}
     return this.props.for.updateAttributes(attrs, { query })
                          .then( resource => {
