@@ -1,3 +1,5 @@
+### 0.4.3
+Added Promise functionality to handleSubmit method
 ### 0.4.2
 Better handling of form submission if not connected to `store`
 ### 0.4.1
