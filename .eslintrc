@@ -1,3 +1,11 @@
 {
-  "extends": ["plugin:react-app/recommended"]
+  "extends": [
+    "plugin:react-app/recommended"
+  ],
+  "rules": {
+    "react-app/react/jsx-pascal-case": 0,
+    "radix": 0,
+    "no-unused-vars": 2,
+    "curly": [2, "all"]
+  }
 }

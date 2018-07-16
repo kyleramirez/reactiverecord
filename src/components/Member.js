@@ -10,29 +10,39 @@ import { pick } from "../utils"
 
 export default class Member extends Component {
   static defaultProps = {
-    then: ()=>{},
-    catch: e => { throw e; },
+    then: () => {},
+    catch: e => {
+      throw e
+    },
     where: {},
     fetch: true
   }
   constructor(props, context) {
-    super(props, context);
+    super(props, context)
     const connectOptions = {
-            areStatesEqual: areStatesEqual(props),
-            areStatePropsEqual
-          }
-    this.Member = connect(mapStateToProps, null, null, connectOptions)(ReactiveResource)
+      areStatesEqual: areStatesEqual(props),
+      areStatePropsEqual
+    }
+    this.Member = connect(
+      mapStateToProps,
+      null,
+      null,
+      connectOptions
+    )(ReactiveResource)
   }
 
   componentDidMount() {
-    this.props.for.ReactiveRecord.dispatch = this.props.for.ReactiveRecord.dispatch || this.props.dispatch
+    this.props.for.ReactiveRecord.dispatch =
+      this.props.for.ReactiveRecord.dispatch || this.props.dispatch
     this.load()
   }
 
   componentDidUpdate(prevProps) {
     let prop = null
     for (prop in prevProps::pick("for", "where", "fetch", "find")) {
-      if (JSON.stringify(prevProps[prop]) !== JSON.stringify(this.props[prop])) {
+      if (
+        JSON.stringify(prevProps[prop]) !== JSON.stringify(this.props[prop])
+      ) {
         this.load()
         break
       }
@@ -40,15 +50,25 @@ export default class Member extends Component {
   }
 
   render() {
-    const { Member, props } = this;
-    return <Member {...props}  />
+    const { Member, props } = this
+    return <Member {...props} />
   }
 
   load() {
-    const { store: { singleton=false } } = this.props.for
+    const {
+      store: { singleton = false }
+    } = this.props.for
     if (this.props.fetch) {
-      if (singleton) return this.props.for.load(this.props.where).then(this.props.then).catch(this.props.catch)
-      this.props.for.find(this.props.find, this.props.where).then(this.props.then).catch(this.props.catch)
+      if (singleton) {
+        return this.props.for
+          .load(this.props.where)
+          .then(this.props.then)
+          .catch(this.props.catch)
+      }
+      this.props.for
+        .find(this.props.find, this.props.where)
+        .then(this.props.then)
+        .catch(this.props.catch)
     }
   }
 

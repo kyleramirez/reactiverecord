@@ -1,6 +1,6 @@
 {
   "name": "reactiverecord",
-  "version": "0.4.3",
+  "version": "0.4.4",
   "description": "Object data-store mapping in React",
   "main": "dist/index.js",
   "scripts": {
@@ -11,7 +11,9 @@
     "dist": "cpx 'src/**/*' dist && npm run dist:es5",
     "dist:es5": "babel src -o dist/es5.js",
     "dist:watch": "cpx -w 'src/**/*' dist",
-    "prepublish": "npm run dist"
+    "prepublish": "npm run dist",
+    "prettier": "prettier",
+    "precommit": "lint-staged"
   },
   "repository": {
     "type": "git",
@@ -40,14 +42,23 @@
     "chai-spies": "^0.7.1",
     "cpx": "^1.5.0",
     "es6-promise": "^4.1.1",
-    "eslint": "^4.6.1",
+    "eslint": "^4.12.1",
     "eslint-plugin-react-app": "^1.0.2",
     "eslint-watch": "^3.1.2",
+    "husky": "^0.14.3",
+    "lint-staged": "^6.0.0",
     "mocha": "^3.3.0",
+    "prettier": "^1.9.1",
     "react": "^15.6.1",
     "react-redux": "^5.0.6",
     "redux": "^3.7.2",
     "whatwg-fetch": "^2.0.3"
+  },
+  "lint-staged": {
+    "*.js": [
+      "eslint src --fix",
+      "prettier src --write --no-semi"
+    ]
   },
   "peerDependencies": {
     "react": "^0.14.0 || ^15.0.0-0 || ^16.0.0-0",

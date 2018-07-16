@@ -5,31 +5,33 @@ function noop() {}
 
 export default function validated(WrappedComponent) {
   const {
-    name="Unknown",
-    displayName:wrappedComponentName=name
-  } = WrappedComponent;
+    name = "Unknown",
+    displayName: wrappedComponentName = name
+  } = WrappedComponent
 
   return class extends Component {
-    static displayName = `validated(${wrappedComponentName})`;
+    static displayName = `validated(${wrappedComponentName})`
 
     constructor(props, context) {
-      super(props, context);
+      super(props, context)
       const state = {
         errorText: null,
         valueForPropsErrorText: null,
-        validating: false,
+        validating: false
       }
       if (props.errorText) {
-        state.valueForPropsErrorText = props.value || props.defaultValue;
+        state.valueForPropsErrorText = props.value || props.defaultValue
       }
-      this.state = state;
+      this.state = state
 
-      this.onChange = this::this.onChange;
-      this.onBlur = this::this.onBlur;
+      this.onChange = this::this.onChange
+      this.onBlur = this::this.onBlur
       this.safeSetState = (...args) => {
-        if (this.input) this.setState(...args)
+        if (this.input) {
+          this.setState(...args)
+        }
       }
-      this.beginValidation = ()=>this.safeSetState({ validating: true });
+      this.beginValidation = () => this.safeSetState({ validating: true })
     }
 
     componentWillReceiveProps({ errorText }) {
@@ -41,45 +43,66 @@ export default function validated(WrappedComponent) {
     }
 
     render() {
-      const { onChange, onBlur, errorText, state: { validating } } = this;
-      
-      return <WrappedComponent
-               {...this.props::without("onChange", "onBlur", "errorText", "validators")}
-               {...{ onChange, onBlur, errorText, validating }}
-               ref={ ref => { this.input = ref }}
-             />
+      const {
+        onChange,
+        onBlur,
+        errorText,
+        state: { validating }
+      } = this
+
+      return (
+        <WrappedComponent
+          {...this.props::without(
+            "onChange",
+            "onBlur",
+            "errorText",
+            "validators"
+          )}
+          {...{ onChange, onBlur, errorText, validating }}
+          ref={ref => {
+            this.input = ref
+          }}
+        />
+      )
     }
 
     get errorText() {
-      const { props, state, input } = this;
+      const { props, state, input } = this
       if (props.errorText) {
         /* 
          * Props says there's an error. The
          * component has not yet mounted.
          */
-        if (!input) return props.errorText;
+        if (!input) {
+          return props.errorText
+        }
         /* 
          * Props says there's an error and the value that
          * caused the error is unchanged.
          */
-        if (JSON.stringify(this.getValueInternal()) === JSON.stringify(state.valueForPropsErrorText))
-          return props.errorText;
+        if (
+          JSON.stringify(this.getValueInternal()) ===
+          JSON.stringify(state.valueForPropsErrorText)
+        ) {
+          return props.errorText
+        }
       }
       /* 
        * The state error text will be
        * the latest error or null
        */
-      return state.errorText;
+      return state.errorText
     }
 
     getValueInternal() {
-      if (typeof this.value === "function")
+      if (typeof this.value === "function") {
         return this.value({})
+      }
       return this.value
     }
 
     get value() {
-      return this.input.value;
+      return this.input.value
     }
 
     isValid(callback) {
@@ -88,31 +111,31 @@ export default function validated(WrappedComponent) {
 
     onChange(e) {
       this.runValidations()
-      this::triggerEventForProps("Change", e);
+      ;this::triggerEventForProps("Change", e)
     }
 
     onBlur(e) {
-      this.runValidations(true);
-      this::triggerEventForProps("Blur", e);
+      this.runValidations(true)
+      ;this::triggerEventForProps("Blur", e)
     }
 
-    runValidations(doRemote=false, callback=noop) {
-      const { validators } = this.props;
+    runValidations(doRemote = false, callback = noop) {
+      const { validators } = this.props
       if (!validators || validators::isEmptyObject()) {
-        this.safeSetState({ errorText: null });
-        callback(true);
+        this.safeSetState({ errorText: null })
+        callback(true)
         return
       }
-      const value = this.getValueInternal();
+      const value = this.getValueInternal()
       /* 
        * If remote validations are included, first find any
        * local errors. If there is an error without needing
        * to perform remote validations, show it now.
        */
-      const errorText = Validator.firstErrorMessage(validators, value);
-      this.safeSetState({ errorText });
+      const errorText = Validator.firstErrorMessage(validators, value)
+      this.safeSetState({ errorText })
       if (errorText) {
-        callback(false);
+        callback(false)
         return
       }
       if (!doRemote) {
@@ -122,11 +145,16 @@ export default function validated(WrappedComponent) {
       /* No local errors found, but we're not out of the woods
          yet ... time to perform remote validations if needed
        */
-      Validator.firstRemoteErrorMessage(validators, value, this.beginValidation, errorText => {
-        this.safeSetState({ errorText, validating: false })
-        validators.form.decreaseValidation()
-        callback(!!!errorText)
-      });
+      Validator.firstRemoteErrorMessage(
+        validators,
+        value,
+        this.beginValidation,
+        errorText => {
+          this.safeSetState({ errorText, validating: false })
+          validators.form.decreaseValidation()
+          callback(!!!errorText)
+        }
+      )
     }
   }
 }

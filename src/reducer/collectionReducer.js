@@ -1,35 +1,44 @@
 import {
   ACTION_MATCHER,
   ACTION_STATUSES,
-  memberProps, collectionProps
+  memberProps,
+  collectionProps
 } from "../constants"
 import { without } from "../utils"
 
-export default function collectionReducer(modelName, _primaryKey, state=collectionProps, action) {
-  if (!ACTION_MATCHER.test(action.type)) return state
-  const [,asyncStatus, actionNameUpper, actionModelName] = action.type.match(ACTION_MATCHER),
-        actionName = actionNameUpper.toLowerCase(),
-        requestStatus = asyncStatus ? asyncStatus.replace("_","") : null;
-  if (actionModelName !== modelName) return state;
+export default function collectionReducer(
+  modelName,
+  _primaryKey,
+  state = collectionProps,
+  action
+) {
+  if (!ACTION_MATCHER.test(action.type)) {
+    return state
+  }
+  const [, asyncStatus, actionNameUpper, actionModelName] = action.type.match(
+      ACTION_MATCHER
+    ),
+    actionName = actionNameUpper.toLowerCase(),
+    requestStatus = asyncStatus ? asyncStatus.replace("_", "") : null
+  if (actionModelName !== modelName) {
+    return state
+  }
 
   const nextState = { ...state },
-        {
-          _collection,
-          _request:safeActionRequest={},
-          _attributes:safeActionAttributes={},
-          _attributes:{
-            [_primaryKey]:key
-          }={},
-          _errors:safeActionErrors={}
-        } = action,
-        hasMemberToUpdate = actionName !== "index" && !!key,
-        existingVersionOfMember = hasMemberToUpdate ?
-            nextState._collection[key] || { ...memberProps }
-          :
-            null,
-        startingAsync = !!!requestStatus,
-        returningFromAsync = !!requestStatus,
-        statusOK = requestStatus === "OK";
+    {
+      _collection,
+      _request: safeActionRequest = {},
+      _attributes: safeActionAttributes = {},
+      _attributes: { [_primaryKey]: key } = {},
+      _errors: safeActionErrors = {}
+    } = action,
+    hasMemberToUpdate = actionName !== "index" && !!key,
+    existingVersionOfMember = hasMemberToUpdate
+      ? nextState._collection[key] || { ...memberProps }
+      : null,
+    startingAsync = !!!requestStatus,
+    returningFromAsync = !!requestStatus,
+    statusOK = requestStatus === "OK"
 
   if (startingAsync) {
     if (actionName === "index") {
@@ -72,7 +81,12 @@ export default function collectionReducer(modelName, _primaryKey, state=collecti
   }
 
   if (hasMemberToUpdate && returningFromAsync) {
-    if (!!(actionName.match(/(show|create|update)/) || (actionName === "destroy" && !statusOK))) {
+    if (
+      !!(
+        actionName.match(/(show|create|update)/) ||
+        (actionName === "destroy" && !statusOK)
+      )
+    ) {
       nextState._collection = {
         ...nextState._collection,
         [key]: {
@@ -97,5 +111,5 @@ export default function collectionReducer(modelName, _primaryKey, state=collecti
     }
   }
 
-  return nextState;
+  return nextState
 }

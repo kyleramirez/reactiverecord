@@ -1,8 +1,7 @@
-
 export default class Request {
-  constructor({ status="NEW", body=null }){
-    this.status = status;
-    this.body = body;
+  constructor({ status = "NEW", body = null }) {
+    this.status = status
+    this.body = body
   }
 
   serialize() {

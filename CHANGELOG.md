@@ -1,3 +1,5 @@
+### 0.4.4
+Bug fix, codebase improvements, updated `where` to accept array of values, updated query string generation
 ### 0.4.3
 Added Promise functionality to handleSubmit method
 ### 0.4.2

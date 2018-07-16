@@ -10,29 +10,39 @@ import { pick } from "../utils"
 
 export default class Collection extends Component {
   static defaultProps = {
-    then: ()=>{},
-    catch: e => { throw e; },
+    then: () => {},
+    catch: e => {
+      throw e
+    },
     where: {},
     fetch: true
   }
   constructor(props, context) {
-    super(props, context);
+    super(props, context)
     const connectOptions = {
-            areStatesEqual: areStatesEqual(props),
-            areStatePropsEqual
-          }
-    this.Collection = connect(mapStateToProps, null, null, connectOptions)(ReactiveResource)
+      areStatesEqual: areStatesEqual(props),
+      areStatePropsEqual
+    }
+    this.Collection = connect(
+      mapStateToProps,
+      null,
+      null,
+      connectOptions
+    )(ReactiveResource)
   }
 
   componentDidMount() {
-    this.props.for.ReactiveRecord.dispatch = this.props.for.ReactiveRecord.dispatch || this.props.dispatch
+    this.props.for.ReactiveRecord.dispatch =
+      this.props.for.ReactiveRecord.dispatch || this.props.dispatch
     this.load()
   }
 
   componentDidUpdate(prevProps) {
     let prop = null
     for (prop in prevProps::pick("for", "where", "fetch")) {
-      if (JSON.stringify(prevProps[prop]) !== JSON.stringify(this.props[prop])) {
+      if (
+        JSON.stringify(prevProps[prop]) !== JSON.stringify(this.props[prop])
+      ) {
         this.load()
         break
       }
@@ -40,13 +50,16 @@ export default class Collection extends Component {
   }
 
   render() {
-    const { Collection, props } = this;
-    return <Collection {...props}  />
+    const { Collection, props } = this
+    return <Collection {...props} />
   }
 
   load() {
     if (this.props.fetch) {
-      this.props.for.all(this.props.where).then(this.props.then).catch(this.props.catch)
+      this.props.for
+        .all(this.props.where)
+        .then(this.props.then)
+        .catch(this.props.catch)
     }
   }
 
