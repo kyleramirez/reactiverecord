@@ -326,7 +326,7 @@ export default class Form extends Component {
             this.safeSetState({ submitting: false })
           }
           const afterSave = this::handleFormEvent("afterSave", resource)
-          if (afterSave && afterSave.hasOwnProperty("then")) {
+          if (afterSave && "then" in afterSave) {
             afterSave.then(resolve)
           }
         })
@@ -335,7 +335,7 @@ export default class Form extends Component {
             this.safeSetState({ submitting: false })
           }
           const afterRollback = this::handleFormEvent("afterRollback", resource)
-          if (afterRollback && afterRollback.hasOwnProperty("then")) {
+          if (afterRollback && "then" in afterRollback) {
             afterRollback.then(reject)
           }
         })
