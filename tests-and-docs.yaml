@@ -61,3 +61,9 @@ docs:
       only and accept can take a string or an array of strings
       only: "create"
       except: ["destroy","update"]
+
+if you submit the form manually:
+ - Dont expect to catch an error if
+   you also have an afterRollback prop
+ - Dont expect a then  if you also
+   have an afterSave prop

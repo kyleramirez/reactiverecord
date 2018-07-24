@@ -294,9 +294,10 @@ export default class Form extends Component {
             return this::handleFormEvent("beforeSave", getFieldValues())
               .then(commitResource)
               .then(resolve)
+              .catch(reject)
           }
           return this::handleFormEvent(
-            "afterFailValidation",
+            "afterValidationFail",
             getFieldValues()
           ).then(reject)
         }
