@@ -1,3 +1,5 @@
+### 0.4.7
+Fixes bug with numericality validator
 ### 0.4.6
 Bug fix
 ### 0.4.5

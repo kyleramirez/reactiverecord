@@ -10,8 +10,8 @@ const Validator = {
   },
   patterns: {
     numericality: {
-      default: /^[-+]?[0-9]*\\.?[0-9]+([eE][-+]?[0-9]+)?$/,
-      only_integer: /^[+-]?\\d+$/
+      default: /^[-+]?[0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?$/,
+      only_integer: /^[+-]?\d+$/
     }
   },
   validators: {
@@ -117,7 +117,7 @@ const Validator = {
       */
       numericality: function(value, options, form) {
         const { separator } = Validator.settings.number_format,
-          safeValue = value.replace(new RegExp(separator, "g"), ".")
+          safeValue = value.replace(new RegExp(`\\${separator}`, "g"), ".")
         if (
           options.only_integer &&
           !Validator.patterns.numericality.only_integer.test(safeValue)
