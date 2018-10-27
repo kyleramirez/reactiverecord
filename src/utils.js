@@ -168,17 +168,20 @@ export function setWriteableProps(attrs) {
       set = newValue => (this._attributes[prop] = newValue)
       if (type === "Boolean") {
         set = newValue => {
-          return (this._attributes[prop] =
-            newValue === "false" ? false : Boolean(newValue))
+          let next = Boolean(newValue)
+          if (newValue === null) {
+            next = null
+          }
+          if (newValue === "false") {
+            next = false
+          }
+          return this._attributes[prop] = next
         }
       }
     }
 
-    if (type === "Boolean") {
-      if (this._attributes[prop] !== null) {
-        this._attributes[prop] =
-          initialValue === "false" ? false : Boolean(initialValue)
-      }
+    if (type === "Boolean" && this._attributes[prop] !== null) {
+      this._attributes[prop] = initialValue === "false" ? false : Boolean(initialValue)
     }
 
     Object.defineProperty(this, prop, {
@@ -242,7 +245,7 @@ export function objToQueryString(obj, keyPrefix = "") {
       ? `${keyPrefix}[${encodeURIComponent(current)}]`
       : encodeURIComponent(current)
     let value = null
-    if (typeof initialValue === "object" && !initialValue::isEmptyObject()) {
+    if (typeof initialValue === "object" && initialValue !== null && !isEmptyObject.call(initialValue)) {
       value = objToQueryString(initialValue, key)
       return `${final}${delimiter}${value}`
     } else {
@@ -253,6 +256,9 @@ export function objToQueryString(obj, keyPrefix = "") {
 }
 
 function tryTypeCastFromURL(item) {
+  if (item === "") {
+    return ""
+  }
   if (isNaN(item)) {
     if (item === "null") {
       return null
@@ -277,19 +283,22 @@ export function queryStringToObj(str) {
     response = JSON.parse(
       `{"${str
         .replace(/^\?/, "")
-        .replace(/&/g, '","')
-        .replace(/=/g, '":"')}"}`,
+        .replace(/&/g, "\",\"")
+        .replace(/=/g, "\":\"")}"}`,
       function(k, v) {
         return k === "" ? v : decodeURIComponent(v)
       }
     )
-    Object.keys(response).map(key => {
-      const matches = key.split(/[\[\]]/).filter(Boolean)
+    Object.keys(response).forEach(function(key) {
+      const matches = key.split(/[[\]]/).filter(Boolean)
       if (matches.length > 1) {
-        matches.reduce((ref, nextKey, index, { length }) => {
-          ref[nextKey] =
-            ref[nextKey] ||
-            (index + 1 === length ? tryTypeCastFromURL(response[key]) : {})
+        matches.reduce((ref, nextKey, index) => {
+          let keyType = {}
+          const isFinalValue = index + 1 === matches.length
+          if (!isFinalValue && /^\d+$/.test(matches[index + 1])) {
+            keyType =  []
+          }
+          ref[nextKey] = ref[nextKey] || (isFinalValue ? tryTypeCastFromURL(response[key]) : keyType)
           return ref[nextKey]
         }, response)
         delete response[key]

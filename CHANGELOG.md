@@ -1,3 +1,7 @@
+### 0.4.8
+Type accuracy enhancements
+- Improved query string parsing for arrays
+- Allow Boolean type fields to be set to null
 ### 0.4.7
 Fixes bug with numericality validator
 ### 0.4.6
