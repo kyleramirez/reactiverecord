@@ -10,7 +10,7 @@
 // } from "../src/utils"
 //
 // import { singleRecordProps, versioningProps, recordProps } from "../src/constants"
-// 
+//
 // describe("Utils", ()=>{
 //   describe("#isEmptyObject", ()=>{
 //

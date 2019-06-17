@@ -110,7 +110,7 @@ If you're coming from a Ruby-on-Rails background, this library is for you. It's 
     ReactiveRecord.setAPI({ prefix: "/api" }) /* optional */
     import "models"
     export default combineReducers({
-      models: ReactiveRecord::reducer() /* call it models or anything */
+      models: reducer.call(ReactiveRecord) /* call it models or anything */
       ...yourOtherReducers
     })
 
@@ -124,7 +124,7 @@ If you're coming from a Ruby-on-Rails background, this library is for you. It's 
       reducer,
       compose(
         applyMiddleware(
-          ReactiveRecord::middleware(),
+          middleware.call(ReactiveRecord),
           ...yourOtherMiddlewares
         )
       )

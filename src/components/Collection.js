@@ -1,11 +1,6 @@
 import React, { Component } from "react"
 import { connect } from "react-redux"
-import {
-  mapStateToProps,
-  areStatesEqual,
-  areStatePropsEqual,
-  ReactiveResource
-} from "./connectFunctions"
+import { mapStateToProps, areStatesEqual, areStatePropsEqual, ReactiveResource } from "./connectFunctions"
 import { pick } from "../utils"
 
 export default class Collection extends Component {
@@ -32,17 +27,14 @@ export default class Collection extends Component {
   }
 
   componentDidMount() {
-    this.props.for.ReactiveRecord.dispatch =
-      this.props.for.ReactiveRecord.dispatch || this.props.dispatch
+    this.props.for.ReactiveRecord.dispatch = this.props.for.ReactiveRecord.dispatch || this.props.dispatch
     this.load()
   }
 
   componentDidUpdate(prevProps) {
     let prop = null
-    for (prop in prevProps::pick("for", "where", "fetch")) {
-      if (
-        JSON.stringify(prevProps[prop]) !== JSON.stringify(this.props[prop])
-      ) {
+    for (prop in pick.call(prevProps, "for", "where", "fetch")) {
+      if (JSON.stringify(prevProps[prop]) !== JSON.stringify(this.props[prop])) {
         this.load()
         break
       }

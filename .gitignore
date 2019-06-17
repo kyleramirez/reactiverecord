@@ -1,34 +1,26 @@
-dist
-
-# Logs
-logs
-*.log
-npm-debug.log*
-
-# Dependency directories
-node_modules
-
-# Apple Shit
-.DS_Store
-.AppleDouble
-.LSOverride
-Icon
 ._*
-.Spotlight-V100
-.Trashes
+.apdisk
 .AppleDB
 .AppleDesktop
-Network Trash Folder
-Temporary Items
-.apdisk
-
-# Windows Shit
-Thumbs.db
-ehthumbs.db
-Desktop.ini
-$RECYCLE.BIN/
+.AppleDouble
+.DS_Store
+.LSOverride
+.Spotlight-V100
+.Trashes
 *.cab
+*.lnk
+*.log
 *.msi
 *.msm
 *.msp
-*.lnk
+$RECYCLE.BIN/
+Desktop.ini
+dist
+ehthumbs.db
+Icon
+logs
+Network Trash Folder
+node_modules
+npm-debug.log*
+Temporary Items
+Thumbs.db

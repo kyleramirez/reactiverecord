@@ -1,39 +1,22 @@
 import { Children } from "react"
 import Collection from "../ReactiveRecord/Collection"
-import {
-  where,
-  select,
-  onlyReactiveRecord,
-  queryStringToObj,
-  values,
-  pick,
-  without
-} from "../utils"
+import { where, select, onlyReactiveRecord, queryStringToObj, values, pick, without } from "../utils"
 
 function defaultSelect() {
   return true
 }
 
-export function mapStateToProps(
-  state,
-  { for: Model, find, where: _where, select: _select = defaultSelect }
-) {
+export function mapStateToProps(state, { for: Model, find, where: _where, select: _select = defaultSelect }) {
   const {
       store: { singleton },
       schema: { _primaryKey = "id" },
       displayName
     } = Model,
-    stateModels = state::onlyReactiveRecord()
+    stateModels = onlyReactiveRecord.call(state)
 
-  let whereQuery = _where
-    ? typeof _where === "string"
-      ? queryStringToObj(_where)
-      : _where
-    : {}
-  const schemaAttrs = Object.keys(
-    Model.schema::without("_primaryKey", "_timestamps")
-  )
-  whereQuery = whereQuery::pick(...schemaAttrs)
+  let whereQuery = _where ? (typeof _where === "string" ? queryStringToObj(_where) : _where) : {}
+  const schemaAttrs = Object.keys(without.call(Model.schema, "_primaryKey", "_timestamps"))
+  whereQuery = pick.call(whereQuery, ...schemaAttrs)
 
   if (singleton || find) {
     if (singleton) {
@@ -66,23 +49,16 @@ export function mapStateToProps(
     return { resource: new Model({ _request: { status: null } }, false, true) }
   }
 
-  const { _collection, _request } = stateModels[displayName],
-    transformedCollection = _collection
-      ::values()
-      .map(
-        ({ _attributes, _request, _errors }) =>
-          new Model(
-            {
-              ..._attributes,
-              _errors,
-              _request
-            },
-            true,
-            true
-          )
-      )
-      ::where(whereQuery)
-      ::select(_select)
+  const { _collection, _request } = stateModels[displayName]
+  const transformedCollection = select.call(
+    where.call(
+      values
+        .call(_collection)
+        .map(({ _attributes, _request, _errors }) => new Model({ ..._attributes, _errors, _request }, true, true)),
+      whereQuery
+    ),
+    _select
+  )
   return {
     resource: new Collection({
       _collection: transformedCollection,
@@ -93,17 +69,11 @@ export function mapStateToProps(
 }
 
 export const areStatePropsEqual = (prev, next) => {
-  return (
-    JSON.stringify(prev.resource.serialize()) ===
-    JSON.stringify(next.resource.serialize())
-  )
+  return JSON.stringify(prev.resource.serialize()) === JSON.stringify(next.resource.serialize())
 }
 
 export const areStatesEqual = ({ for: { displayName } }) => (prev, next) => {
-  return (
-    prev::onlyReactiveRecord()[displayName] ===
-    next::onlyReactiveRecord()[displayName]
-  )
+  return onlyReactiveRecord.call(prev)[displayName] === onlyReactiveRecord.call(next)[displayName]
 }
 
 export function ReactiveResource({ children, resource }) {

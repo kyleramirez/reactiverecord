@@ -1,12 +1,6 @@
 import React, { Component } from "react"
 import Sugar from "../sugar"
-import {
-  without,
-  getTypeName,
-  handleFormEvent,
-  onlyObjects,
-  isEmptyObject
-} from "../utils"
+import { without, getTypeName, handleFormEvent, onlyObjects, isEmptyObject } from "../utils"
 
 function isStoreManaged() {
   return !!("_isStoreManaged" in this && this._isStoreManaged)
@@ -17,12 +11,6 @@ export default class Form extends Component {
     super(...args)
     this.state = { submitting: false, validating: 0 }
     this.fields = []
-    this.handleSubmit = this::this.handleSubmit
-    this.commitResource = this::this.commitResource
-    this.fieldsFor = this::this.fieldsFor
-    this.buildFieldProps = this::this.buildFieldProps
-    this.increaseValidation = this::this.increaseValidation
-    this.decreaseValidation = this::this.decreaseValidation
     this.safeSetState = (...args) => {
       if (this.form) {
         this.setState(...args)
@@ -33,12 +21,11 @@ export default class Form extends Component {
   render() {
     const { handleSubmit, state, buildFieldProps } = this,
       { for: resource, children } = this.props,
-      submitting = !!(
-        resource._request.status.toString().match(/ING$/) || state.submitting
-      ),
+      submitting = !!(resource._request.status.toString().match(/ING$/) || state.submitting),
       validating = !!state.validating,
       { schema = {}, validations = {} } = resource.constructor,
-      props = this.props::without(
+      props = without.call(
+        this.props,
         "children",
         "for",
         "beforeValidation",
@@ -66,19 +53,14 @@ export default class Form extends Component {
     )
   }
 
-  buildFieldProps(schema, validations, fieldsObj, resource = {}) {
+  buildFieldProps = (schema, validations, fieldsObj, resource = {}) => {
     const { fieldsFor } = this,
       defaultProps = { fieldsFor, ...this.applyBuilder(resource, fieldsObj) }
 
     return Object.keys(schema).reduce((form, field) => {
-      const type = schema[field]::getTypeName()
-      if (
-        type !== "Object" &&
-        !/^(_timestamps|_primaryKey|user_?[iI]d)$/.test(field)
-      ) {
-        const fieldHumanizedAndTitleized = Sugar.String.titleize(
-          Sugar.String.humanize(field)
-        )
+      const type = getTypeName.call(schema[field])
+      if (type !== "Object" && !/^(_timestamps|_primaryKey|user_?[iI]d)$/.test(field)) {
+        const fieldHumanizedAndTitleized = Sugar.String.titleize(Sugar.String.humanize(field))
         form[field] = form[field] || {
           ref: ref => (fieldsObj.fields[field] = ref),
           labelText: fieldHumanizedAndTitleized,
@@ -104,16 +86,14 @@ export default class Form extends Component {
     if (typeof this.props.builder === "function") {
       const builder = this.props.builder(resource, fieldsObj)
       if (!onlyObjects(builder)) {
-        throw new TypeError(
-          `Expected prop builder to return a plain object, got ${builder}`
-        )
+        throw new TypeError(`Expected prop builder to return a plain object, got ${builder}`)
       }
       return builder
     }
     return {}
   }
 
-  fieldsFor(resourceType, key, existingResource) {
+  fieldsFor = (resourceType, key, existingResource) => {
     const { buildFieldProps } = this,
       { ReactiveRecord } = this.props.for,
       modelName = Sugar.String.camelize(Sugar.String.singularize(resourceType)),
@@ -133,12 +113,7 @@ export default class Form extends Component {
         resource: existingResource
       }
 
-    const formObject = buildFieldProps(
-      schema,
-      validations,
-      fieldsObj,
-      existingResource
-    )
+    const formObject = buildFieldProps(schema, validations, fieldsObj, existingResource)
 
     this.fields[attributesName] = { ...this.fields[attributesName] }
 
@@ -146,14 +121,11 @@ export default class Form extends Component {
       value: function(callback) {
         let allFieldsValid = true,
           fieldsChecked = 0
-        const relevantFields = Object.keys(this.resources).reduce(
-            (final, identifier) => {
-              const { fields } = this.resources[identifier],
-                attrs = Object.values(fields).filter(Boolean)
-              return [...final, ...attrs]
-            },
-            []
-          ),
+        const relevantFields = Object.keys(this.resources).reduce((final, identifier) => {
+            const { fields } = this.resources[identifier],
+              attrs = Object.values(fields).filter(Boolean)
+            return [...final, ...attrs]
+          }, []),
           fieldsToCheck = relevantFields.length,
           fieldValidator = isValid => {
             fieldsChecked++
@@ -161,11 +133,11 @@ export default class Form extends Component {
               allFieldsValid = false
             }
             if (fieldsChecked === fieldsToCheck) {
-              ;this::callback(allFieldsValid)
+              callback.call(this, allFieldsValid)
             }
           }
         if (!relevantFields.length) {
-          return this::callback(true)
+          return callback.call(this, true)
         }
         relevantFields.map(field => {
           if ("isValid" in field) {
@@ -181,9 +153,7 @@ export default class Form extends Component {
         const isMany = resourceType === Sugar.String.pluralize(resourceType)
 
         return Object.keys(this.resources).reduce((finalValue, identifier) => {
-          const { fields, _primaryKey, persisted, resource } = this.resources[
-              identifier
-            ],
+          const { fields, _primaryKey, persisted, resource } = this.resources[identifier],
             attrs = Object.keys(fields)
               .filter(fieldName => !!fields[fieldName])
               .reduce((final, currentValue) => {
@@ -195,7 +165,7 @@ export default class Form extends Component {
               }, {})
 
           /* Don't submit deleted form objects */
-          if (attrs::isEmptyObject()) {
+          if (isEmptyObject.call(attrs)) {
             return finalValue
           }
 
@@ -203,7 +173,7 @@ export default class Form extends Component {
           const nextValue = resource.diff
 
           /* Don't submit unchanged resources */
-          if (nextValue::isEmptyObject()) {
+          if (isEmptyObject.call(nextValue)) {
             return finalValue
           }
 
@@ -244,7 +214,7 @@ export default class Form extends Component {
     return fieldsFn => fieldsFn.call(this, formObject)
   }
 
-  handleSubmit(e) {
+  handleSubmit = e => {
     if (e) {
       e.preventDefault()
     }
@@ -252,9 +222,7 @@ export default class Form extends Component {
       const { commitResource } = this
       let allFieldsValid = true
       let fieldsChecked = 0
-      const relevantFields = Object.keys(this.fields).filter(
-        fieldName => !!this.fields[fieldName]
-      )
+      const relevantFields = Object.keys(this.fields).filter(fieldName => !!this.fields[fieldName])
       const fieldsToCheck = relevantFields.length
       const getFieldValues = () => {
         return relevantFields.reduce((final, currentValue) => {
@@ -266,8 +234,7 @@ export default class Form extends Component {
           /* If these are nested attributes as in fieldsFor */
           if (
             currentValue.indexOf("_attributes") > -1 &&
-            currentValue.lastIndexOf("_attributes") ===
-              currentValue.length - "_attributes".length
+            currentValue.lastIndexOf("_attributes") === currentValue.length - "_attributes".length
           ) {
             /* If these nested attributes are empty */
             /* If it's an empty array */
@@ -275,7 +242,7 @@ export default class Form extends Component {
               return final
             }
             /* If it's an empty object */
-            if (originalValue::isEmptyObject()) {
+            if (isEmptyObject.call(originalValue)) {
               return final
             }
           }
@@ -291,18 +258,16 @@ export default class Form extends Component {
         }
         if (fieldsChecked === fieldsToCheck) {
           if (allFieldsValid) {
-            return this::handleFormEvent("beforeSave", getFieldValues())
+            return handleFormEvent
+              .call(this, "beforeSave", getFieldValues())
               .then(commitResource)
               .then(resolve)
               .catch(reject)
           }
-          return this::handleFormEvent(
-            "afterValidationFail",
-            getFieldValues()
-          ).then(reject)
+          return handleFormEvent.call(this, "afterValidationFail", getFieldValues()).then(reject)
         }
       }
-      ;this::handleFormEvent("beforeValidation", this.fields).then(() => {
+      handleFormEvent.call(this, "beforeValidation", this.fields).then(() => {
         relevantFields.map(key => {
           if ("isValid" in this.fields[key]) {
             return this.fields[key].isValid(fieldValidator)
@@ -313,9 +278,9 @@ export default class Form extends Component {
     })
   }
 
-  commitResource(attrs) {
+  commitResource = attrs => {
     return new Promise((resolve, reject) => {
-      if (!this.props.for::isStoreManaged()) {
+      if (!isStoreManaged.call(this.props.for)) {
         this.props.for._errors.clear()
         this.safeSetState({ submitting: true })
       }
@@ -326,7 +291,7 @@ export default class Form extends Component {
           if (this.state.submitting) {
             this.safeSetState({ submitting: false })
           }
-          const afterSave = this::handleFormEvent("afterSave", resource)
+          const afterSave = handleFormEvent.call(this, "afterSave", resource)
           if (afterSave && "then" in afterSave) {
             afterSave.then(resolve)
           }
@@ -335,7 +300,7 @@ export default class Form extends Component {
           if (this.state.submitting) {
             this.safeSetState({ submitting: false })
           }
-          const afterRollback = this::handleFormEvent("afterRollback", resource)
+          const afterRollback = handleFormEvent.call(this, "afterRollback", resource)
           if (afterRollback && "then" in afterRollback) {
             afterRollback.then(reject)
           }
@@ -343,11 +308,11 @@ export default class Form extends Component {
     })
   }
 
-  increaseValidation() {
+  increaseValidation = () => {
     this.safeSetState({ validating: this.state.validating + 1 })
   }
 
-  decreaseValidation() {
+  decreaseValidation = () => {
     this.safeSetState({ validating: Math.max(this.state.validating - 1, 0) })
   }
 }

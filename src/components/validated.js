@@ -4,10 +4,7 @@ import Validator from "../Validator"
 function noop() {}
 
 export default function validated(WrappedComponent) {
-  const {
-    name = "Unknown",
-    displayName: wrappedComponentName = name
-  } = WrappedComponent
+  const { name = "Unknown", displayName: wrappedComponentName = name } = WrappedComponent
 
   return class extends Component {
     static displayName = `validated(${wrappedComponentName})`
@@ -24,8 +21,6 @@ export default function validated(WrappedComponent) {
       }
       this.state = state
 
-      this.onChange = this::this.onChange
-      this.onBlur = this::this.onBlur
       this.safeSetState = (...args) => {
         if (this.input) {
           this.setState(...args)
@@ -52,12 +47,7 @@ export default function validated(WrappedComponent) {
 
       return (
         <WrappedComponent
-          {...this.props::without(
-            "onChange",
-            "onBlur",
-            "errorText",
-            "validators"
-          )}
+          {...without.call(this.props, "onChange", "onBlur", "errorText", "validators")}
           {...{ onChange, onBlur, errorText, validating }}
           ref={ref => {
             this.input = ref
@@ -80,10 +70,7 @@ export default function validated(WrappedComponent) {
          * Props says there's an error and the value that
          * caused the error is unchanged.
          */
-        if (
-          JSON.stringify(this.getValueInternal()) ===
-          JSON.stringify(state.valueForPropsErrorText)
-        ) {
+        if (JSON.stringify(this.getValueInternal()) === JSON.stringify(state.valueForPropsErrorText)) {
           return props.errorText
         }
       }
@@ -109,19 +96,19 @@ export default function validated(WrappedComponent) {
       this.runValidations(true, callback)
     }
 
-    onChange(e) {
+    onChange = e => {
       this.runValidations()
-      ;this::triggerEventForProps("Change", e)
+      triggerEventForProps.call(this, "Change", e)
     }
 
-    onBlur(e) {
+    onBlur = e => {
       this.runValidations(true)
-      ;this::triggerEventForProps("Blur", e)
+      triggerEventForProps.call(this, "Blur", e)
     }
 
     runValidations(doRemote = false, callback = noop) {
       const { validators } = this.props
-      if (!validators || validators::isEmptyObject()) {
+      if (!validators || isEmptyObject.call(validators)) {
         this.safeSetState({ errorText: null })
         callback(true)
         return
@@ -145,16 +132,11 @@ export default function validated(WrappedComponent) {
       /* No local errors found, but we're not out of the woods
          yet ... time to perform remote validations if needed
        */
-      Validator.firstRemoteErrorMessage(
-        validators,
-        value,
-        this.beginValidation,
-        errorText => {
-          this.safeSetState({ errorText, validating: false })
-          validators.form.decreaseValidation()
-          callback(!!!errorText)
-        }
-      )
+      Validator.firstRemoteErrorMessage(validators, value, this.beginValidation, errorText => {
+        this.safeSetState({ errorText, validating: false })
+        validators.form.decreaseValidation()
+        callback(!!!errorText)
+      })
     }
   }
 }

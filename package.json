@@ -1,8 +1,12 @@
 {
   "name": "reactiverecord",
   "version": "0.4.8",
-  "description": "Object data-store mapping in React",
+  "description": "Communicate with JSON APIs in React",
   "main": "dist/index.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kyleramirez/reactiverecord.git"
+  },
   "scripts": {
     "lint": "eslint src",
     "lint:watch": "esw -w src",
@@ -15,9 +19,15 @@
     "prettier": "prettier",
     "precommit": "lint-staged"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/rentalutions/reactiverecord.git"
+  "prettier": {
+    "printWidth": 120,
+    "semi": false
+  },
+  "lint-staged": {
+    "*.js": [
+      "eslint src --fix",
+      "prettier src --write --no-semi"
+    ]
   },
   "keywords": [
     "models",
@@ -54,15 +64,9 @@
     "redux": "^3.7.2",
     "whatwg-fetch": "^2.0.3"
   },
-  "lint-staged": {
-    "*.js": [
-      "eslint src --fix",
-      "prettier src --write --no-semi"
-    ]
-  },
   "peerDependencies": {
     "react": "^0.14.0 || ^15.0.0-0 || ^16.0.0-0",
     "react-redux": "^5.0.0",
-    "redux": "^2.0.0 || ^3.0.0"
+    "redux": "^2.0.0 || ^3.0.0 || ^4.0.0"
   }
 }

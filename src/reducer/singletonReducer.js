@@ -1,17 +1,10 @@
 import { ACTION_MATCHER, ACTION_STATUSES, memberProps } from "../constants"
 
-export default function singletonReducer(
-  modelName,
-  _primaryKey,
-  state = memberProps,
-  action
-) {
+export default function singletonReducer(modelName, state = memberProps, action) {
   if (!ACTION_MATCHER.test(action.type)) {
     return state
   }
-  const [, asyncStatus, actionNameUpper, actionModelName] = action.type.match(
-      ACTION_MATCHER
-    ),
+  const [, asyncStatus, actionNameUpper, actionModelName] = action.type.match(ACTION_MATCHER),
     actionName = actionNameUpper.toLowerCase(),
     requestStatus = asyncStatus ? asyncStatus.replace("_", "") : null
   if (actionModelName !== modelName) {

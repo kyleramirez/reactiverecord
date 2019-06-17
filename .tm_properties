@@ -1,2 +1,0 @@
-excludeDirectories = "{$excludeDirectories,node_modules,dist,tmp}"
-includeFiles = "{$includeFiles,.babelrc,.gitignore,.npmignore,.ruby-version,.ruby-gemset,.env,.gitkeep,.eslintrc,.eslintignore}"

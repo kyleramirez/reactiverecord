@@ -3,9 +3,9 @@
     "plugin:react-app/recommended"
   ],
   "rules": {
-    "react-app/react/jsx-pascal-case": 0,
-    "radix": 0,
-    "no-unused-vars": 2,
-    "curly": [2, "all"]
+    "curly": [2, "all"],
+    "no-unused-vars": ["error", { "vars": "all", "args": "all" }],
+    "quotes": [2, "double"],
+    "semi": [2, "never"]
   }
 }

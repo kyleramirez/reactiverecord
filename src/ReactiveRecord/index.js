@@ -57,9 +57,7 @@ export default class ReactiveRecord {
 
     modelClass.store = {
       singleton,
-      reducer: singleton
-        ? singletonReducer.bind(this, modelStr, _primaryKey)
-        : collectionReducer.bind(this, modelStr, _primaryKey),
+      reducer: singleton ? singletonReducer.bind(this, modelStr) : collectionReducer.bind(this, modelStr, _primaryKey),
       ...store
     }
     // Assign the model
@@ -106,14 +104,8 @@ export default class ReactiveRecord {
         { headers, credentials, ...apiConfig } = this.API,
         routeTemplate = model.routes[actionName.toLowerCase()],
         method = ACTION_METHODS[actionName.toLowerCase()],
-        query =
-          method === "GET"
-            ? _attributes
-            : _attributes::without(...Object.keys(model.schema)),
-        body =
-          method === "GET"
-            ? {}
-            : _attributes::pick(...Object.keys(model.schema))
+        query = method === "GET" ? _attributes : without.call(_attributes, ...Object.keys(model.schema)),
+        body = method === "GET" ? {} : pick.call(_attributes, ...Object.keys(model.schema))
       if (!routeTemplate) {
         throw new ROUTE_NOT_FOUND_ERROR()
       }
@@ -144,43 +136,13 @@ export default class ReactiveRecord {
           return responseStatus === 204 ? {} : res.json()
         })
         .then(data =>
-          this.handleSuccess(
-            responseStatus,
-            method,
-            action,
-            model,
-            _primaryKey,
-            actionName,
-            modelName,
-            resolve,
-            data
-          )
+          this.handleSuccess(responseStatus, action, model, _primaryKey, actionName, modelName, resolve, data)
         )
-        .catch(error =>
-          this.handleError(
-            actionName,
-            model,
-            modelName,
-            _primaryKey,
-            _attributes[_primaryKey],
-            reject,
-            error
-          )
-        )
+        .catch(error => this.handleError(actionName, modelName, _primaryKey, _attributes[_primaryKey], reject, error))
     })
   }
 
-  handleSuccess(
-    responseStatus,
-    method,
-    action,
-    model,
-    _primaryKey,
-    actionName,
-    modelName,
-    resolve,
-    data
-  ) {
+  handleSuccess(responseStatus, action, model, _primaryKey, actionName, modelName, resolve, data) {
     /* 
      *  Getting this far means no errors occured processing
      *  the returned JSON or with the HTTP statuses
@@ -190,18 +152,12 @@ export default class ReactiveRecord {
     /* Successful requests don't need a body */
     const _request = { status: responseStatus }
     if (!isCollection) {
-      if (
-        !data.hasOwnProperty(_primaryKey) &&
-        action._attributes &&
-        action._attributes.hasOwnProperty(_primaryKey)
-      ) {
+      if (!data.hasOwnProperty(_primaryKey) && action._attributes && action._attributes.hasOwnProperty(_primaryKey)) {
         data[_primaryKey] = action._attributes[_primaryKey]
       }
       resource = new model({ ...data, _request }, true)
     } else {
-      const _collection = data.map(
-        attrs => new model({ ...attrs, _request }, true)
-      )
+      const _collection = data.map(attrs => new model({ ...attrs, _request }, true))
       resource = new Collection({ _collection, _request, _primaryKey })
     }
     this.dispatch({
@@ -211,7 +167,7 @@ export default class ReactiveRecord {
     resolve(resource)
   }
 
-  handleError(actionName, model, modelName, _primaryKey, key, reject, error) {
+  handleError(actionName, modelName, _primaryKey, key, reject, error) {
     const { status, response } = error
     /* 
      *  If the error does not have a response property,

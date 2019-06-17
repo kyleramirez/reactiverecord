@@ -1,7 +1,7 @@
 import { ACTION_MATCHER } from "./constants"
 
 export default function middleware() {
-  return ({ dispatch }) => next => action => {
+  return () => next => action => {
     next(action)
     const matches = action.type.match(ACTION_MATCHER)
     if (!!!matches) {

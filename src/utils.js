@@ -20,21 +20,12 @@ export function checkResponseStatus(response) {
   throw error
 }
 
-export function interpolateRoute(
-  route,
-  originalAttributes,
-  resourceName,
-  singular,
-  apiConfig,
-  originalQuery
-) {
+export function interpolateRoute(route, originalAttributes, resourceName, singular, apiConfig, originalQuery) {
   let query = { ...originalQuery }
   let attributes = { ...originalAttributes }
   const { prefix } = apiConfig,
     delimiter = delimiterType(apiConfig.delimiter),
-    modelInflection = singular
-      ? resourceName
-      : Sugar.String.pluralize(resourceName),
+    modelInflection = singular ? resourceName : Sugar.String.pluralize(resourceName),
     modelWithDelimiter = `${Sugar.String[delimiter](modelInflection)}`
   const interpolatedRoute =
     route
@@ -48,8 +39,8 @@ export function interpolateRoute(
         if (query.hasOwnProperty(attributeName)) {
           match = query[attributeName]
         }
-        attributes = attributes::without(attributeName)
-        query = query::without(attributeName)
+        attributes = without.call(attributes, attributeName)
+        query = without.call(query, attributeName)
         return match || token
       }) + objToQueryString(query)
   return [interpolatedRoute, attributes]
@@ -108,35 +99,21 @@ export function setReadOnlyProps(attrs, persisted) {
 }
 
 export function setWriteableProps(attrs) {
-  const { constructor } = this,
-    {
-      schema: { _primaryKey, _timestamps, ...schema },
-      prototype
-    } = constructor
+  const { constructor } = this
+  const { schema, prototype } = constructor
   /* eslint-disable guard-for-in */
   for (let prop in schema) {
-    const hasDescriptor =
-        typeof schema[prop] === "object" && schema[prop].hasOwnProperty("type"),
+    const hasDescriptor = typeof schema[prop] === "object" && schema[prop].hasOwnProperty("type"),
       // Establish initial value but fallback to default value
-      initialValue = JSON.parse(
-        JSON.stringify(attrs.hasOwnProperty(prop) ? attrs[prop] : null)
-      ),
+      initialValue = JSON.parse(JSON.stringify(attrs.hasOwnProperty(prop) ? attrs[prop] : null)),
       // Establish type from descriptor
-      type = hasDescriptor
-        ? schema[prop].type.displayName || schema[prop].type.name
-        : schema[prop].name
+      type = hasDescriptor ? schema[prop].type.displayName || schema[prop].type.name : schema[prop].name
 
     // Write default value
     this._attributes[prop] = initialValue
 
-    const manuallyDefinedGetter = (Object.getOwnPropertyDescriptor(
-        prototype,
-        prop
-      ) || {})["get"],
-      manuallyDefinedSetter = (Object.getOwnPropertyDescriptor(
-        prototype,
-        prop
-      ) || {})["set"]
+    const manuallyDefinedGetter = (Object.getOwnPropertyDescriptor(prototype, prop) || {})["get"],
+      manuallyDefinedSetter = (Object.getOwnPropertyDescriptor(prototype, prop) || {})["set"]
 
     let get = manuallyDefinedGetter
 
@@ -151,16 +128,10 @@ export function setWriteableProps(attrs) {
         get = () => this._attributes[prop] || []
       }
       if (type === "Date") {
-        get = () =>
-          this._attributes[prop] === null
-            ? null
-            : new Date(this._attributes[prop])
+        get = () => (this._attributes[prop] === null ? null : new Date(this._attributes[prop]))
       }
       if (type === "Number") {
-        get = () =>
-          this._attributes[prop] === null
-            ? null
-            : Number(this._attributes[prop])
+        get = () => (this._attributes[prop] === null ? null : Number(this._attributes[prop]))
       }
     }
 
@@ -175,7 +146,7 @@ export function setWriteableProps(attrs) {
           if (newValue === "false") {
             next = false
           }
-          return this._attributes[prop] = next
+          return (this._attributes[prop] = next)
         }
       }
     }
@@ -201,12 +172,7 @@ export function recordDiff(a, b) {
   if (a instanceof Date && b instanceof Date) {
     return JSON.stringify(a) === JSON.stringify(b)
   }
-  if (
-    a !== null &&
-    typeof a === "object" &&
-    b !== null &&
-    typeof b === "object"
-  ) {
+  if (a !== null && typeof a === "object" && b !== null && typeof b === "object") {
     return JSON.stringify(a) === JSON.stringify(b)
   }
   return a === b
@@ -241,9 +207,7 @@ export function objToQueryString(obj, keyPrefix = "") {
     }
 
     const initialValue = obj[current]
-    let key = keyPrefix
-      ? `${keyPrefix}[${encodeURIComponent(current)}]`
-      : encodeURIComponent(current)
+    let key = keyPrefix ? `${keyPrefix}[${encodeURIComponent(current)}]` : encodeURIComponent(current)
     let value = null
     if (typeof initialValue === "object" && initialValue !== null && !isEmptyObject.call(initialValue)) {
       value = objToQueryString(initialValue, key)
@@ -296,7 +260,7 @@ export function queryStringToObj(str) {
           let keyType = {}
           const isFinalValue = index + 1 === matches.length
           if (!isFinalValue && /^\d+$/.test(matches[index + 1])) {
-            keyType =  []
+            keyType = []
           }
           ref[nextKey] = ref[nextKey] || (isFinalValue ? tryTypeCastFromURL(response[key]) : keyType)
           return ref[nextKey]
@@ -312,11 +276,7 @@ export function queryStringToObj(str) {
 
 export function buildRouteFromInstance(action, query) {
   const {
-    constructor: {
-      routes,
-      displayName,
-      store: { singleton: singular = false } = {}
-    },
+    constructor: { routes, displayName, store: { singleton: singular = false } = {} },
     _attributes,
     ReactiveRecord: { API: config }
   } = this
@@ -325,14 +285,7 @@ export function buildRouteFromInstance(action, query) {
     throw new ROUTE_NOT_FOUND_ERROR()
   }
 
-  const [route] = interpolateRoute(
-    routes[action],
-    _attributes,
-    displayName,
-    singular,
-    config,
-    query
-  )
+  const [route] = interpolateRoute(routes[action], _attributes, displayName, singular, config, query)
 
   return route
 }
@@ -397,7 +350,7 @@ export function without() {
   const obj = {},
     { indexOf } = Array.prototype
   for (let i in this) {
-    if (arguments::indexOf(i) >= 0) {
+    if (indexOf.call(arguments, i) >= 0) {
       continue
     }
     if (!Object.prototype.hasOwnProperty.call(this, i)) {
@@ -424,7 +377,9 @@ export function select(fn) {
 
 export function where(obj) {
   return this.filter(item => {
+    /* eslint-disable guard-for-in */
     for (const key in obj) {
+      /* eslint-enable guard-for-in */
       if (item.hasOwnProperty(key)) {
         const test = obj[key]
         if (Array.isArray(test) && test.indexOf(item[key]) > -1) {
@@ -457,12 +412,12 @@ export function onlyReactiveRecord() {
   if ("_isReactiveRecord" in this) {
     return this
   }
-  const chunks = this::values().filter(onlyObjects)
+  const chunks = values.call(this).filter(onlyObjects)
   for (let i = 0; i < chunks.length; i++) {
     if ("_isReactiveRecord" in chunks[i]) {
       return chunks[i]
     }
-    chunks.push(...chunks[i]::values().filter(onlyObjects))
+    chunks.push(...values.call(chunks[i]).filter(onlyObjects))
   }
 }
 
@@ -518,9 +473,7 @@ export function formatWith(obj) {
     if (obj.hasOwnProperty([matches[i][1]])) {
       let startPoint = matches[i].index,
         endPoint = matches[i].index + matches[i][0].length
-      input = `${input.substring(0, startPoint)}${
-        obj[matches[i][1]]
-      }${input.substring(endPoint, input.length)}`
+      input = `${input.substring(0, startPoint)}${obj[matches[i][1]]}${input.substring(endPoint, input.length)}`
       continue
     }
     throw new ReferenceError(`Translation key not found for ${matches[i][1]}`)
