@@ -26,6 +26,7 @@ Temporary Items
 Thumbs.db
 # Ignored from repo
 test
+.babelrc
 .eslintignore
 .eslintrc
 CHANGELOG.md

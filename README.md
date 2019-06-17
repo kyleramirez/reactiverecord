@@ -179,7 +179,6 @@ Reactive Record uses `fetch` as its remote backend. You can register these setti
 - `prefix` (default: `""`) You are able to set a prefix for all API requests. At Rentalutions, we use `/api/v2/landlords` or `/api/v2/tenants` as our prefix. So depending on what kind of user you are, your lease index will make a request to `/api/v2/tenants/leases`
 - `delimiter`(default: `"-"`) The difference between `bank_accounts` and `bank-accounts` in your URLs. If you have a mix of the two, you can use the default delimiter (kebob case), and manually write snake case URLs in your model definitions.
 - `headers` (default: `{ "Accept": "application/json", "Content-Type": "application/json" }`). Pass in the new headers you'd like to send with every request.
-- `credentials` (default: `same-origin`) Specific to `fetch`, this will include your cookie with the request (necessary for authentication in most cases).
 - `patchMode` (default: `true`) This assumes you'd like to only send the changed fields in your update (`PUT`) requests to a resource. If you only changed a user's first name, no need to send the entire record. Turning this off will send the entire record every time regardless of changes.
 
 ### Model

@@ -4,7 +4,7 @@ import "./test-utils"
 
 describe("Model", () => {
   const reactiveRecordTest = new ReactiveRecord()
-  reactiveRecordTest.dispatch = chai.spy()
+  reactiveRecordTest.dispatch = chai.spy(Promise.resolve.bind(Promise))
   const Person = reactiveRecordTest.model(
     "Person",
     class Person extends Model {
@@ -75,7 +75,7 @@ describe("Model", () => {
     })
 
     it("should provide internal private attributes", () => {
-      ;["_attributes", "_request", "_errors", "_pristine", "_persisted"].map(property => {
+      ;["_attributes", "_request", "_errors", "_pristine", "_persisted"].forEach(property => {
         expect(dude).to.have.property(property)
       })
     })
@@ -96,7 +96,7 @@ describe("Model", () => {
     })
 
     it("should have created read-only properties", () => {
-      ;["id", "createdAt", "updatedAt"].map(property => {
+      ;["id", "createdAt", "updatedAt"].forEach(property => {
         expect(() => {
           dude[property] = "anything"
         }).to.throw(TypeError)
@@ -104,13 +104,13 @@ describe("Model", () => {
     })
 
     it("should treat created_at, createdAt, updated_at, updatedAt as the same", () => {
-      const date = "2017-08-30T15:05:32.144Z",
-        created_at = date,
-        updated_at = date,
-        createdAt = date,
-        updatedAt = date,
-        person1 = new Person({ created_at, updated_at }),
-        person2 = new Person({ createdAt, updatedAt })
+      const date = "2017-08-30T15:05:32.144Z"
+      const created_at = date
+      const updated_at = date
+      const createdAt = date
+      const updatedAt = date
+      const person1 = new Person({ created_at, updated_at })
+      const person2 = new Person({ createdAt, updatedAt })
       expect(date).to.equal(person1.createdAt.toISOString())
       expect(date).to.equal(person1.updatedAt.toISOString())
       expect(date).to.equal(person2.createdAt.toISOString())
@@ -118,10 +118,10 @@ describe("Model", () => {
     })
 
     it("should treat an id and _id as the same", () => {
-      const id = 123,
-        _id = id,
-        person1 = new Person({ id }),
-        person2 = new Person({ _id })
+      const id = 123
+      const _id = id
+      const person1 = new Person({ id })
+      const person2 = new Person({ _id })
       expect(id).to.equal(person1.id)
       expect(id).to.equal(person2.id)
     })
@@ -163,7 +163,9 @@ describe("Model", () => {
 
   describe("#ReactiveRecord", () => {
     it("should give each instance access to ReactiveRecord", () => {
+      /* eslint-disable no-unused-expressions */
       expect(new Person().ReactiveRecord).to.not.be.undefined
+      /* eslint-enable no-unused-expressions */
       expect(new Person().ReactiveRecord).to.be.an.instanceof(ReactiveRecord)
     })
   })
@@ -188,7 +190,7 @@ describe("Model", () => {
   describe("#serialize and #toJSON", () => {
     it("should have only three top-level properties", () => {
       const person = new Person()
-      ;["_attributes", "_request", "_errors"].map(property => {
+      ;["_attributes", "_request", "_errors"].forEach(property => {
         expect(person.serialize()).to.have.property(property)
       })
     })
@@ -202,8 +204,8 @@ describe("Model", () => {
     })
 
     it("should include all new attributes in the diff for a model that is not persisted", () => {
-      const personAttrs = { name: "Simba", level: "admin" },
-        person = new Person(personAttrs)
+      const personAttrs = { name: "Simba", level: "admin" }
+      const person = new Person(personAttrs)
       expect(person.diff).to.deep.equal(personAttrs)
     })
 
@@ -215,8 +217,8 @@ describe("Model", () => {
     })
 
     it("should show default values as changed values even for persisted records", () => {
-      const person = new Person(),
-        persistedPerson = new Person({}, true)
+      const person = new Person()
+      const persistedPerson = new Person({}, true)
       expect(person.diff).to.deep.equal({ level: "customer" })
       expect(persistedPerson.diff).to.deep.equal({ level: "customer" })
     })
@@ -234,8 +236,8 @@ describe("Model", () => {
     })
 
     it("should only show a difference in a date if it changed", () => {
-      const date = new Date(),
-        person = new Person()
+      const date = new Date()
+      const person = new Person()
       person.activated_on = date
       expect(person.diff.activated_on).to.equal(date.toISOString())
     })
@@ -318,8 +320,8 @@ describe("Model", () => {
 
   describe("#routeAttributes", () => {
     it("should return all attributes needed to build the route", () => {
-      const smellAttrs = { id: 123 },
-        otherSmellAttrs = { special_prop_not_in_schema: "ocean" }
+      const smellAttrs = { id: 123 }
+      const otherSmellAttrs = { special_prop_not_in_schema: "ocean" }
       expect(new Smell(smellAttrs).routeAttributes("show")).to.deep.equal(smellAttrs)
       expect(new Smell().routeAttributes("index", otherSmellAttrs)).to.deep.equal(otherSmellAttrs)
     })
@@ -333,8 +335,8 @@ describe("Model", () => {
 
   describe("#create", () => {
     it("should submit the correct attributes for creation", () => {
-      const attributes = { slug: "nandos-on-fire", title: "Nandos on fire" },
-        query = { priority: "breaking" }
+      const attributes = { slug: "nandos-on-fire", title: "Nandos on fire" }
+      const query = { priority: "breaking" }
       News.create(attributes, { query })
       expect(reactiveRecordTest.dispatch).to.have.been.called.with({
         type: "@CREATE(News)",

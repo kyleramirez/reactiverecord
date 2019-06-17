@@ -7,26 +7,13 @@ export function skinnyObject(...args) {
   }, Object.create(null, {}))
 }
 
-export function checkResponseStatus(response) {
-  const { status } = response,
-    error = new Error()
-  /* If no error, great, return the response. */
-  if (status >= 200 && status < 300) {
-    return response
-  }
-  /* Begin parsing this error */
-  error.status = status
-  error.response = response
-  throw error
-}
-
 export function interpolateRoute(route, originalAttributes, resourceName, singular, apiConfig, originalQuery) {
   let query = { ...originalQuery }
   let attributes = { ...originalAttributes }
-  const { prefix } = apiConfig,
-    delimiter = delimiterType(apiConfig.delimiter),
-    modelInflection = singular ? resourceName : Sugar.String.pluralize(resourceName),
-    modelWithDelimiter = `${Sugar.String[delimiter](modelInflection)}`
+  const { prefix } = apiConfig
+  const delimiter = delimiterType(apiConfig.delimiter)
+  const modelInflection = singular ? resourceName : Sugar.String.pluralize(resourceName)
+  const modelWithDelimiter = `${Sugar.String[delimiter](modelInflection)}`
   const interpolatedRoute =
     route
       .replace(":modelname", modelWithDelimiter)
@@ -54,16 +41,16 @@ export function delimiterType(delim = "") {
 }
 
 export function setReadOnlyProps(attrs, persisted) {
-  const { constructor } = this,
-    {
-      schema: { _primaryKey = "id", _timestamps }
-    } = constructor,
-    {
-      // Single primary key
-      [_primaryKey]: tmpKeyValue = null,
-      // Allow id or _id by default
-      [_primaryKey === "id" ? "_id" : _primaryKey]: finalKeyValue = tmpKeyValue
-    } = attrs
+  const { constructor } = this
+  const {
+    schema: { _primaryKey = "id", _timestamps }
+  } = constructor
+  const {
+    // Single primary key
+    [_primaryKey]: tmpKeyValue = null,
+    // Allow id or _id by default
+    [_primaryKey === "id" ? "_id" : _primaryKey]: finalKeyValue = tmpKeyValue
+  } = attrs
   this._attributes[_primaryKey] = finalKeyValue
 
   Object.defineProperty(this, "_persisted", {
@@ -103,17 +90,17 @@ export function setWriteableProps(attrs) {
   const { schema, prototype } = constructor
   /* eslint-disable guard-for-in */
   for (let prop in schema) {
-    const hasDescriptor = typeof schema[prop] === "object" && schema[prop].hasOwnProperty("type"),
-      // Establish initial value but fallback to default value
-      initialValue = JSON.parse(JSON.stringify(attrs.hasOwnProperty(prop) ? attrs[prop] : null)),
-      // Establish type from descriptor
-      type = hasDescriptor ? schema[prop].type.displayName || schema[prop].type.name : schema[prop].name
+    const hasDescriptor = typeof schema[prop] === "object" && schema[prop].hasOwnProperty("type")
+    // Establish initial value but fallback to default value
+    const initialValue = JSON.parse(JSON.stringify(attrs.hasOwnProperty(prop) ? attrs[prop] : null))
+    // Establish type from descriptor
+    const type = hasDescriptor ? schema[prop].type.displayName || schema[prop].type.name : schema[prop].name
 
     // Write default value
     this._attributes[prop] = initialValue
 
-    const manuallyDefinedGetter = (Object.getOwnPropertyDescriptor(prototype, prop) || {})["get"],
-      manuallyDefinedSetter = (Object.getOwnPropertyDescriptor(prototype, prop) || {})["set"]
+    const manuallyDefinedGetter = (Object.getOwnPropertyDescriptor(prototype, prop) || {})["get"]
+    const manuallyDefinedSetter = (Object.getOwnPropertyDescriptor(prototype, prop) || {})["set"]
 
     let get = manuallyDefinedGetter
 
@@ -179,13 +166,13 @@ export function recordDiff(a, b) {
 }
 
 export function diff(...subjects) {
-  const length = subjects.length,
-    ref = subjects[0],
-    diff = {}
+  const length = subjects.length
+  const ref = subjects[0]
+  const diff = {}
   for (let i = 1; i < length; i++) {
-    const current = subjects[i],
-      keys = Object.keys(current),
-      keysLength = keys.length
+    const current = subjects[i]
+    const keys = Object.keys(current)
+    const keysLength = keys.length
     for (let u = 0; u < keysLength; u++) {
       const key = keys[u]
       if (!recordDiff(current[key], ref[key])) {
@@ -247,8 +234,8 @@ export function queryStringToObj(str) {
     response = JSON.parse(
       `{"${str
         .replace(/^\?/, "")
-        .replace(/&/g, "\",\"")
-        .replace(/=/g, "\":\"")}"}`,
+        .replace(/&/g, '","')
+        .replace(/=/g, '":"')}"}`,
       function(k, v) {
         return k === "" ? v : decodeURIComponent(v)
       }
@@ -302,11 +289,11 @@ export function getKey() {
 
 export function getRouteAttributes(action, query) {
   const {
-      constructor: {
-        routes: { [action.toLowerCase()]: routeTemplate }
-      }
-    } = this,
-    attributes = {}
+    constructor: {
+      routes: { [action.toLowerCase()]: routeTemplate }
+    }
+  } = this
+  const attributes = {}
   if (!routeTemplate) {
     throw new ROUTE_NOT_FOUND_ERROR()
   }
@@ -347,8 +334,8 @@ export function setDefaultValues(attrs) {
 }
 
 export function without() {
-  const obj = {},
-    { indexOf } = Array.prototype
+  const obj = {}
+  const { indexOf } = Array.prototype
   for (let i in this) {
     if (indexOf.call(arguments, i) >= 0) {
       continue
@@ -459,10 +446,10 @@ export function isEmptyObject() {
 }
 
 export function formatWith(obj) {
-  const pattern = /%{([^}]*)}/g,
-    matches = []
-  let input = this,
-    match
+  const pattern = /%{([^}]*)}/g
+  const matches = []
+  let input = this
+  let match
   /* eslint-disable no-cond-assign */
   while ((match = pattern.exec(input)) !== null) {
     /* eslint-enable no-cond-assign */
@@ -471,8 +458,8 @@ export function formatWith(obj) {
   matches.reverse()
   for (let i = 0; i < matches.length; i++) {
     if (obj.hasOwnProperty([matches[i][1]])) {
-      let startPoint = matches[i].index,
-        endPoint = matches[i].index + matches[i][0].length
+      let startPoint = matches[i].index
+      let endPoint = matches[i].index + matches[i][0].length
       input = `${input.substring(0, startPoint)}${obj[matches[i][1]]}${input.substring(endPoint, input.length)}`
       continue
     }

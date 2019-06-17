@@ -15,8 +15,8 @@ import Errors from "./Errors"
 
 export default class Model {
   constructor(attrs = {}, persisted = false, isStoreManaged = false) {
-    const modelName = this.constructor.displayName,
-      model = this.ReactiveRecord.models[modelName]
+    const modelName = this.constructor.displayName
+    const model = this.ReactiveRecord.models[modelName]
 
     Object.defineProperty(this, "_attributes", { value: {} })
     Object.defineProperty(this, "_request", {
@@ -42,8 +42,8 @@ export default class Model {
     return this.constructor.ReactiveRecord
   }
   static dispatch({ action, _attributes }) {
-    const { displayName, ReactiveRecord } = this,
-      type = `@${action}(${displayName})`
+    const { displayName, ReactiveRecord } = this
+    const type = `@${action}(${displayName})`
     return ReactiveRecord.dispatch({ type, _attributes })
   }
   static store = { singleton: false }
@@ -111,10 +111,10 @@ export default class Model {
     const action = this._persisted ? "UPDATE" : "CREATE"
     return ({ query: _query = {} } = {}) => {
       return new Promise((resolve, reject) => {
-        const shouldDiff = this.ReactiveRecord.API.patchMode,
-          attributesForRequest = shouldDiff ? this.diff : skinnyObject(this._attributes),
-          query = typeof _query === "string" ? queryStringToObj(_query) : _query,
-          _attributes = Object.assign(attributesForRequest, this.routeAttributes(action, query), query)
+        const shouldDiff = this.ReactiveRecord.API.patchMode
+        const attributesForRequest = shouldDiff ? this.diff : skinnyObject(this._attributes)
+        const query = typeof _query === "string" ? queryStringToObj(_query) : _query
+        const _attributes = Object.assign(attributesForRequest, this.routeAttributes(action, query), query)
         this.constructor
           .dispatch({ action, _attributes })
           .then(resource => {
@@ -140,8 +140,8 @@ export default class Model {
     const action = "DESTROY"
     return (_query = {}) => {
       return new Promise((resolve, reject) => {
-        const query = typeof _query === "string" ? queryStringToObj(_query) : _query,
-          _attributes = Object.assign(this.routeAttributes(action, query), query)
+        const query = typeof _query === "string" ? queryStringToObj(_query) : _query
+        const _attributes = Object.assign(this.routeAttributes(action, query), query)
         this.constructor
           .dispatch({ action: "DESTROY", _attributes })
           .then(resolve)
@@ -155,17 +155,17 @@ export default class Model {
   }
 
   static destroy(key, _query = {}) {
-    const query = typeof _query === "string" ? queryStringToObj(_query) : _query,
-      { _primaryKey = "id" } = this.schema,
-      _attributes = Object.assign({ [_primaryKey]: key }, query)
+    const query = typeof _query === "string" ? queryStringToObj(_query) : _query
+    const { _primaryKey = "id" } = this.schema
+    const _attributes = Object.assign({ [_primaryKey]: key }, query)
     return this.dispatch({ action: "DESTROY", _attributes })
   }
 
   /* Remote */
   static find(key, _query = {}) {
-    const query = typeof _query === "string" ? queryStringToObj(_query) : _query,
-      { _primaryKey = "id" } = this.schema,
-      _attributes = Object.assign({ [_primaryKey]: key }, query)
+    const query = typeof _query === "string" ? queryStringToObj(_query) : _query
+    const { _primaryKey = "id" } = this.schema
+    const _attributes = Object.assign({ [_primaryKey]: key }, query)
     return this.dispatch({ action: "SHOW", _attributes })
   }
   static all(query = {}) {
@@ -187,8 +187,8 @@ export default class Model {
             .then(resolve)
             .catch(reject)
         }
-        const [_primaryKey, key] = getKey.call(this),
-          findQuery = Object.assign(this.routeAttributes("SHOW", query), query)
+        const [_primaryKey, key] = getKey.call(this)
+        const findQuery = Object.assign(this.routeAttributes("SHOW", query), query)
         this.constructor
           .find(findQuery[_primaryKey] || key, without.call(findQuery, _primaryKey))
           .then(resource => {

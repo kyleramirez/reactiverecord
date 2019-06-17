@@ -4,22 +4,22 @@ export default function singletonReducer(modelName, state = memberProps, action)
   if (!ACTION_MATCHER.test(action.type)) {
     return state
   }
-  const [, asyncStatus, actionNameUpper, actionModelName] = action.type.match(ACTION_MATCHER),
-    actionName = actionNameUpper.toLowerCase(),
-    requestStatus = asyncStatus ? asyncStatus.replace("_", "") : null
+  const [, asyncStatus, actionNameUpper, actionModelName] = action.type.match(ACTION_MATCHER)
+  const actionName = actionNameUpper.toLowerCase()
+  const requestStatus = asyncStatus ? asyncStatus.replace("_", "") : null
   if (actionModelName !== modelName) {
     return state
   }
 
-  const nextState = { ...state },
-    {
-      _request: safeActionRequest = {},
-      _attributes: safeActionAttributes = {},
-      _errors: safeActionErrors = {}
-    } = action,
-    startingAsync = !!!requestStatus,
-    returningFromAsync = !!requestStatus,
-    statusOK = requestStatus === "OK"
+  const nextState = { ...state }
+  const {
+    _request: safeActionRequest = {},
+    _attributes: safeActionAttributes = {},
+    _errors: safeActionErrors = {}
+  } = action
+  const startingAsync = !!!requestStatus
+  const returningFromAsync = !!requestStatus
+  const statusOK = requestStatus === "OK"
 
   nextState._request = {
     ...nextState._request,

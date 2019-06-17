@@ -8,11 +8,11 @@ function defaultSelect() {
 
 export function mapStateToProps(state, { for: Model, find, where: _where, select: _select = defaultSelect }) {
   const {
-      store: { singleton },
-      schema: { _primaryKey = "id" },
-      displayName
-    } = Model,
-    stateModels = onlyReactiveRecord.call(state)
+    store: { singleton },
+    schema: { _primaryKey = "id" },
+    displayName
+  } = Model
+  const stateModels = onlyReactiveRecord.call(state)
 
   let whereQuery = _where ? (typeof _where === "string" ? queryStringToObj(_where) : _where) : {}
   const schemaAttrs = Object.keys(without.call(Model.schema, "_primaryKey", "_timestamps"))

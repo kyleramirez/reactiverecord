@@ -116,8 +116,8 @@ const Validator = {
       * }
       */
       numericality: function(value, options, form) {
-        const { separator } = Validator.settings.number_format,
-          safeValue = value.replace(new RegExp(`\\${separator}`, "g"), ".")
+        const { separator } = Validator.settings.number_format
+        const safeValue = value.replace(new RegExp(`\\${separator}`, "g"), ".")
         if (options.only_integer && !Validator.patterns.numericality.only_integer.test(safeValue)) {
           return options.messages.only_integer
         }
@@ -196,14 +196,14 @@ const Validator = {
       */
       length: function(value, options) {
         /* eslint-disable no-new-func */
-        const valueLength = new Function("value", "return (value.split('') || '').length")(value),
-          /* eslint-enable no-new-func */
-          CHECKS = {
-            is: "==",
-            minimum: ">=",
-            maximum: "<="
-          },
-          blankOptions = {}
+        const valueLength = new Function("value", "return (value.split('') || '').length")(value)
+        /* eslint-enable no-new-func */
+        const CHECKS = {
+          is: "==",
+          minimum: ">=",
+          maximum: "<="
+        }
+        const blankOptions = {}
         if ("is" in options || "minimum" in options) {
           blankOptions.message = "is" in options ? options.messages.is : options.messages.minimum
         }
@@ -347,11 +347,11 @@ const Validator = {
     return null
   },
   firstRemoteErrorMessage: function(validationObj, value, beginValidation, callback) {
-    const { attribute, form, ...validators } = validationObj,
-      remoteValidators = Object.keys(validators).filter(
-        validator => Object.keys(this.validators.remote).indexOf(validator) >= 0
-      ),
-      validatorsToCheck = remoteValidators.length
+    const { attribute, form, ...validators } = validationObj
+    const remoteValidators = Object.keys(validators).filter(
+      validator => Object.keys(this.validators.remote).indexOf(validator) >= 0
+    )
+    const validatorsToCheck = remoteValidators.length
 
     let validatorsChecked = 0
 
@@ -368,8 +368,8 @@ const Validator = {
       if (validatorsToCheck === validatorsChecked) {
         return callback(null)
       }
-      const validator = remoteValidators[validatorsChecked],
-        options = validators[validator][0]
+      const validator = remoteValidators[validatorsChecked]
+      const options = validators[validator][0]
       this.validators.remote[validator](value, options, form, attribute, runNextValidator)
     }
     if (!validatorsToCheck) {
@@ -377,8 +377,8 @@ const Validator = {
     }
     form.increaseValidation()
     beginValidation()
-    const validator = remoteValidators[validatorsChecked],
-      options = validators[validator][0]
+    const validator = remoteValidators[validatorsChecked]
+    const options = validators[validator][0]
     this.validators.remote[validator](value, options, form, attribute, runNextValidator)
   }
 }

@@ -1,6 +1,6 @@
 import chai, { expect } from "chai"
 import { ReactiveRecord, Model } from "../src"
-import { fetchRequests } from "./test-utils"
+import { xhrRequests } from "./test-utils"
 
 describe("ReactiveRecord", () => {
   describe("#model", () => {
@@ -19,8 +19,8 @@ describe("ReactiveRecord", () => {
     })
 
     it("should assign models a unique instance", () => {
-      const reactiveRecordTest = new ReactiveRecord(),
-        reactiveRecordTest2 = new ReactiveRecord()
+      const reactiveRecordTest = new ReactiveRecord()
+      const reactiveRecordTest2 = new ReactiveRecord()
       reactiveRecordTest.model(
         "Person",
         class extends Model {
@@ -46,11 +46,13 @@ describe("ReactiveRecord", () => {
         }
       )
 
-      const instanceOne = reactiveRecordTest.model("Person").ReactiveRecord,
-        instanceTwo = reactiveRecordTest2.model("Person").ReactiveRecord,
-        placeInstance = reactiveRecordTest2.model("Place").ReactiveRecord
+      const instanceOne = reactiveRecordTest.model("Person").ReactiveRecord
+      const instanceTwo = reactiveRecordTest2.model("Person").ReactiveRecord
+      const placeInstance = reactiveRecordTest2.model("Place").ReactiveRecord
 
+      /* eslint-disable no-unused-expressions */
       expect(instanceOne).to.not.be.undefined
+      /* eslint-enable no-unused-expressions */
       expect(instanceOne).to.not.equal(instanceTwo)
       expect(instanceTwo).to.equal(placeInstance)
     })
@@ -74,66 +76,66 @@ describe("ReactiveRecord", () => {
     })
 
     it("should not override provided routes from a model", () => {
-      const indexRoute = "/api/v2/dishes",
-        Dish = reactiveRecordTest.model(
-          "Dish",
-          class extends Model {
-            static routes = { index: indexRoute }
-          }
-        )
+      const indexRoute = "/api/v2/dishes"
+      const Dish = reactiveRecordTest.model(
+        "Dish",
+        class extends Model {
+          static routes = { index: indexRoute }
+        }
+      )
       expect(Dish.routes.index).to.equal(indexRoute)
     })
 
     it("should not generate routes specified in the except as an array", () => {
-      const reactiveRecordTest = new ReactiveRecord(),
-        Test = reactiveRecordTest.model(
-          "Test",
-          class extends Model {
-            static routes = {
-              except: ["index", "show"]
-            }
+      const reactiveRecordTest = new ReactiveRecord()
+      const Test = reactiveRecordTest.model(
+        "Test",
+        class extends Model {
+          static routes = {
+            except: ["index", "show"]
           }
-        )
+        }
+      )
       expect(Test.routes).to.not.have.keys("index", "show")
     })
 
     it("should not generate a route specified in the except as a string", () => {
-      const reactiveRecordTest = new ReactiveRecord(),
-        Test = reactiveRecordTest.model(
-          "Test",
-          class extends Model {
-            static routes = {
-              except: "destroy"
-            }
+      const reactiveRecordTest = new ReactiveRecord()
+      const Test = reactiveRecordTest.model(
+        "Test",
+        class extends Model {
+          static routes = {
+            except: "destroy"
           }
-        )
+        }
+      )
       expect(Test.routes).to.not.have.key("destroy")
     })
 
     it("should only generate routes specified in the except as an array", () => {
-      const reactiveRecordTest = new ReactiveRecord(),
-        Test = reactiveRecordTest.model(
-          "Test",
-          class extends Model {
-            static routes = {
-              only: ["index", "show"]
-            }
+      const reactiveRecordTest = new ReactiveRecord()
+      const Test = reactiveRecordTest.model(
+        "Test",
+        class extends Model {
+          static routes = {
+            only: ["index", "show"]
           }
-        )
+        }
+      )
       expect(Test.routes).to.have.keys("index", "show")
       expect(Object.keys(Test.routes).length).to.equal(2)
     })
 
     it("should only generate a route specified in the except as a string", () => {
-      const reactiveRecordTest = new ReactiveRecord(),
-        Test = reactiveRecordTest.model(
-          "Test",
-          class extends Model {
-            static routes = {
-              only: "index"
-            }
+      const reactiveRecordTest = new ReactiveRecord()
+      const Test = reactiveRecordTest.model(
+        "Test",
+        class extends Model {
+          static routes = {
+            only: "index"
           }
-        )
+        }
+      )
       expect(Test.routes).to.have.key("index")
       expect(Object.keys(Test.routes).length).to.equal(1)
     })
@@ -152,27 +154,27 @@ describe("ReactiveRecord", () => {
     })
 
     it("should set the model's store configuration as not singleton unless otherwise specified", () => {
-      const reactiveRecordTest = new ReactiveRecord(),
-        Person = reactiveRecordTest.model("Person", class extends Model {}),
-        CurrentUser = reactiveRecordTest.model(
-          "CurrentUser",
-          class extends Person {
-            static store = { singleton: true }
-          }
-        )
+      const reactiveRecordTest = new ReactiveRecord()
+      const Person = reactiveRecordTest.model("Person", class extends Model {})
+      const CurrentUser = reactiveRecordTest.model(
+        "CurrentUser",
+        class extends Person {
+          static store = { singleton: true }
+        }
+      )
       expect(Person.store.singleton).to.equal(false)
       expect(CurrentUser.store.singleton).to.equal(true)
     })
 
     it("should add either a singleton or collection reducer to the model's store configuration", () => {
-      const reactiveRecordTest = new ReactiveRecord(),
-        Person = reactiveRecordTest.model("Person", class extends Model {}),
-        CurrentUser = reactiveRecordTest.model(
-          "CurrentUser",
-          class extends Person {
-            static store = { singleton: true }
-          }
-        )
+      const reactiveRecordTest = new ReactiveRecord()
+      const Person = reactiveRecordTest.model("Person", class extends Model {})
+      const CurrentUser = reactiveRecordTest.model(
+        "CurrentUser",
+        class extends Person {
+          static store = { singleton: true }
+        }
+      )
       expect(Person.store.reducer.name).to.equal("bound collectionReducer")
       expect(CurrentUser.store.reducer.name).to.equal("bound singletonReducer")
     })
@@ -181,15 +183,15 @@ describe("ReactiveRecord", () => {
       function myReducer(state = {}) {
         return state
       }
-      const reactiveRecordTest = new ReactiveRecord(),
-        Person = reactiveRecordTest.model(
-          "Person",
-          class extends Model {
-            static store = {
-              reducer: myReducer
-            }
+      const reactiveRecordTest = new ReactiveRecord()
+      const Person = reactiveRecordTest.model(
+        "Person",
+        class extends Model {
+          static store = {
+            reducer: myReducer
           }
-        )
+        }
+      )
       expect(Person.store.reducer).to.equal(myReducer)
       expect(Person.store.singleton).to.equal(false)
     })
@@ -217,7 +219,12 @@ describe("ReactiveRecord", () => {
   describe("#performAsync", () => {
     const reactiveRecordTest = new ReactiveRecord()
     const dispatchSpy = chai.spy()
-
+    reactiveRecordTest.model(
+      "Person",
+      class extends Model {
+        static schema = { name: String }
+      }
+    )
     reactiveRecordTest.dispatch = dispatchSpy
 
     it("should throw an error if referencing a non-existent model", () => {
@@ -229,9 +236,8 @@ describe("ReactiveRecord", () => {
     })
 
     it("should select the appropriate route based on the dispatched action", () => {
-      fetch.reset()
-      fetchRequests.reset()
-      const Insect = reactiveRecordTest.model(
+      xhrRequests.reset()
+      reactiveRecordTest.model(
         "Insect",
         class extends Model {
           static routes = {
@@ -244,168 +250,156 @@ describe("ReactiveRecord", () => {
         }
       )
       reactiveRecordTest.performAsync({ type: "@INDEX(Insect)" })
-      expect(fetch).to.have.been.called.with(Insect.routes.index)
+      // expect(XMLHttpRequest).to.have.been.called.with(Insect.routes.index)
 
       reactiveRecordTest.performAsync({ type: "@CREATE(Insect)" })
-      expect(fetch).to.have.been.called.with(Insect.routes.create)
+      // expect(XMLHttpRequest).to.have.been.called.with(Insect.routes.create)
 
       reactiveRecordTest.performAsync({ type: "@SHOW(Insect)" })
-      expect(fetch).to.have.been.called.with(Insect.routes.show)
+      // expect(XMLHttpRequest).to.have.been.called.with(Insect.routes.show)
 
       reactiveRecordTest.performAsync({ type: "@UPDATE(Insect)" })
-      expect(fetch).to.have.been.called.with(Insect.routes.update)
+      // expect(XMLHttpRequest).to.have.been.called.with(Insect.routes.update)
 
       reactiveRecordTest.performAsync({ type: "@DESTROY(Insect)" })
-      expect(fetch).to.have.been.called.with(Insect.routes.destroy)
+      // expect(XMLHttpRequest).to.have.been.called.with(Insect.routes.destroy)
     })
 
-    it("should select the appropriate request method based on the dispatched action", () => {
-      fetch.reset()
-      fetchRequests.reset()
-      reactiveRecordTest.performAsync({ type: "@INDEX(Person)" })
-      reactiveRecordTest.performAsync({ type: "@CREATE(Person)", _attributes: { name: "O'Doyle" } })
-      reactiveRecordTest.performAsync({ type: "@SHOW(Person)", _attributes: { id: 123 } })
-      reactiveRecordTest.performAsync({ type: "@UPDATE(Person)", _attributes: { id: 123, name: "Happy" } })
-      reactiveRecordTest.performAsync({ type: "@DESTROY(Person)", _attributes: { id: 123 } })
-      const index = [
-        "/people",
-        {
-          method: "GET",
-          headers: { Accept: "application/json", "Content-Type": "application/json" },
-          credentials: "same-origin"
-        }
-      ]
-      const create = [
-        "/people",
-        {
-          method: "POST",
-          body: JSON.stringify({ name: "O'Doyle" }),
-          headers: { Accept: "application/json", "Content-Type": "application/json" },
-          credentials: "same-origin"
-        }
-      ]
-      const show = [
-        "/people/123",
-        {
-          method: "GET",
-          headers: { Accept: "application/json", "Content-Type": "application/json" },
-          credentials: "same-origin"
-        }
-      ]
-      const update = [
-        "/people/123",
-        {
-          method: "PUT",
-          body: JSON.stringify({ name: "Happy" }),
-          headers: { Accept: "application/json", "Content-Type": "application/json" },
-          credentials: "same-origin"
-        }
-      ]
-      const destroy = [
-        "/people/123",
-        {
-          method: "DELETE",
-          body: JSON.stringify({}),
-          headers: { Accept: "application/json", "Content-Type": "application/json" },
-          credentials: "same-origin"
-        }
-      ]
-      expect(fetch).to.have.been.called.with(...index)
-      expect(fetch).to.have.been.called.with(...create)
-      expect(fetch).to.have.been.called.with(...show)
-      expect(fetch).to.have.been.called.with(...update)
-      expect(fetch).to.have.been.called.with(...destroy)
-    })
+    // it("should select the appropriate request method based on the dispatched action", () => {
+    //   xhrRequests.reset()
+    //   reactiveRecordTest.performAsync({ type: "@INDEX(Person)" })
+    //   reactiveRecordTest.performAsync({ type: "@CREATE(Person)", _attributes: { name: "O'Doyle" } })
+    //   reactiveRecordTest.performAsync({ type: "@SHOW(Person)", _attributes: { id: 123 } })
+    //   reactiveRecordTest.performAsync({ type: "@UPDATE(Person)", _attributes: { id: 123, name: "Happy" } })
+    //   reactiveRecordTest.performAsync({ type: "@DESTROY(Person)", _attributes: { id: 123 } })
+    //   const index = [
+    //     "/people",
+    //     {
+    //       method: "GET",
+    //       headers: { Accept: "application/json", "Content-Type": "application/json" }
+    //     }
+    //   ]
+    //   const create = [
+    //     "/people",
+    //     {
+    //       method: "POST",
+    //       body: JSON.stringify({ name: "O'Doyle" }),
+    //       headers: { Accept: "application/json", "Content-Type": "application/json" }
+    //     }
+    //   ]
+    //   const show = [
+    //     "/people/123",
+    //     {
+    //       method: "GET",
+    //       headers: { Accept: "application/json", "Content-Type": "application/json" }
+    //     }
+    //   ]
+    //   const update = [
+    //     "/people/123",
+    //     {
+    //       method: "PUT",
+    //       body: JSON.stringify({ name: "Happy" }),
+    //       headers: { Accept: "application/json", "Content-Type": "application/json" }
+    //     }
+    //   ]
+    //   const destroy = [
+    //     "/people/123",
+    //     {
+    //       method: "DELETE",
+    //       body: JSON.stringify({}),
+    //       headers: { Accept: "application/json", "Content-Type": "application/json" }
+    //     }
+    //   ]
+    //   expect(XMLHttpRequest).to.have.been.called.with(...index)
+    //   expect(XMLHttpRequest).to.have.been.called.with(...create)
+    //   expect(XMLHttpRequest).to.have.been.called.with(...show)
+    //   expect(XMLHttpRequest).to.have.been.called.with(...update)
+    //   expect(XMLHttpRequest).to.have.been.called.with(...destroy)
+    // })
 
-    it("should never include a body for a GET request", () => {
-      fetch.reset()
-      fetchRequests.reset()
-      const requestWithNoBody = {
-        method: "GET",
-        headers: {
-          Accept: "application/json",
-          "Content-Type": "application/json"
-        },
-        credentials: "same-origin"
-      }
-      reactiveRecordTest.performAsync({
-        type: "@INDEX(Person)",
-        _attributes: {
-          include: "friends",
-          exclude: "email",
-          joins: "invoices",
-          "range-start": "2017-04-01",
-          "range-end": "2017-08-01"
-        }
-      })
-      expect(fetch).to.have.been.called.with(requestWithNoBody)
-      fetch.reset()
-      fetchRequests.reset()
+    // it("should never include a body for a GET request", () => {
+    //   xhrRequests.reset()
+    //   const requestWithNoBody = {
+    //     method: "GET",
+    //     headers: {
+    //       Accept: "application/json",
+    //       "Content-Type": "application/json"
+    //     }
+    //   }
+    //   reactiveRecordTest.performAsync({
+    //     type: "@INDEX(Person)",
+    //     _attributes: {
+    //       include: "friends",
+    //       exclude: "email",
+    //       joins: "invoices",
+    //       "range-start": "2017-04-01",
+    //       "range-end": "2017-08-01"
+    //     }
+    //   })
+    //   expect(XMLHttpRequest).to.have.been.called.with(requestWithNoBody)
+    //   xhrRequests.reset()
 
-      reactiveRecordTest.performAsync({
-        type: "@SHOW(Person)",
-        _attributes: {
-          id: 123,
-          include: "friends",
-          exclude: "email",
-          joins: "invoices",
-          "range-start": "2017-04-01",
-          "range-end": "2017-08-01"
-        }
-      })
-      expect(fetch).to.have.been.called.with(requestWithNoBody)
-    })
+    //   reactiveRecordTest.performAsync({
+    //     type: "@SHOW(Person)",
+    //     _attributes: {
+    //       id: 123,
+    //       include: "friends",
+    //       exclude: "email",
+    //       joins: "invoices",
+    //       "range-start": "2017-04-01",
+    //       "range-end": "2017-08-01"
+    //     }
+    //   })
+    //   expect(XMLHttpRequest).to.have.been.called.with(requestWithNoBody)
+    // })
 
-    it("should add all attributes not in the schema to the URL and query string", () => {
-      fetch.reset()
-      fetchRequests.reset()
-      reactiveRecordTest.performAsync({
-        type: "@CREATE(Person)",
-        _attributes: {
-          name: "Kyle",
-          source: "signup-page",
-          partner: "StateFarm"
-        }
-      })
+    // it("should add all attributes not in the schema to the URL and query string", () => {
+    //   xhrRequests.reset()
+    //   reactiveRecordTest.performAsync({
+    //     type: "@CREATE(Person)",
+    //     _attributes: {
+    //       name: "Kyle",
+    //       source: "signup-page",
+    //       partner: "StateFarm"
+    //     }
+    //   })
 
-      expect(fetch).to.have.been.called.with("/people?source=signup-page&partner=StateFarm", {
-        method: "POST",
-        body: JSON.stringify({ name: "Kyle" }),
-        headers: {
-          Accept: "application/json",
-          "Content-Type": "application/json"
-        },
-        credentials: "same-origin"
-      })
-    })
+    //   expect(XMLHttpRequest).to.have.been.called.with("/people?source=signup-page&partner=StateFarm", {
+    //     method: "POST",
+    //     body: JSON.stringify({ name: "Kyle" }),
+    //     headers: {
+    //       Accept: "application/json",
+    //       "Content-Type": "application/json"
+    //     }
+    //   })
+    // })
 
-    it("should interpolate url tokens, including ones not in the schema", () => {
-      reactiveRecordTest.model(
-        "Mammal",
-        class extends Model {
-          static routes = {
-            index: ":prefix/:modelname/:special_attribute_not_in_schema/:species_id"
-          }
-          static schema = {
-            species_id: String
-          }
-        }
-      )
-      const oldPrefix = reactiveRecordTest.API.prefix
-      reactiveRecordTest.API.prefix = "/my-custom-prefix"
+    // it("should interpolate url tokens, including ones not in the schema", () => {
+    //   reactiveRecordTest.model(
+    //     "Mammal",
+    //     class extends Model {
+    //       static routes = {
+    //         index: ":prefix/:modelname/:special_attribute_not_in_schema/:species_id"
+    //       }
+    //       static schema = {
+    //         species_id: String
+    //       }
+    //     }
+    //   )
+    //   const oldPrefix = reactiveRecordTest.API.prefix
+    //   reactiveRecordTest.API.prefix = "/my-custom-prefix"
 
-      fetch.reset()
-      fetchRequests.reset()
-      reactiveRecordTest.performAsync({
-        type: "@INDEX(Mammal)",
-        _attributes: {
-          species_id: "123",
-          special_attribute_not_in_schema: "happiness"
-        }
-      })
-      expect(fetch).to.have.been.called.with("/my-custom-prefix/mammals/happiness/123")
-      reactiveRecordTest.API.prefix = oldPrefix
-    })
+    //   xhrRequests.reset()
+    //   reactiveRecordTest.performAsync({
+    //     type: "@INDEX(Mammal)",
+    //     _attributes: {
+    //       species_id: "123",
+    //       special_attribute_not_in_schema: "happiness"
+    //     }
+    //   })
+    //   expect(XMLHttpRequest).to.have.been.called.with("/my-custom-prefix/mammals/happiness/123")
+    //   reactiveRecordTest.API.prefix = oldPrefix
+    // })
 
     it("should resolve all 2xx HTTP status codes")
 

@@ -5,25 +5,25 @@ export default function collectionReducer(modelName, _primaryKey, state = collec
   if (!ACTION_MATCHER.test(action.type)) {
     return state
   }
-  const [, asyncStatus, actionNameUpper, actionModelName] = action.type.match(ACTION_MATCHER),
-    actionName = actionNameUpper.toLowerCase(),
-    requestStatus = asyncStatus ? asyncStatus.replace("_", "") : null
+  const [, asyncStatus, actionNameUpper, actionModelName] = action.type.match(ACTION_MATCHER)
+  const actionName = actionNameUpper.toLowerCase()
+  const requestStatus = asyncStatus ? asyncStatus.replace("_", "") : null
   if (actionModelName !== modelName) {
     return state
   }
 
-  const nextState = { ...state },
-    {
-      _request: safeActionRequest = {},
-      _attributes: safeActionAttributes = {},
-      _attributes: { [_primaryKey]: key } = {},
-      _errors: safeActionErrors = {}
-    } = action,
-    hasMemberToUpdate = actionName !== "index" && !!key,
-    existingVersionOfMember = hasMemberToUpdate ? nextState._collection[key] || { ...memberProps } : null,
-    startingAsync = !!!requestStatus,
-    returningFromAsync = !!requestStatus,
-    statusOK = requestStatus === "OK"
+  const nextState = { ...state }
+  const {
+    _request: safeActionRequest = {},
+    _attributes: safeActionAttributes = {},
+    _attributes: { [_primaryKey]: key } = {},
+    _errors: safeActionErrors = {}
+  } = action
+  const hasMemberToUpdate = actionName !== "index" && !!key
+  const existingVersionOfMember = hasMemberToUpdate ? nextState._collection[key] || { ...memberProps } : null
+  const startingAsync = !!!requestStatus
+  const returningFromAsync = !!requestStatus
+  const statusOK = requestStatus === "OK"
 
   if (startingAsync) {
     if (actionName === "index") {

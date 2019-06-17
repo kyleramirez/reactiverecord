@@ -6,36 +6,36 @@ import spies from "chai-spies"
 /*******************************/
 chai.use(spies)
 
-const fetchMap = new Map()
+const xhrMap = new Map()
 
-export const fetchRequests = {
+export const xhrRequests = {
   get: function(args) {
-    const query = JSON.stringify(args),
-      req = fetchMap.get(query)
-    fetchMap.delete(query)
+    const query = JSON.stringify(args)
+    const req = xhrMap.get(query)
+    xhrMap.delete(query)
     return req
   },
   set: function(key, value) {
-    const storedResponse = fetchMap.get(JSON.stringify(key))
+    const storedResponse = xhrMap.get(JSON.stringify(key))
     if (storedResponse) {
       const [actualResponse] = storedResponse.filter(Boolean)
       if (actualResponse) {
-        fetchMap.delete(JSON.stringify(key))
+        xhrMap.delete(JSON.stringify(key))
         return value[storedResponse.indexOf(actualResponse)](actualResponse)
       }
     }
-    fetchMap.set(JSON.stringify(key), value)
+    xhrMap.set(JSON.stringify(key), value)
   },
   reset: function() {
-    return fetchMap.clear()
+    return xhrMap.clear()
   },
   expect: request => ({
-    andResolveWith: response => fetchMap.set(JSON.stringify(request), [response, null]),
-    andRejectWith: response => fetchMap.set(JSON.stringify(request), [null, response])
+    andResolveWith: response => xhrMap.set(JSON.stringify(request), [response, null]),
+    andRejectWith: response => xhrMap.set(JSON.stringify(request), [null, response])
   })
 }
 
-export class FetchResponse {
+export class XHRResponse {
   constructor({ status, body }) {
     this.status = status
     this.body = body
@@ -47,24 +47,44 @@ export class FetchResponse {
   }
 }
 
-function fetch(...args) {
-  return new Promise((resolve, reject) => {
-    fetchRequests.set(args, [resolve, reject])
-  })
+class XMLHttpRequest {
+  static DONE = "DONE"
+  headers = {}
+  eventListeners = {
+    load: [],
+    error: []
+  }
+  open = (method, route) => {
+    this.method = method
+    this.route = route
+  }
+
+  setRequestHeader = (key, value) => {
+    this.headers[key] = value
+  }
+
+  addEventListener = (kind, callback) => {
+    this.eventListeners[kind].push(callback)
+  }
+
+  send = body => {
+    this.body = body
+  }
 }
 
-global.fetch = chai.spy(fetch)
+global.XMLHttpRequest = XMLHttpRequest
 
 /* Stub out a fetch
 const request = [
   "/people",
-  { method: "POST",
+  {
+    method: "POST",
     body: { name: "Kyle" },
-    headers: { "Accept": "application/json", "Content-Type": "application/json" },
-    credentials: "same-origin" }
+    headers: { "Accept": "application/json", "Content-Type": "application/json" }
+  }
 ]
 expect(fetch).to.have.been.called.with(...request);
-const [ resolve, reject ] = fetchRequests.get(request);
-resolve(new FetchResponse({ status: 200, body: { id: 123, name: "Kyle", level: "customer" } }))
-fetchRequests.reset()
+const [ resolve, reject ] = xhrRequests.get(request);
+resolve(new XHRResponse({ status: 200, body: { id: 123, name: "Kyle", level: "customer" } }))
+xhrRequests.reset()
 */

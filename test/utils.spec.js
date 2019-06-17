@@ -2,7 +2,7 @@
 // import reactiveRecord, { Model } from "../src"
 // import {
 //   generateID, pruneDeep,
-//   pruneArray, regexIndexOf, checkResponseStatus,
+//   pruneArray, regexIndexOf,
 //   routePermitted, generateRoute,
 //   interpolateRoute, delimiterType, setReadOnlyProps,
 //   setWriteableProps, mergeRecordsIntoCache, createThisRecord,
@@ -145,17 +145,6 @@
 //     it("should return the index of a Regex match", ()=>{
 //       const regexSearch = /(sweet|cool|awesome)/
 //       expect(regexIndexOf(regexSearch, "That would be sweet!")).to.equal(14)
-//     });
-//   });
-//
-//   describe("#checkResponseStatus", ()=>{
-//     it("should give the response back if the status is 200-something", ()=>{
-//       const response = { status: 201 };
-//       expect(checkResponseStatus(response)).to.equal(response)
-//     });
-//     it("should throw an error if the response is an error-type", ()=>{
-//       const response = { status: 403 };
-//       expect(()=>(checkResponseStatus(response))).to.throw(Error)
 //     });
 //   });
 //

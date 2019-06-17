@@ -10,11 +10,10 @@
   "scripts": {
     "lint": "eslint src",
     "lint:watch": "esw -w src",
-    "test": "mocha -r babel-core/register",
-    "test:watch": "mocha -w -r babel-core/register",
-    "dist": "cpx 'src/**/*' dist && npm run dist:es5",
-    "dist:es5": "babel src -o dist/es5.js",
-    "dist:watch": "cpx -w 'src/**/*' dist",
+    "test": "mocha -r @babel/register",
+    "test:watch": "mocha -w -r @babel/register",
+    "dist": "babel src -o dist/index.js",
+    "dist:watch": "babel -w src -o dist/index.js",
     "prepublish": "npm run dist",
     "prettier": "prettier",
     "precommit": "lint-staged"
@@ -36,22 +35,24 @@
     "react",
     "redux"
   ],
-  "author": "Kyle Ramirez <kyle@rentalutions.com> (https://kyles.work)",
+  "author": "Kyle Ramirez <kyle@kyles.work> (https://kyles.work)",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/rentalutions/reactiverecord/issues"
+    "url": "https://github.com/kyleramirez/reactiverecord/issues"
   },
-  "homepage": "https://github.com/rentalutions/reactiverecord",
+  "homepage": "https://github.com/kyleramirez/reactiverecord",
   "devDependencies": {
-    "babel-cli": "^6.26.0",
-    "babel-core": "^6.26.0",
-    "babel-preset-es2015": "^6.24.1",
-    "babel-preset-react": "^6.24.1",
-    "babel-preset-stage-0": "^6.24.1",
+    "@babel/cli": "^7.4.4",
+    "@babel/core": "^7.4.5",
+    "@babel/plugin-proposal-class-properties": "^7.4.4",
+    "@babel/plugin-proposal-export-default-from": "^7.2.0",
+    "@babel/plugin-syntax-jsx": "^7.2.0",
+    "@babel/plugin-transform-react-display-name": "^7.2.0",
+    "@babel/plugin-transform-react-jsx": "^7.3.0",
+    "@babel/register": "^7.4.4",
+    "babel-plugin-transform-es2015-modules-commonjs": "^6.26.2",
     "chai": "^3.5.0",
     "chai-spies": "^0.7.1",
-    "cpx": "^1.5.0",
-    "es6-promise": "^4.1.1",
     "eslint": "^4.12.1",
     "eslint-plugin-react-app": "^1.0.2",
     "eslint-watch": "^3.1.2",
@@ -59,14 +60,19 @@
     "lint-staged": "^6.0.0",
     "mocha": "^3.3.0",
     "prettier": "^1.9.1",
-    "react": "^15.6.1",
-    "react-redux": "^5.0.6",
-    "redux": "^3.7.2",
-    "whatwg-fetch": "^2.0.3"
+    "react": "^16.8.6",
+    "react-redux": "^5.0.7",
+    "redux": "^4.0.1"
   },
   "peerDependencies": {
-    "react": "^0.14.0 || ^15.0.0-0 || ^16.0.0-0",
-    "react-redux": "^5.0.0",
-    "redux": "^2.0.0 || ^3.0.0 || ^4.0.0"
-  }
+    "react": "16.x",
+    "react-redux": "5.x",
+    "redux": "3.x || 4.x"
+  },
+  "externals": [
+    "react",
+    "redux",
+    "react-redux"
+  ],
+  "dependencies": {}
 }

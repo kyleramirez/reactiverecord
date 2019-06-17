@@ -19,23 +19,23 @@ export default class Form extends Component {
   }
 
   render() {
-    const { handleSubmit, state, buildFieldProps } = this,
-      { for: resource, children } = this.props,
-      submitting = !!(resource._request.status.toString().match(/ING$/) || state.submitting),
-      validating = !!state.validating,
-      { schema = {}, validations = {} } = resource.constructor,
-      props = without.call(
-        this.props,
-        "children",
-        "for",
-        "beforeValidation",
-        "afterValidationFail",
-        "beforeSave",
-        "afterSave",
-        "afterRollback",
-        "builder",
-        "query"
-      )
+    const { handleSubmit, state, buildFieldProps } = this
+    const { for: resource, children } = this.props
+    const submitting = !!(resource._request.status.toString().match(/ING$/) || state.submitting)
+    const validating = !!state.validating
+    const { schema = {}, validations = {} } = resource.constructor
+    const props = without.call(
+      this.props,
+      "children",
+      "for",
+      "beforeValidation",
+      "afterValidationFail",
+      "beforeSave",
+      "afterSave",
+      "afterRollback",
+      "builder",
+      "query"
+    )
 
     const submit = {
       disabled: submitting || validating
@@ -54,8 +54,8 @@ export default class Form extends Component {
   }
 
   buildFieldProps = (schema, validations, fieldsObj, resource = {}) => {
-    const { fieldsFor } = this,
-      defaultProps = { fieldsFor, ...this.applyBuilder(resource, fieldsObj) }
+    const { fieldsFor } = this
+    const defaultProps = { fieldsFor, ...this.applyBuilder(resource, fieldsObj) }
 
     return Object.keys(schema).reduce((form, field) => {
       const type = getTypeName.call(schema[field])
@@ -94,24 +94,24 @@ export default class Form extends Component {
   }
 
   fieldsFor = (resourceType, key, existingResource) => {
-    const { buildFieldProps } = this,
-      { ReactiveRecord } = this.props.for,
-      modelName = Sugar.String.camelize(Sugar.String.singularize(resourceType)),
-      {
-        schema,
-        schema: { _primaryKey = "id" },
-        validations
-      } = ReactiveRecord.model(modelName)
+    const { buildFieldProps } = this
+    const { ReactiveRecord } = this.props.for
+    const modelName = Sugar.String.camelize(Sugar.String.singularize(resourceType))
+    const {
+      schema,
+      schema: { _primaryKey = "id" },
+      validations
+    } = ReactiveRecord.model(modelName)
 
-    const attributesName = `${resourceType}_attributes`,
-      persisted = existingResource._persisted,
-      idForFields = persisted ? existingResource[_primaryKey] : key,
-      fieldsObj = {
-        fields: {},
-        _primaryKey,
-        persisted,
-        resource: existingResource
-      }
+    const attributesName = `${resourceType}_attributes`
+    const persisted = existingResource._persisted
+    const idForFields = persisted ? existingResource[_primaryKey] : key
+    const fieldsObj = {
+      fields: {},
+      _primaryKey,
+      persisted,
+      resource: existingResource
+    }
 
     const formObject = buildFieldProps(schema, validations, fieldsObj, existingResource)
 
@@ -119,23 +119,23 @@ export default class Form extends Component {
 
     Object.defineProperty(this.fields[attributesName], "isValid", {
       value: function(callback) {
-        let allFieldsValid = true,
-          fieldsChecked = 0
+        let allFieldsValid = true
+        let fieldsChecked = 0
         const relevantFields = Object.keys(this.resources).reduce((final, identifier) => {
-            const { fields } = this.resources[identifier],
-              attrs = Object.values(fields).filter(Boolean)
-            return [...final, ...attrs]
-          }, []),
-          fieldsToCheck = relevantFields.length,
-          fieldValidator = isValid => {
-            fieldsChecked++
-            if (!isValid) {
-              allFieldsValid = false
-            }
-            if (fieldsChecked === fieldsToCheck) {
-              callback.call(this, allFieldsValid)
-            }
+          const { fields } = this.resources[identifier]
+          const attrs = Object.values(fields).filter(Boolean)
+          return [...final, ...attrs]
+        }, [])
+        const fieldsToCheck = relevantFields.length
+        const fieldValidator = isValid => {
+          fieldsChecked++
+          if (!isValid) {
+            allFieldsValid = false
           }
+          if (fieldsChecked === fieldsToCheck) {
+            callback.call(this, allFieldsValid)
+          }
+        }
         if (!relevantFields.length) {
           return callback.call(this, true)
         }
@@ -153,16 +153,16 @@ export default class Form extends Component {
         const isMany = resourceType === Sugar.String.pluralize(resourceType)
 
         return Object.keys(this.resources).reduce((finalValue, identifier) => {
-          const { fields, _primaryKey, persisted, resource } = this.resources[identifier],
-            attrs = Object.keys(fields)
-              .filter(fieldName => !!fields[fieldName])
-              .reduce((final, currentValue) => {
-                if (typeof fields[currentValue].value === "function") {
-                  return { ...final, ...fields[currentValue].value(final) }
-                }
-                final[currentValue] = fields[currentValue].value
-                return final
-              }, {})
+          const { fields, _primaryKey, persisted, resource } = this.resources[identifier]
+          const attrs = Object.keys(fields)
+            .filter(fieldName => !!fields[fieldName])
+            .reduce((final, currentValue) => {
+              if (typeof fields[currentValue].value === "function") {
+                return { ...final, ...fields[currentValue].value(final) }
+              }
+              final[currentValue] = fields[currentValue].value
+              return final
+            }, {})
 
           /* Don't submit deleted form objects */
           if (isEmptyObject.call(attrs)) {
