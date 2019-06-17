@@ -1,3 +1,8 @@
+## 0.5.0
+Removes dependencies
+- Babel removed
+- Fetch removed (now relying on XMLHttpRequest)
+- `credentials` removed from API config
 ### 0.4.8
 Type accuracy enhancements
 - Improved query string parsing for arrays
