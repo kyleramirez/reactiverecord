@@ -1,4 +1,3 @@
-import Sugar from "./sugar"
 import { formatWith } from "./utils"
 
 const Validator = {
@@ -326,7 +325,7 @@ const Validator = {
     remote: {}
   },
   firstErrorMessage: function(validationObj, value) {
-    const { attribute, form, ...validators } = validationObj
+    const { attribute, labelText, form, ...validators } = validationObj
     /* eslint-disable guard-for-in */
     for (let validator in validators) {
       /* eslint-enable guard-for-in */
@@ -336,10 +335,7 @@ const Validator = {
           const options = optionsArr[i]
           const msg = this.validators.local[validator](value, options, form, attribute)
           if (msg) {
-            return formatWith.call(msg, {
-              value,
-              attribute: Sugar.String.titleize(Sugar.String.humanize(attribute))
-            })
+            return formatWith.call(msg, { value, attribute: labelText })
           }
         }
       }
@@ -347,7 +343,7 @@ const Validator = {
     return null
   },
   firstRemoteErrorMessage: function(validationObj, value, beginValidation, callback) {
-    const { attribute, form, ...validators } = validationObj
+    const { attribute, labelText, form, ...validators } = validationObj
     const remoteValidators = Object.keys(validators).filter(
       validator => Object.keys(this.validators.remote).indexOf(validator) >= 0
     )
@@ -358,12 +354,7 @@ const Validator = {
     const runNextValidator = function(msg) {
       validatorsChecked++
       if (msg) {
-        return callback(
-          formatWith.call(msg, {
-            value,
-            attribute: Sugar.String.titleize(Sugar.String.humanize(attribute))
-          })
-        )
+        return callback(formatWith.call(msg, { value, attribute: labelText }))
       }
       if (validatorsToCheck === validatorsChecked) {
         return callback(null)

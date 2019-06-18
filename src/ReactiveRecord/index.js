@@ -10,6 +10,7 @@ import {
 import singletonReducer from "../reducer/singletonReducer"
 import collectionReducer from "../reducer/collectionReducer"
 import Collection from "./Collection"
+import Sugar from "../sugar"
 
 export default class ReactiveRecord {
   models = {}
@@ -29,7 +30,30 @@ export default class ReactiveRecord {
     modelClass.ReactiveRecord = this
     // Assign the model's name
     modelClass.displayName = modelStr
-
+    // Assign the model's attributes name if not already defined
+    if (!modelClass.attributesName) {
+      modelClass.attributesName = `${Sugar.String.underscore(modelStr)}_attributes`
+    }
+    // Assign the model's route inflection if not already defined
+    if (!modelClass.routeInflection) {
+      const { store: { singleton = false } = {} } = modelClass
+      modelClass.routeInflection = singleton ? modelStr : Sugar.String.pluralize(modelStr)
+    }
+    // Interpolate the model's schema
+    const { schema = {} } = modelClass
+    /* eslint-disable guard-for-in */
+    for (let prop in schema) {
+      /* eslint-enable guard-for-in */
+      const hasDescriptor = typeof schema[prop] === "object" && schema[prop].hasOwnProperty("type")
+      if (!hasDescriptor) {
+        modelClass.schema[prop] = {
+          type: schema[prop]
+        }
+      }
+      if (!schema[prop].labelText) {
+        schema[prop].labelText = Sugar.String.titleize(Sugar.String.humanize(prop))
+      }
+    }
     // Interpolate the model's routes
     const {
       routes: { only = [], except = [], ...definedRoutes } = {},
@@ -95,8 +119,8 @@ export default class ReactiveRecord {
       }
 
       const {
-        store: { singleton = false },
-        schema: { _primaryKey = "id" }
+        schema: { _primaryKey = "id" },
+        routeInflection
       } = model
       const { _attributes = {} } = action
       const { headers, ...apiConfig } = this.API
@@ -111,8 +135,7 @@ export default class ReactiveRecord {
       const [route, bodyWithoutInterpolations] = interpolateRoute(
         routeTemplate,
         body,
-        modelName,
-        singleton,
+        routeInflection,
         apiConfig,
         query
       )

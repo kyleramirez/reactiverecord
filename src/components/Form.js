@@ -1,6 +1,6 @@
 import React, { Component } from "react"
 import Sugar from "../sugar"
-import { without, getTypeName, handleFormEvent, onlyObjects, isEmptyObject } from "../utils"
+import { without, handleFormEvent, onlyObjects, isEmptyObject } from "../utils"
 
 function isStoreManaged() {
   return !!("_isStoreManaged" in this && this._isStoreManaged)
@@ -56,14 +56,13 @@ export default class Form extends Component {
   buildFieldProps = (schema, validations, fieldsObj, resource = {}) => {
     const { fieldsFor } = this
     const defaultProps = { fieldsFor, ...this.applyBuilder(resource, fieldsObj) }
-
     return Object.keys(schema).reduce((form, field) => {
-      const type = getTypeName.call(schema[field])
-      if (type !== "Object" && !/^(_timestamps|_primaryKey|user_?[iI]d)$/.test(field)) {
-        const fieldHumanizedAndTitleized = Sugar.String.titleize(Sugar.String.humanize(field))
+      const { type, labelText } = schema[field]
+      const name = type.displayName || type.name
+      if (name !== "Object" && !/^(_timestamps|_primaryKey|user_?[iI]d)$/.test(field)) {
         form[field] = form[field] || {
           ref: ref => (fieldsObj.fields[field] = ref),
-          labelText: fieldHumanizedAndTitleized,
+          labelText,
           defaultValue: resource[field]
         }
         if (resource._errors && resource._errors[field].length) {
@@ -73,7 +72,8 @@ export default class Form extends Component {
           form[field].validators = {
             ...validations[field],
             form: this,
-            attribute: field
+            attribute: field,
+            labelText
           }
         }
       }
@@ -93,17 +93,16 @@ export default class Form extends Component {
     return {}
   }
 
-  fieldsFor = (resourceType, key, existingResource) => {
+  fieldsFor = (association, key, existingResource) => {
     const { buildFieldProps } = this
     const { ReactiveRecord } = this.props.for
-    const modelName = Sugar.String.camelize(Sugar.String.singularize(resourceType))
+    const { displayName: modelName, attributesName } = existingResource.constructor
     const {
       schema,
       schema: { _primaryKey = "id" },
       validations
     } = ReactiveRecord.model(modelName)
-
-    const attributesName = `${resourceType}_attributes`
+    const isMany = association === Sugar.String.pluralize(association)
     const persisted = existingResource._persisted
     const idForFields = persisted ? existingResource[_primaryKey] : key
     const fieldsObj = {
@@ -150,8 +149,6 @@ export default class Form extends Component {
 
     Object.defineProperty(this.fields[attributesName], "value", {
       get: function() {
-        const isMany = resourceType === Sugar.String.pluralize(resourceType)
-
         return Object.keys(this.resources).reduce((finalValue, identifier) => {
           const { fields, _primaryKey, persisted, resource } = this.resources[identifier]
           const attrs = Object.keys(fields)

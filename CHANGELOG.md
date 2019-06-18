@@ -1,3 +1,15 @@
+### 0.7.0
+Inflections updates
+- Specify label text in schema descriptors. An attribute called `address1` can have a different default label than "Address1."
+
+      OrderAddress { static schema = { address1: { type: String, labelText: "Address" } } }
+- The `labelText` is also used to build validation error messages if the `%{attribute}` must be interpolated.
+- Generated routes can have a custom inflection defined in `Model.routeInflection`. A model called `PostTag` would be interpolated as `/post-tags`, unless defined this way:
+
+      PostTag { static routeInflection = 'tags' }
+- Generated nested attributes can have a custom parameter name defined as `Model.attributesName`. A model called `Building` when used as a nested attribute will automatically be in a parameter called `building_attributes` if in a has-many association. This can be overridden to just `building` this way:
+
+      Building { static attributesName = 'building' }
 ### 0.6.4
 Bug fix
 ### 0.6.3

@@ -7,13 +7,12 @@ export function skinnyObject(...args) {
   }, Object.create(null, {}))
 }
 
-export function interpolateRoute(route, originalAttributes, resourceName, singular, apiConfig, originalQuery) {
+export function interpolateRoute(route, originalAttributes, routeInflection, apiConfig, originalQuery) {
   let query = { ...originalQuery }
   let attributes = { ...originalAttributes }
   const { prefix } = apiConfig
   const delimiter = delimiterType(apiConfig.delimiter)
-  const modelInflection = singular ? resourceName : Sugar.String.pluralize(resourceName)
-  const modelWithDelimiter = `${Sugar.String[delimiter](modelInflection)}`
+  const modelWithDelimiter = `${Sugar.String[delimiter](routeInflection)}`
   const interpolatedRoute =
     route
       .replace(":modelname", modelWithDelimiter)
@@ -90,11 +89,10 @@ export function setWriteableProps(attrs) {
   const { schema, prototype } = constructor
   /* eslint-disable guard-for-in */
   for (let prop in schema) {
-    const hasDescriptor = typeof schema[prop] === "object" && schema[prop].hasOwnProperty("type")
     // Establish initial value but fallback to default value
     const initialValue = JSON.parse(JSON.stringify(attrs.hasOwnProperty(prop) ? attrs[prop] : null))
     // Establish type from descriptor
-    const type = hasDescriptor ? schema[prop].type.displayName || schema[prop].type.name : schema[prop].name
+    const name = schema[prop].type.displayName || schema[prop].type.name
 
     // Write default value
     this._attributes[prop] = initialValue
@@ -108,23 +106,23 @@ export function setWriteableProps(attrs) {
 
     if (!manuallyDefinedGetter) {
       get = () => this._attributes[prop]
-      if (type === "Object") {
+      if (name === "Object") {
         get = () => this._attributes[prop] || {}
       }
-      if (type === "Array") {
+      if (name === "Array") {
         get = () => this._attributes[prop] || []
       }
-      if (type === "Date") {
+      if (name === "Date") {
         get = () => (this._attributes[prop] === null ? null : new Date(this._attributes[prop]))
       }
-      if (type === "Number") {
+      if (name === "Number") {
         get = () => (this._attributes[prop] === null ? null : Number(this._attributes[prop]))
       }
     }
 
     if (!manuallyDefinedSetter) {
       set = newValue => (this._attributes[prop] = newValue)
-      if (type === "Boolean") {
+      if (name === "Boolean") {
         set = newValue => {
           let next = Boolean(newValue)
           if (newValue === null) {
@@ -138,7 +136,7 @@ export function setWriteableProps(attrs) {
       }
     }
 
-    if (type === "Boolean" && this._attributes[prop] !== null) {
+    if (name === "Boolean" && this._attributes[prop] !== null) {
       this._attributes[prop] = initialValue === "false" ? false : Boolean(initialValue)
     }
 
@@ -233,8 +231,8 @@ export function queryStringToObj(str) {
     response = JSON.parse(
       `{"${str
         .replace(/^\?/, "")
-        .replace(/&/g, "\",\"")
-        .replace(/=/g, "\":\"")}"}`,
+        .replace(/&/g, '","')
+        .replace(/=/g, '":"')}"}`,
       function(k, v) {
         return k === "" ? v : decodeURIComponent(v)
       }
@@ -271,7 +269,7 @@ export function queryStringToObj(str) {
 
 export function buildRouteFromInstance(action, query) {
   const {
-    constructor: { routes, displayName, store: { singleton: singular = false } = {} },
+    constructor: { routes, routeInflection },
     _attributes,
     ReactiveRecord: { API: config }
   } = this
@@ -280,7 +278,7 @@ export function buildRouteFromInstance(action, query) {
     throw new ROUTE_NOT_FOUND_ERROR()
   }
 
-  const [route] = interpolateRoute(routes[action], _attributes, displayName, singular, config, query)
+  const [route] = interpolateRoute(routes[action], _attributes, routeInflection, config, query)
 
   return route
 }
@@ -390,7 +388,7 @@ export function where(obj) {
 }
 
 export function onlyObjects(obj) {
-  return typeof obj === "object" && !(obj instanceof Array)
+  return obj !== null && typeof obj === "object" && !(obj instanceof Array)
 }
 
 export function onlyReactiveRecord() {
@@ -404,20 +402,6 @@ export function onlyReactiveRecord() {
     }
     chunks.push(...Object.values(chunks[i]).filter(onlyObjects))
   }
-}
-
-export function uuid() {
-  function s4() {
-    return Math.floor((1 + Math.random()) * 0x10000)
-      .toString(16)
-      .substring(1)
-  }
-  return s4() + s4() + s4()
-}
-
-export function getTypeName() {
-  const hasDescriptor = onlyObjects(this) && this.hasOwnProperty("type")
-  return hasDescriptor ? this.type.displayName || this.type.name : this.name
 }
 
 export function handleFormEvent(attr, arg) {
