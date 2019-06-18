@@ -5,11 +5,6 @@ import { pick } from "../utils"
 
 export default class Collection extends Component {
   static defaultProps = {
-    then: () => {},
-    catch: e => {
-      throw e
-    },
-    where: {},
     fetch: true
   }
   constructor(props, context) {
@@ -19,7 +14,7 @@ export default class Collection extends Component {
       areStatePropsEqual
     }
     this.Collection = connect(
-      mapStateToProps,
+      mapStateToProps("Collection"),
       null,
       null,
       connectOptions
@@ -48,10 +43,13 @@ export default class Collection extends Component {
 
   load() {
     if (this.props.fetch) {
-      this.props.for
-        .all(this.props.where)
-        .then(this.props.then)
-        .catch(this.props.catch)
+      const value = this.props.for.all(this.props.where)
+      if (this.props.then) {
+        value.then(this.props.then)
+      }
+      if (this.props.catch) {
+        value.catch(this.props.catch)
+      }
     }
   }
 

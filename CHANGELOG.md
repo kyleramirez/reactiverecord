@@ -1,3 +1,11 @@
+## 0.6.0
+Performance updates
+- Fixed issue that hid some uncaught errors
+- Improved efficiency of renders from `Member` and `Collection`
+- No longer restricting `Member` or `Collection` with `React.Children.only`
+- No longer requiring primary key (ID) for `Member`
+   - This will make building search-style components easier
+- Fixed query-parsing bug for encoded strings
 ## 0.5.0
 Removes dependencies
 - Babel removed

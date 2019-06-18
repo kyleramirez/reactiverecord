@@ -5,11 +5,6 @@ import { pick } from "../utils"
 
 export default class Member extends Component {
   static defaultProps = {
-    then: () => {},
-    catch: e => {
-      throw e
-    },
-    where: {},
     fetch: true
   }
   constructor(props, context) {
@@ -19,7 +14,7 @@ export default class Member extends Component {
       areStatePropsEqual
     }
     this.Member = connect(
-      mapStateToProps,
+      mapStateToProps("Member"),
       null,
       null,
       connectOptions
@@ -51,16 +46,18 @@ export default class Member extends Component {
       store: { singleton = false }
     } = this.props.for
     if (this.props.fetch) {
+      let value
       if (singleton) {
-        return this.props.for
-          .load(this.props.where)
-          .then(this.props.then)
-          .catch(this.props.catch)
+        value = this.props.for.load(this.props.where)
+      } else {
+        value = this.props.for.find(this.props.find, this.props.where)
       }
-      this.props.for
-        .find(this.props.find, this.props.where)
-        .then(this.props.then)
-        .catch(this.props.catch)
+      if (this.props.then) {
+        value.then(this.props.then)
+      }
+      if (this.props.catch) {
+        value.catch(this.props.catch)
+      }
     }
   }
 

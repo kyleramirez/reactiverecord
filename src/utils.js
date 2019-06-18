@@ -192,9 +192,8 @@ export function objToQueryString(obj, keyPrefix = "") {
     if (keyPrefix && !final) {
       delimiter = ""
     }
-
     const initialValue = obj[current]
-    let key = keyPrefix ? `${keyPrefix}[${encodeURIComponent(current)}]` : encodeURIComponent(current)
+    let key = keyPrefix ? `${keyPrefix}%5B${encodeURIComponent(current)}%5D` : encodeURIComponent(current)
     let value = null
     if (typeof initialValue === "object" && initialValue !== null && !isEmptyObject.call(initialValue)) {
       value = objToQueryString(initialValue, key)
@@ -206,7 +205,7 @@ export function objToQueryString(obj, keyPrefix = "") {
   }, "")
 }
 
-function tryTypeCastFromURL(item) {
+function tryTypeCastFromString(item) {
   if (item === "") {
     return ""
   }
@@ -240,6 +239,15 @@ export function queryStringToObj(str) {
         return k === "" ? v : decodeURIComponent(v)
       }
     )
+    for (let key in response) {
+      if (response.hasOwnProperty(key)) {
+        const keyDecoded = decodeURIComponent(key)
+        if (key !== keyDecoded) {
+          response[keyDecoded] = response[key]
+          delete response[key]
+        }
+      }
+    }
     Object.keys(response).forEach(function(key) {
       const matches = key.split(/[[\]]/).filter(Boolean)
       if (matches.length > 1) {
@@ -249,12 +257,12 @@ export function queryStringToObj(str) {
           if (!isFinalValue && /^\d+$/.test(matches[index + 1])) {
             keyType = []
           }
-          ref[nextKey] = ref[nextKey] || (isFinalValue ? tryTypeCastFromURL(response[key]) : keyType)
+          ref[nextKey] = ref[nextKey] || (isFinalValue ? tryTypeCastFromString(response[key]) : keyType)
           return ref[nextKey]
         }, response)
         delete response[key]
       } else {
-        response[key] = tryTypeCastFromURL(response[key])
+        response[key] = tryTypeCastFromString(response[key])
       }
     })
   }
@@ -385,26 +393,16 @@ export function onlyObjects(obj) {
   return typeof obj === "object" && !(obj instanceof Array)
 }
 
-export function values() {
-  const val = []
-  for (let key in this) {
-    if (this.hasOwnProperty(key)) {
-      val.push(this[key])
-    }
-  }
-  return val
-}
-
 export function onlyReactiveRecord() {
   if ("_isReactiveRecord" in this) {
     return this
   }
-  const chunks = values.call(this).filter(onlyObjects)
+  const chunks = Object.values(this).filter(onlyObjects)
   for (let i = 0; i < chunks.length; i++) {
     if ("_isReactiveRecord" in chunks[i]) {
       return chunks[i]
     }
-    chunks.push(...values.call(chunks[i]).filter(onlyObjects))
+    chunks.push(...Object.values(chunks[i]).filter(onlyObjects))
   }
 }
 

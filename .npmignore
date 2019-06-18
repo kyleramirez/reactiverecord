@@ -25,10 +25,12 @@ npm-debug.log*
 Temporary Items
 Thumbs.db
 # Ignored from repo
+src
 test
 .babelrc
 .eslintignore
 .eslintrc
+.prettierignore
 CHANGELOG.md
 README.md
 tests-and-docs.yaml

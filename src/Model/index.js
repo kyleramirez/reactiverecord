@@ -165,7 +165,10 @@ export default class Model {
   static find(key, _query = {}) {
     const query = typeof _query === "string" ? queryStringToObj(_query) : _query
     const { _primaryKey = "id" } = this.schema
-    const _attributes = Object.assign({ [_primaryKey]: key }, query)
+    const _attributes = { ...query }
+    if (key !== undefined) {
+      _attributes[_primaryKey] = key
+    }
     return this.dispatch({ action: "SHOW", _attributes })
   }
   static all(query = {}) {

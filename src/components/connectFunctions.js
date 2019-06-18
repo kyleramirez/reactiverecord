@@ -1,70 +1,76 @@
-import { Children } from "react"
 import Collection from "../ReactiveRecord/Collection"
-import { where, select, onlyReactiveRecord, queryStringToObj, values, pick, without } from "../utils"
+import { where, select, onlyReactiveRecord, queryStringToObj, pick, without } from "../utils"
 
-function defaultSelect() {
-  return true
-}
+export function mapStateToProps(type) {
+  return (state, { for: Model, find, where: _where, select: _select }) => {
+    const {
+      store: { singleton },
+      schema: { _primaryKey = "id" },
+      displayName
+    } = Model
+    const stateModels = onlyReactiveRecord.call(state)
 
-export function mapStateToProps(state, { for: Model, find, where: _where, select: _select = defaultSelect }) {
-  const {
-    store: { singleton },
-    schema: { _primaryKey = "id" },
-    displayName
-  } = Model
-  const stateModels = onlyReactiveRecord.call(state)
-
-  let whereQuery = _where ? (typeof _where === "string" ? queryStringToObj(_where) : _where) : {}
-  const schemaAttrs = Object.keys(without.call(Model.schema, "_primaryKey", "_timestamps"))
-  whereQuery = pick.call(whereQuery, ...schemaAttrs)
-
-  if (singleton || find) {
-    if (singleton) {
-      return {
-        resource: new Model(
-          {
-            ...stateModels[displayName]._attributes,
-            _errors: stateModels[displayName]._errors,
-            _request: stateModels[displayName]._request
-          },
-          true,
-          true
-        )
+    if (type === "Member") {
+      if (singleton) {
+        return {
+          resource: new Model(
+            {
+              ...stateModels[displayName]._attributes,
+              _errors: stateModels[displayName]._errors,
+              _request: stateModels[displayName]._request
+            },
+            true,
+            true
+          )
+        }
       }
-    }
-    const member = stateModels[displayName]._collection[find]
-    if (member) {
-      return {
-        resource: new Model(
-          {
-            ...member._attributes,
-            _errors: member._errors,
-            _request: member._request
-          },
-          true,
-          true
-        )
+      if (find !== undefined) {
+        const member = stateModels[displayName]._collection[find]
+        if (member) {
+          return {
+            resource: new Model(
+              {
+                ...member._attributes,
+                _errors: member._errors,
+                _request: member._request
+              },
+              true,
+              true
+            )
+          }
+        }
       }
+      return { resource: new Model({ _request: { status: null } }, false, true) }
     }
-    return { resource: new Model({ _request: { status: null } }, false, true) }
-  }
 
-  const { _collection, _request } = stateModels[displayName]
-  const transformedCollection = select.call(
-    where.call(
-      values
-        .call(_collection)
-        .map(({ _attributes, _request, _errors }) => new Model({ ..._attributes, _errors, _request }, true, true)),
-      whereQuery
-    ),
-    _select
-  )
-  return {
-    resource: new Collection({
-      _collection: transformedCollection,
-      _request,
-      _primaryKey
-    })
+    let whereQuery = null
+    if (_where) {
+      whereQuery = _where
+      if (typeof _where === "string") {
+        whereQuery = queryStringToObj(_where)
+      }
+      const schemaAttrs = Object.keys(without.call(Model.schema, "_primaryKey", "_timestamps"))
+      whereQuery = pick.call(whereQuery, ...schemaAttrs)
+    }
+
+    const { _collection, _request } = stateModels[displayName]
+    function modelFromStore({ _attributes, _request, _errors }) {
+      return new Model({ ..._attributes, _errors, _request }, true, true)
+    }
+    let transformedCollection = Object.values(_collection).map(modelFromStore)
+    if (whereQuery) {
+      transformedCollection = where.call(transformedCollection, whereQuery)
+    }
+    if (_select) {
+      transformedCollection = select.call(transformedCollection, _select)
+    }
+    return {
+      resource: new Collection({
+        _collection: transformedCollection,
+        _request,
+        _primaryKey
+      })
+    }
   }
 }
 
@@ -77,6 +83,6 @@ export const areStatesEqual = ({ for: { displayName } }) => (prev, next) => {
 }
 
 export function ReactiveResource({ children, resource }) {
-  return Children.only(children(resource))
+  return children(resource)
 }
 ReactiveResource.displayName = "ReactiveResource"
