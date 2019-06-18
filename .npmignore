@@ -31,6 +31,4 @@ test
 .eslintignore
 .eslintrc
 .prettierignore
-CHANGELOG.md
-README.md
 tests-and-docs.yaml

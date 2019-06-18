@@ -233,8 +233,8 @@ export function queryStringToObj(str) {
     response = JSON.parse(
       `{"${str
         .replace(/^\?/, "")
-        .replace(/&/g, '","')
-        .replace(/=/g, '":"')}"}`,
+        .replace(/&/g, "\",\"")
+        .replace(/=/g, "\":\"")}"}`,
       function(k, v) {
         return k === "" ? v : decodeURIComponent(v)
       }
