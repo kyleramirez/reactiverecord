@@ -25,7 +25,13 @@ export function mapStateToProps(type) {
         }
       }
       if (find !== undefined) {
-        const member = stateModels[displayName]._collection[find]
+        let member
+        if (typeof find === "function") {
+          const { _collection } = stateModels[displayName]
+          member = Object.values(_collection).find(find)
+        } else {
+          member = stateModels[displayName]._collection[find]
+        }
         if (member) {
           return {
             resource: new Model(

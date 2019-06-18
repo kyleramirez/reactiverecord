@@ -1,3 +1,8 @@
+### 0.6.3
+Prop updates
+- `Member` prop `find` now accepts a Function, which will be used to find the correct resource in the store
+- `Member` and `Collection` prop `then` and `catch` are now called before the next render
+- Fixed a bug that would incorrectly handle errors in API response
 ### 0.6.2
 Bug fix
 ### 0.6.1

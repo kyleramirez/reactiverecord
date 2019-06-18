@@ -126,23 +126,17 @@ export default class ReactiveRecord {
         }
       }
       xhr.addEventListener("load", e => {
-        const { status, response } = e.target
+        const { status, responseText } = e.target
         const { readyState } = xhr
         if (readyState === DONE) {
+          const body = !!responseText ? {} : JSON.parse(responseText)
           if (/20(0|1|2|4)/.test(status)) {
-            const data = status === 204 ? {} : JSON.parse(response)
-            this.handleSuccess(status, action, model, _primaryKey, actionName, modelName, resolve, data)
+            this.handleSuccess(status, action, model, _primaryKey, actionName, modelName, resolve, body)
             return
           }
-          const error = new Error()
-          error.status = status
-          error.response = response
-          this.handleError(actionName, modelName, _primaryKey, _attributes[_primaryKey], reject, error)
+          this.handleError(actionName, modelName, _primaryKey, _attributes[_primaryKey], reject, status, body)
         }
       })
-      xhr.addEventListener("error", error =>
-        this.handleError(actionName, modelName, _primaryKey, _attributes[_primaryKey], reject, error)
-      )
       if (method === "GET") {
         xhr.send()
         return
@@ -169,43 +163,23 @@ export default class ReactiveRecord {
       const _collection = data.map(attrs => new model({ ...attrs, _request }, true))
       resource = new Collection({ _collection, _request, _primaryKey })
     }
-    this.dispatch({
-      ...resource.serialize(),
-      type: `@OK_${actionName}(${modelName})`
-    })
     resolve(resource)
+    setTimeout(() => this.dispatch({ ...resource.serialize(), type: `@OK_${actionName}(${modelName})` }), 0)
   }
 
-  handleError(actionName, modelName, _primaryKey, key, reject, error) {
-    const { status, response } = error
-    /* 
-     *  If the error does not have a response property,
-     *  it's a generic error, which should be rejected
-     *  immediately.
-     */
-    if (!response) {
-      return reject(error)
+  handleError(actionName, modelName, _primaryKey, key, reject, status, body) {
+    const wasCollection = actionName === "INDEX"
+    const hasErrors = body.hasOwnProperty("errors")
+    const _request = { status, body }
+    const _errors = hasErrors ? body.errors : {}
+    const errorObj = { _request }
+    if (!wasCollection && key !== undefined) {
+      errorObj._attributes = { [_primaryKey]: key }
     }
-    const handleBody = body => {
-      const wasCollection = actionName === "INDEX"
-      const hasErrors = body.hasOwnProperty("errors")
-      const _request = { status, body }
-      const _errors = hasErrors ? body.errors : {}
-      const errorObj = { _request }
-
-      if (!wasCollection && key !== undefined) {
-        errorObj._attributes = { [_primaryKey]: key }
-      }
-      if (hasErrors) {
-        errorObj._errors = _errors
-      }
-      this.dispatch({ ...errorObj, type: `@ERROR_${actionName}(${modelName})` })
-      reject(errorObj)
+    if (hasErrors) {
+      errorObj._errors = _errors
     }
-
-    response
-      .json()
-      .then(handleBody)
-      .catch(() => handleBody({ message: "Error processing JSON response." }))
+    reject(errorObj)
+    setTimeout(()=>this.dispatch({ ...errorObj, type: `@ERROR_${actionName}(${modelName})` }), 0)
   }
 }

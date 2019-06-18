@@ -167,7 +167,9 @@ export default class Model {
     const { _primaryKey = "id" } = this.schema
     const _attributes = { ...query }
     if (key !== undefined) {
-      _attributes[_primaryKey] = key
+      if (typeof key !== "function") {
+        _attributes[_primaryKey] = key
+      }
     }
     return this.dispatch({ action: "SHOW", _attributes })
   }
