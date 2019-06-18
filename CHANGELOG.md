@@ -1,3 +1,5 @@
+### 0.6.1
+Bug fix
 ## 0.6.0
 Performance updates
 - Fixed issue that hid some uncaught errors

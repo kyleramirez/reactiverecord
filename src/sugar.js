@@ -25,7 +25,7 @@
   var INSTANCE = 2;
   var PROPERTY_DESCRIPTOR_SUPPORT = !!(Object.defineProperty && Object.defineProperties);
   var globalContext = typeof global !== "undefined" && global.Object === Object ? global : this;
-  var hasExports = typeof module !== "undefined" && module.exports;
+  // var hasExports = typeof module !== "undefined" && module.exports;
   var allowObjectPrototype = false;
   var namespacesByName = {};
   var namespacesByClassString = {};
@@ -44,14 +44,18 @@
       });
       return Sugar;
     };
-    if (hasExports) {
-      module.exports = Sugar;
-    } else {
-      try {
-        globalContext[SUGAR_GLOBAL] = Sugar;
-      } catch (e) {
-      }
-    }
+    // if (hasExports) {
+    //   module.exports = Sugar;
+    // } else {
+    //   try {
+    //     globalContext[SUGAR_GLOBAL] = Sugar;
+    //   } catch (e) {
+    //   }
+    // }
+    Object.defineProperty(exports, "__esModule", {
+      value: true
+    });
+    exports.default = Sugar;
     forEachProperty(NATIVE_NAMES.split(" "), function(name) {
       createNamespace(name);
     });
