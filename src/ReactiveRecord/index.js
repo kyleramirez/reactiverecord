@@ -129,8 +129,8 @@ export default class ReactiveRecord {
         const { status, responseText } = e.target
         const { readyState } = xhr
         if (readyState === DONE) {
-          const body = !!responseText ? {} : JSON.parse(responseText)
-          if (/20(0|1|2|4)/.test(status)) {
+          const body = !!responseText ? JSON.parse(responseText) : {}
+          if (199 < status && status < 400) {
             this.handleSuccess(status, action, model, _primaryKey, actionName, modelName, resolve, body)
             return
           }
@@ -180,6 +180,6 @@ export default class ReactiveRecord {
       errorObj._errors = _errors
     }
     reject(errorObj)
-    setTimeout(()=>this.dispatch({ ...errorObj, type: `@ERROR_${actionName}(${modelName})` }), 0)
+    setTimeout(() => this.dispatch({ ...errorObj, type: `@ERROR_${actionName}(${modelName})` }), 0)
   }
 }

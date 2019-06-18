@@ -9,26 +9,19 @@ export function mapStateToProps(type) {
       displayName
     } = Model
     const stateModels = onlyReactiveRecord.call(state)
+    function modelFromStore({ _attributes, _request, _errors }) {
+      return new Model({ ..._attributes, _errors, _request }, true, true)
+    }
 
     if (type === "Member") {
       if (singleton) {
-        return {
-          resource: new Model(
-            {
-              ...stateModels[displayName]._attributes,
-              _errors: stateModels[displayName]._errors,
-              _request: stateModels[displayName]._request
-            },
-            true,
-            true
-          )
-        }
+        return { resource: modelFromStore(stateModels[displayName]) }
       }
       if (find !== undefined) {
         let member
         if (typeof find === "function") {
           const { _collection } = stateModels[displayName]
-          member = Object.values(_collection).find(find)
+          member = Object.values(_collection).find(storeResource => find(modelFromStore(storeResource)))
         } else {
           member = stateModels[displayName]._collection[find]
         }
@@ -60,9 +53,6 @@ export function mapStateToProps(type) {
     }
 
     const { _collection, _request } = stateModels[displayName]
-    function modelFromStore({ _attributes, _request, _errors }) {
-      return new Model({ ..._attributes, _errors, _request }, true, true)
-    }
     let transformedCollection = Object.values(_collection).map(modelFromStore)
     if (whereQuery) {
       transformedCollection = where.call(transformedCollection, whereQuery)

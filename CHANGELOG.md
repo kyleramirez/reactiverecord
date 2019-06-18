@@ -1,3 +1,5 @@
+### 0.6.4
+Bug fix
 ### 0.6.3
 Prop updates
 - `Member` prop `find` now accepts a Function, which will be used to find the correct resource in the store
