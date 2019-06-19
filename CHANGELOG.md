@@ -1,4 +1,6 @@
-### 0.7.0
+### 0.7.1
+Query string parsing now supports arrays via the `key[]=value` format.
+## 0.7.0
 Inflections updates
 - Specify label text in schema descriptors. An attribute called `address1` can have a different default label than "Address1."
 

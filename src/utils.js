@@ -181,6 +181,16 @@ export function diff(...subjects) {
   return diff
 }
 
+function arrayToQueryString(array, key) {
+  return array.reduce(function(final, value) {
+    const delimiter = final ? "&" : ""
+    if (Object(value) === value) {
+      throw new TypeError("Arrays may only contain primitive types.")
+    }
+    return `${final}${delimiter}${key}%5B%5D=${encodeURIComponent(value)}`
+  }, "")
+}
+
 export function objToQueryString(obj, keyPrefix = "") {
   return Object.keys(obj).reduce((final, current) => {
     let delimiter = "?"
@@ -194,7 +204,7 @@ export function objToQueryString(obj, keyPrefix = "") {
     let key = keyPrefix ? `${keyPrefix}%5B${encodeURIComponent(current)}%5D` : encodeURIComponent(current)
     let value = null
     if (typeof initialValue === "object" && initialValue !== null && !isEmptyObject.call(initialValue)) {
-      value = objToQueryString(initialValue, key)
+      value = Array.isArray(initialValue) ? arrayToQueryString(initialValue, key) : objToQueryString(initialValue, key)
       return `${final}${delimiter}${value}`
     } else {
       value = encodeURIComponent(obj[current])
@@ -228,39 +238,32 @@ function tryTypeCastFromString(item) {
 export function queryStringToObj(str) {
   let response = {}
   if (str) {
-    response = JSON.parse(
-      `{"${str
-        .replace(/^\?/, "")
-        .replace(/&/g, '","')
-        .replace(/=/g, '":"')}"}`,
-      function(k, v) {
-        return k === "" ? v : decodeURIComponent(v)
-      }
-    )
-    for (let key in response) {
-      if (response.hasOwnProperty(key)) {
-        const keyDecoded = decodeURIComponent(key)
-        if (key !== keyDecoded) {
-          response[keyDecoded] = response[key]
-          delete response[key]
-        }
-      }
-    }
-    Object.keys(response).forEach(function(key) {
-      const matches = key.split(/[[\]]/).filter(Boolean)
-      if (matches.length > 1) {
-        matches.reduce((ref, nextKey, index) => {
-          let keyType = {}
-          const isFinalValue = index + 1 === matches.length
-          if (!isFinalValue && /^\d+$/.test(matches[index + 1])) {
-            keyType = []
+    str
+      .replace(/^\?/, "")
+      .split(/&/g)
+      .forEach(function(keyValue) {
+        const [key, value] = keyValue.split("=").map(string => decodeURIComponent(string).replace(/\+/g, " "))
+        if (value) {
+          if (key.slice(-2) === "[]") {
+            const keyWithoutArray = key.slice(0, -2)
+            response[keyWithoutArray] = response[keyWithoutArray] || []
+            response[keyWithoutArray].push(value)
+          } else {
+            response[key] = value
           }
-          ref[nextKey] = ref[nextKey] || (isFinalValue ? tryTypeCastFromString(response[key]) : keyType)
+        }
+      })
+    Object.keys(response).forEach(function(key) {
+      const properties = key.split(/[[\]]/).filter(Boolean)
+      if (properties.length > 1) {
+        properties.reduce((ref, nextKey, index) => {
+          const isFinalValue = index + 1 === properties.length
+          ref[nextKey] = ref[nextKey] || (isFinalValue ? tryTypeCastFromString(response[key]) : {})
           return ref[nextKey]
         }, response)
         delete response[key]
       } else {
-        response[key] = tryTypeCastFromString(response[key])
+        response[key] = response[key] || tryTypeCastFromString(response[key])
       }
     })
   }
