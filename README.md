@@ -1,4 +1,8 @@
-# Reactive Record — Declarative models in React
+# Reactive Record
+[![npm version](https://img.shields.io/npm/v/reactiverecord.svg?style=flat-square)](https://www.npmjs.com/package/reactiverecord)
+[![npm downloads](https://img.shields.io/npm/dm/reactiverecord.svg?style=flat-square)](https://www.npmjs.com/package/reactiverecord)
+
+Communicate with JSON APIs in React
 
 ## What does it do?
 All on its own, Reactive Record is a front-end-only Object Data-store Mapping (ODM) implementation that lets you interact with RESTful APIs. By defining models on the front end and integrating closely with the popular state container, Redux, Reactive Record offers a Ruby-on-Rails-esque, Active Record-ey syntax. Think Active Record for JavaScript. Reactive Record is agnostic to back-end architecture. It's built for APIs which respond to GET/POST/POST/DELETE requests for resources identified by predefined keys, so Rails, Express, Sinatra, CouchDB UNAMEIT! Reactive Record allows you to write syntax like this:
