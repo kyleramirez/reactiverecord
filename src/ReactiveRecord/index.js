@@ -42,7 +42,7 @@ export default class ReactiveRecord {
     // Interpolate the model's schema
     const { schema = {} } = modelClass
     /* eslint-disable guard-for-in */
-    for (let prop in schema) {
+    for (let prop in without.call(schema, "_primaryKey")) {
       /* eslint-enable guard-for-in */
       const hasDescriptor = typeof schema[prop] === "object" && schema[prop].hasOwnProperty("type")
       if (!hasDescriptor) {

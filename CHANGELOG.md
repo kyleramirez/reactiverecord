@@ -1,3 +1,5 @@
+### 0.7.2
+Bug fix
 ### 0.7.1
 Query string parsing now supports arrays via the `key[]=value` format.
 ## 0.7.0
