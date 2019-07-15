@@ -6,7 +6,6 @@ nav_exclude: true
 
 ### {{ site.description }}
 
-
 ```jsx
 function Posts(params) {
   return (
