@@ -8,6 +8,7 @@ aux_links:
     - https://github.com/kyleramirez/reactiverecord
   NPM:
     - https://www.npmjs.com/package/reactiverecord
+search_enabled: true
 # Build settings
 markdown: kramdown
 permalink: /:categories/:title
