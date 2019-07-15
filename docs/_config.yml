@@ -9,8 +9,8 @@ github_username:  jekyll
 
 # Build settings
 markdown: kramdown
+permalink: /:categories/:title
 remote_theme: pmarsceill/just-the-docs
-theme: just-the-docs
 plugins:
   - jekyll-feed
 aux_links:
