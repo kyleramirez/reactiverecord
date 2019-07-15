@@ -16,6 +16,10 @@
 $RECYCLE.BIN/
 Desktop.ini
 dist
+docs/_site
+docs/.jekyll-metadata
+docs/.ruby-gemset
+docs/.sass-cache
 ehthumbs.db
 Icon
 logs

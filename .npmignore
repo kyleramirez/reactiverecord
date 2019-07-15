@@ -16,6 +16,10 @@
 $RECYCLE.BIN/
 Desktop.ini
 
+
+
+
+
 ehthumbs.db
 Icon
 logs
@@ -27,8 +31,8 @@ Thumbs.db
 # Ignored from repo
 src
 test
+docs
 .babelrc
 .eslintignore
 .eslintrc
 .prettierignore
-tests-and-docs.yaml
