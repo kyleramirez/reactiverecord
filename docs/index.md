@@ -2,7 +2,8 @@
 layout: home
 nav_exclude: true
 ---
-# Reactive Record [![npm version](https://img.shields.io/npm/v/reactiverecord.svg?style=flat-square)](https://www.npmjs.com/package/reactiverecord) [![npm downloads](https://img.shields.io/npm/dm/reactiverecord.svg?style=flat-square)](https://www.npmjs.com/package/reactiverecord)
+# Reactive Record
+[![npm version](https://img.shields.io/npm/v/reactiverecord.svg?style=flat-square)](https://www.npmjs.com/package/reactiverecord) [![npm downloads](https://img.shields.io/npm/dm/reactiverecord.svg?style=flat-square)](https://www.npmjs.com/package/reactiverecord)
 
 ### {{ site.description }}
 
