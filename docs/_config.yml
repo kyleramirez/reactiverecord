@@ -1,20 +1,16 @@
 title: Reactive Record
 email: kyle@reactiverecord.com
-description: >-
-  Communicate with JSON APIs in React.
-baseurl: "" # the subpath of your site, e.g. /blog
-url: "" # the base hostname & protocol for your site, e.g. http://example.com
-twitter_username: jekyllrb
-github_username:  jekyll
-
+description: Communicate with JSON APIs in React.
+baseurl:
+url: https://reactiverecord.com
+aux_links:
+  GitHub:
+    - https://github.com/kyleramirez/reactiverecord
+  NPM:
+    - https://www.npmjs.com/package/reactiverecord
 # Build settings
 markdown: kramdown
 permalink: /:categories/:title
 remote_theme: pmarsceill/just-the-docs
 plugins:
   - jekyll-feed
-aux_links:
-  GitHub:
-    - https://github.com/kyleramirez/reactiverecord
-  NPM:
-    - https://www.npmjs.com/package/reactiverecord
