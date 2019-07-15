@@ -1,5 +1,5 @@
 <nav role="navigation" aria-label="Main navigation">
-  {% assign grouped_pages_list = site.html_pages | sort:"nav_order" | group_by: "category" %}
+  {% assign grouped_pages_list = site.posts | where_exp: "item", "item.category != nil" | sort:"nav_order" | group_by: "category" %}
   {% for group in grouped_pages_list %}
     {% assign publishable_links = group.items | where_exp: "item", "item.nav_exclude == nil" %}
     {% if publishable_links.size > 0 %}

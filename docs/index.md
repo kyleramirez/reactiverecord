@@ -32,10 +32,17 @@ return (
 ```
 > &#9495; <span class="label">GET</span> `/products/24` 200 OK
 
+<div class="text-center mt-7">
+  <a class="btn" href="{% post_url guides/2019-07-14-getting-started %}">
+    Getting Started Guide &raquo;
+  </a>
+</div>
+
 ---
 
-### Recent Posts
-{% for post in site.posts %}
+### News
+{% assign posts = site.posts | where: "layout", "post" %}
+{% for post in posts %}
 ### [{{ post.title }}]({{ post.url }})
 {{ post.excerpt }}
 {% endfor %}
