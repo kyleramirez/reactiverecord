@@ -88,7 +88,7 @@ export function setWriteableProps(attrs) {
   const { constructor } = this
   const { schema, prototype } = constructor
   /* eslint-disable guard-for-in */
-  for (let prop in without.call(schema, "_primaryKey")) {
+  for (let prop in without.call(schema, "_primaryKey", "_timestamps")) {
     // Establish initial value but fallback to default value
     const initialValue = JSON.parse(JSON.stringify(attrs.hasOwnProperty(prop) ? attrs[prop] : null))
     // Establish type from descriptor
@@ -321,7 +321,7 @@ export function getRouteAttributes(action, query) {
 export function setDefaultValues(attrs) {
   const { schema } = this.constructor
   /* eslint-disable guard-for-in */
-  for (let prop in schema) {
+  for (let prop in without.call(schema, "_primaryKey", "_timestamps")) {
     /* eslint-enable guard-for-in */
     const hasInitialValue = attrs.hasOwnProperty(prop)
     if (hasInitialValue) {

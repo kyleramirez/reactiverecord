@@ -42,7 +42,7 @@ export default class ReactiveRecord {
     // Interpolate the model's schema
     const { schema = {} } = modelClass
     /* eslint-disable guard-for-in */
-    for (let prop in without.call(schema, "_primaryKey")) {
+    for (let prop in without.call(schema, "_primaryKey", "_timestamps")) {
       /* eslint-enable guard-for-in */
       const hasDescriptor = typeof schema[prop] === "object" && schema[prop].hasOwnProperty("type")
       if (!hasDescriptor) {
@@ -126,8 +126,19 @@ export default class ReactiveRecord {
       const { headers, ...apiConfig } = this.API
       const routeTemplate = model.routes[actionName.toLowerCase()]
       const method = ACTION_METHODS[actionName.toLowerCase()]
-      const query = method === "GET" ? _attributes : without.call(_attributes, ...Object.keys(model.schema))
-      const body = method === "GET" ? {} : pick.call(_attributes, ...Object.keys(model.schema))
+      const schemaAttrs = Object.keys(without.call(model.schema, "_primaryKey", "_timestamps"))
+      /** 
+       * The query string should contain...
+       * for GET requests: all given attributes
+       * for non-GET requests: any attributes not defined in the model schema
+       */
+      const query = method === "GET" ? _attributes : without.call(_attributes, ...schemaAttrs)
+      /** 
+       * The request body should contain...
+       * for GET requests: nothing
+       * for non-GET requests: any attributes defined in the model schema
+       */
+      const body = method === "GET" ? {} : pick.call(_attributes, ...schemaAttrs)
       if (!routeTemplate) {
         throw new ROUTE_NOT_FOUND_ERROR()
       }

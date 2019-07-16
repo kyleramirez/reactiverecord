@@ -1,3 +1,5 @@
+### 0.7.3
+Bug fix: `_timestamps` attribute was visible in serialized model attributes.
 ### 0.7.2
 Bug fix
 ### 0.7.1

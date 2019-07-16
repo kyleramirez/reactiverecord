@@ -2,7 +2,7 @@ import { without } from "../utils"
 
 export default class Errors {
   constructor({ _schema, ...errors }) {
-    this._schema = without.call(_schema, "_timestamps")
+    this._schema = without.call(_schema, "_primaryKey", "_timestamps")
     Object.keys(_schema).map(attr => (this[attr] = errors[attr] || []))
   }
   clear() {
