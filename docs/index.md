@@ -16,8 +16,20 @@ Welcome to your RESTful API's fully-built JS SDK. Reactive Record is a small col
 
 &hellip; any type of resource in React. It's the missing link between your API and React, and the perfect companion to your Ruby on Rails application!
 
+## Watch the talk at React Chicago!
+{: .text-alpha }
+<style>
+  .responsive-yt-embed {position: relative;overflow: hidden;height:0;padding-bottom: 56.25%;}
+  .responsive-yt-embed iframe, .responsive-yt-embed object, .responsive-yt-embed embed {position: absolute;top: 0;left: 0;width: 100%;height: 100%;}
+</style>
+<div style="max-width: 600px">
+  <div class="responsive-yt-embed" style="width:100%;height:auto;">
+    <iframe src="https://www.youtube-nocookie.com/embed/n0iL0trBbA8" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+  </div>
+</div>
+
 ### 🎉 Readable interface
-{: .text-red-300 }
+{: .text-red-300 .mt-6 }
 Use syntax simlar to Rails' ActiveRecord query interface to interact with RESTful endpoints:
 ```js
 > Product.create({ title: "Wooden desk", price: "20.00" })
@@ -41,8 +53,8 @@ return (
 > &#9495; <span class="label">GET</span> `/products/24` 200 OK
 
 <div class="text-center mt-7">
-  <a class="btn" href="{% post_url guides/2019-07-14-getting-started %}">
-    Getting Started Guide &raquo;
+  <a class="btn btn-lg" href="{% post_url guides/2019-07-14-getting-started %}">
+    Get Started &raquo;
   </a>
 </div>
 
