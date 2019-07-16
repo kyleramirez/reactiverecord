@@ -9,6 +9,8 @@ nav_order: 1
 {: .no_toc }
 In this guide, you will learn the minimum required configuration to get Reactive Record up and running in your React application. Reactive Record is still evolving, but a lot has been done to require the least amount of boilerplate code on your part to get going. If you are building a new application, you will find examples below that assume no existing configuration.
 
+#### Contents
+{: .no_toc .mt-6 }
 1. TOC
 {:toc}
 

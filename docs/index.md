@@ -54,4 +54,3 @@ return (
 ### [{{ post.title }}]({{ post.url }})
 {{ post.excerpt }}
 {% endfor %}
-
