@@ -6,7 +6,15 @@ nav_exclude: true
 [![npm version](https://img.shields.io/npm/v/reactiverecord.svg?style=flat-square)](https://www.npmjs.com/package/reactiverecord) [![npm downloads](https://img.shields.io/npm/dm/reactiverecord.svg?style=flat-square)](https://www.npmjs.com/package/reactiverecord)
 
 ### {{ site.description }}
-Your RESTful API's very own custom SDK — the missing link between your API and React!
+Welcome to your RESTful API's fully-built JS SDK. Reactive Record is a small collection of JS tools and React components that help you &hellip;
+
+- **C**reate
+- **R**ead
+- **U**pdate
+- **D**elete
+- Validate
+
+&hellip; any type of resource in React. It's the missing link between your API and React, and the perfect companion to your Ruby on Rails application!
 
 ### 🎉 Readable interface
 {: .text-red-300 }
