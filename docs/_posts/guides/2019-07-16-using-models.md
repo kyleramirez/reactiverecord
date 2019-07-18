@@ -1,11 +1,11 @@
 ---
 layout: page
-title: Creating Models
+title: Using Models
 date:   2019-07-16 00:19:00 -0400
 category: Guides
 nav_order: 2
 ---
-# Creating Models
+# Using Models
 {: .no_toc }
 Reactive Record interacts with JSON APIs using predefined models and schemas, which represent resources in your application, and usually map to records in your application's database. It's similar to the purpose of creating models in a model-view-controller framework.
 
@@ -205,7 +205,7 @@ Calling `.destroy()` on the `#<Comment>` triggered a `DELETE` request to the API
 At this point, you've created your first model and started making some API requests to a test API. The possibilities must seem endless. If your wheels aren't spinning already, just wait. We're about to demonstrate how to perform these same type of requests in JSX, using the included components!
 
 <div class="text-center mt-7">
-  <a class="btn" href="#">
+  <a class="btn" href="{% post_url guides/2019-07-17-using-member-and-collection %}">
     Retrieve records with JSX
   </a>
 </div>

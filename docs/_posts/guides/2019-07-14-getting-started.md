@@ -169,7 +169,7 @@ root-directory/
 We went over the minimum required boilerplate to get Reactive Record up and running. If you've made it this far, awesome! Reactive Record is ready to go, but there are no models defined, so nothing useful has happened yet. Continue to the next guide to get started with models.
 
 <div class="text-center mt-7">
-  <a class="btn" href="{% post_url guides/2019-07-16-creating-models %}">
+  <a class="btn" href="{% post_url guides/2019-07-16-using-models %}">
     Create your first model &raquo;
   </a>
 </div>
