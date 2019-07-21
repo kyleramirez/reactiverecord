@@ -5,7 +5,7 @@ baseurl:
 url: https://reactiverecord.com
 aux_links:
   GitHub:
-    - https://github.com/kyleramirez/reactiverecord
+    - https://github.com/reactiverecord/reactiverecord
   NPM:
     - https://www.npmjs.com/package/reactiverecord
 search_enabled: true
