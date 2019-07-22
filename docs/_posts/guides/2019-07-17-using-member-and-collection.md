@@ -31,7 +31,7 @@ These components are React implementations of the same query interface in the [p
     </p>
     <ol>
       <li>Your component mounted, calling <code class="text-red-000">componentDidMount()</code> on your React Component, which called <code class="text-red-000">this.props.LOAD_COMMENTS()</code></li>
-      <li><code class="text-red-000">LOAD_COMMENTS()</code> was a function you wrote and passed in as the <code class="text-red-000">mapDispatchToProps</code> argument for the <code class="text-red-000">connect()</code> function. It dispatches an action for which your Redux middeware and reducer are listening, and triggers an asynchronous API request.</li>
+      <li><code class="text-red-000">LOAD_COMMENTS()</code> was a function you wrote and passed in as the <code class="text-red-000">mapDispatchToProps</code> argument for the <code class="text-red-000">connect()</code> function. It dispatches an action for which your Redux middleware and reducer are listening, and triggers an asynchronous API request.</li>
       <li>When the request succeeded, you dispatched a <code class="text-red-000">COMMENTS_LOADED</code> action, which stored the comments in state.</li>
       <li>The state change was passed to a <code class="text-red-000">mapStateToProps</code> function, which provided your component with a prop you named <code class="text-red-000">comments</code>.</li>
       <li>The comments are rendered.</li>
@@ -127,7 +127,7 @@ The `<Member />` component behaves very similarly to `<Collection />`. By passin
 | <samp>catch</samp> | Function | When present, is chained to the end of the request Promise. This function will be called immediately before results from a error response are rendered, or if any type of error occurs processing the request or response. Example: `catch={() => this.setState({ hasError: true })}` | No |
 
 ## Component Organization
-Following the [suggested file layout]({% post_url guides/2019-07-14-getting-started %}#suggested-file-layout), you should try to keep your components which use the `<Member />` and `<Collection />` components in the `/containers` directory only. This is a suggestion to help you separate concerns in your React application. Only route-based components should be making API requests. Components in the `/resources` directory should be concerned with rendering resources only. This helps make components in the `/resources` directory more portable, able to be used in different contexts, such as in tests or in other builds where the default `XMLHttpRequest` used in Reactive Record may not be available, such as when prerendering component on the server. Components in `/resources` should have a guarantee that the resource prop they receive is already loaded, whereas components in the `/containers` directory are responsible for loading the resources. Thus, the components in the `/containers` directory serve a similar purpose to a controller in a model-view-controller framework.
+Following the [suggested file layout]({% post_url guides/2019-07-14-getting-started %}#suggested-file-layout), you should try to keep your components which use the `<Member />` and `<Collection />` components in the `/containers` directory only. This is a suggestion to help you separate concerns in your React application. Only route-based components should be making API requests. Components in the `/resources` directory should be concerned with rendering resources only. This helps make components in the `/resources` directory more portable, able to be used in different contexts, such as in tests or in other builds where the default `XMLHttpRequest` used in Reactive Record may not be available, such as when rendering components on the server. Components in `/resources` should have a guarantee that the resource prop they receive is already loaded, whereas components in the `/containers` directory are responsible for loading the resources. Thus, the components in the `/containers` directory serve a similar purpose to a controller in a model-view-controller framework.
 
 Consider the following flow:
 1. A user navigates to the `/cart` page in the browser.
@@ -153,10 +153,10 @@ Consider the following flow:
 1. The component in `/resources/carts/Cart.js` accepts one prop, a `#<Cart>`. No logic should exist in this component to check if the cart is loaded in the browser environment. It should be guaranteed that by the time this component is rendered, a `#<Cart>` exists and is ready to be rendered.
 
 ## Summary
-We've gone over the basic usage of `<Member />` and `<Collection />`. These components should save you a ton of boilerplate code used to retrieve records from an API endpoint. Gone are the days of writing repetetive actions, dispatchers, reducers and `mapStateToProps` functions. But we're missing a key aspect of a basic CRUD application: the ability to create and update resources. Our next step is to use the included `<Form />` component to do this in readable, composable JSX!
+We've gone over the basic usage of `<Member />` and `<Collection />`. These components should save you a ton of boilerplate code used to retrieve records from an API endpoint. Gone are the days of writing repetitive actions, dispatchers, reducers and `mapStateToProps` functions. But we're missing a key aspect of a basic CRUD application: the ability to create and update resources. Our next step is to use the included `<Form />` component to do this in readable, composable JSX!
 
 <div class="text-center mt-7">
-  <a class="btn" href="#">
-    Use the &lt;Form /&gt; component
+  <a class="btn" href="{% post_url guides/2019-07-19-using-form %}">
+    Use the Form component
   </a>
 </div>

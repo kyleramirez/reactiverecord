@@ -57,7 +57,7 @@ Here's an example reducer file which contains your existing application logic.
 
 **<small>reducer.js</small>**
 {: .m-0 .text-mono .text-grey-dk-000 }
-```js
+```javascript
 export default function yourReducer(state = {}, action) {
   ...
 }
@@ -66,7 +66,7 @@ Add ReactiveRecord to your reducer by using `combineReducers` from the Redux lib
 
 **<small>reducer.js</small>**
 {: .m-0 .text-mono .text-grey-dk-000 }
-```js
+```javascript
 import { combineReducers } from "redux"
 import ReactiveRecord, { reducer } from "reactiverecord"
 
@@ -84,7 +84,7 @@ If you don't have an existing reducer, create a new file:
 
 **<small>reducer.js</small>**
 {: .m-0 .text-mono .text-grey-dk-000 }
-```js
+```javascript
 import ReactiveRecord, { reducer } from "reactiverecord"
 export default reducer.call(ReactiveRecord)
 ```
@@ -95,7 +95,7 @@ If you have existing middleware in your application, it likely looks something l
 
 **<small>middleware.js</small>**
 {: .m-0 .text-mono .text-grey-dk-000 }
-```js
+```javascript
 import { compose, applyMiddleware } from "redux"
 const yourMiddleware = store => next => action => {
   ...
@@ -106,7 +106,7 @@ Add ReactiveRecord to your middleware as an extra argument to `applyMiddleware`.
 
 **<small>middleware.js</small>**
 {: .m-0 .text-mono .text-grey-dk-000 }
-```js
+```javascript
 import { compose, applyMiddleware } from "redux"
 import ReactiveRecord, { middleware } from "reactiverecord"
 const yourMiddleware = store => next => action => {
@@ -118,7 +118,7 @@ If you don't have an existing middleware, create a new file:
 
 **<small>middleware.js</small>**
 {: .m-0 .text-mono .text-grey-dk-000 }
-```js
+```javascript
 import { compose, applyMiddleware } from "redux"
 import ReactiveRecord, { middleware } from "reactiverecord"
 export default compose(applyMiddleware(middleware.call(ReactiveRecord)), __REDUX_DEVTOOLS_EXTENSION__)
@@ -130,7 +130,7 @@ Bringing both the reducer and middlewares together, your createStore call looks 
 
 **<small>store.js</small>**
 {: .m-0 .text-mono .text-grey-dk-000 }
-```js
+```javascript
 import { createStore } from "redux"
 import reducer from "reducer"
 import middleware from "middleware"

@@ -31,7 +31,7 @@ Welcome to your RESTful API's fully-built JS SDK. Reactive Record is a small col
 ### 🎉 Readable interface
 {: .text-red-300 .mt-6 }
 Use syntax simlar to Rails' ActiveRecord query interface to interact with RESTful endpoints:
-```js
+```javascript
 > Product.create({ title: "Wooden desk", price: "20.00" })
 ```
 > &#9495; <span class="label">POST</span> `/products` 201 Created
