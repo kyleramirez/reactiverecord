@@ -1,3 +1,5 @@
+### 0.7.4
+Bug fix: Fixes `window.postMessage` cloning, JSON parsing errors
 ### 0.7.3
 Bug fix: `_timestamps` attribute was visible in serialized model attributes.
 ### 0.7.2

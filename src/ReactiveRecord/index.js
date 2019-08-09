@@ -12,6 +12,14 @@ import collectionReducer from "../reducer/collectionReducer"
 import Collection from "./Collection"
 import Sugar from "../sugar"
 
+function parseIt(text) {
+  try {
+    return JSON.parse(text)
+  } catch(error) {
+    return { error: error.message }
+  }
+}
+
 export default class ReactiveRecord {
   models = {}
   model(modelStr, modelClass = false) {
@@ -163,7 +171,7 @@ export default class ReactiveRecord {
         const { status, responseText } = e.target
         const { readyState } = xhr
         if (readyState === DONE) {
-          const body = !!responseText ? JSON.parse(responseText) : {}
+          const body = !!responseText ? parseIt(responseText) : {}
           if (199 < status && status < 400) {
             this.handleSuccess(status, action, model, _primaryKey, actionName, modelName, resolve, body)
             return

@@ -9,16 +9,21 @@ export default class Collection extends Array {
 
     this._primaryKey = _primaryKey || null
 
-    this.reload = query => this._request.reload(query)
+    Object.defineProperty(this, "reload", {
+      value: query => this._request.reload(query),
+      enumerable: false
+    })
 
-    this.serialize = () =>
-      skinnyObject({
+    Object.defineProperty(this, "serialize", {
+      value: () => skinnyObject({
         _request: this._request.serialize(),
         _collection: this.reduce(function(collection, member) {
           const { [_primaryKey]: key } = member
           collection[key] = member.serialize()
           return collection
         }, {})
-      })
+      }),
+      enumerable: false
+    })
   }
 }
