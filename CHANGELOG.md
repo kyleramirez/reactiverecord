@@ -1,3 +1,5 @@
+### 0.7.5
+Bug fix: Form field should not generate fields for `_primaryKey` or `_timestamps`
 ### 0.7.4
 Bug fix: Fixes `window.postMessage` cloning, JSON parsing errors
 ### 0.7.3

@@ -56,7 +56,7 @@ export default class Form extends Component {
   buildFieldProps = (schema, validations, fieldsObj, resource = {}) => {
     const { fieldsFor } = this
     const defaultProps = { fieldsFor, ...this.applyBuilder(resource, fieldsObj) }
-    return Object.keys(schema).reduce((form, field) => {
+    return Object.keys(without.call(schema, "_primaryKey", "_timestamps")).reduce((form, field) => {
       const { type, labelText } = schema[field]
       const name = type.displayName || type.name
       if (name !== "Object" && !/^(_timestamps|_primaryKey|user_?[iI]d)$/.test(field)) {
