@@ -203,7 +203,7 @@ export function objToQueryString(obj, keyPrefix = "") {
     const initialValue = obj[current]
     let key = keyPrefix ? `${keyPrefix}%5B${encodeURIComponent(current)}%5D` : encodeURIComponent(current)
     let value = null
-    if (typeof initialValue === "object" && initialValue !== null && !isEmptyObject.call(initialValue)) {
+    if (typeof initialValue === "object" && initialValue !== null && !isEmptyObject(initialValue)) {
       value = Array.isArray(initialValue) ? arrayToQueryString(initialValue, key) : objToQueryString(initialValue, key)
       return `${final}${delimiter}${value}`
     } else {
@@ -414,16 +414,9 @@ export function handleFormEvent(attr, arg) {
   return Promise.resolve(arg)
 }
 
-export function triggerEventForProps(type, e) {
-  const fn = this.props[`on${type}`]
-  if (typeof fn === "function") {
-    fn.call(this, e)
-  }
-}
-
-export function isEmptyObject() {
+export function isEmptyObject(object) {
   /* eslint-disable guard-for-in */
-  for (let name in this) {
+  for (let name in object) {
     /* eslint-enable guard-for-in */
     return false
   }
