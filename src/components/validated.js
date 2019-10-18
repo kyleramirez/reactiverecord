@@ -1,7 +1,6 @@
 import React, { Component } from "react"
-import { without, triggerEventForProps, isEmptyObject } from "../utils"
+import { without, isEmptyObject } from "../utils"
 import Validator from "../Validator"
-function noop() {}
 
 export default function validated(WrappedComponent) {
   const { name = "Unknown", displayName: wrappedComponentName = name } = WrappedComponent
@@ -11,26 +10,26 @@ export default function validated(WrappedComponent) {
 
     constructor(props, context) {
       super(props, context)
-      const state = {
+      const initialState = {
         errorText: null,
         valueForPropsErrorText: null,
         validating: false
       }
       if (props.errorText) {
-        state.valueForPropsErrorText = props.value || props.defaultValue
+        initialState.valueForPropsErrorText = props.value || props.defaultValue
       }
-      this.state = state
-
-      this.safeSetState = (...args) => {
+      this.state = initialState
+      this.safeSetState = (nextState) => {
         if (this.input) {
-          this.setState(...args)
+          this.setState(nextState)
         }
       }
       this.beginValidation = () => this.safeSetState({ validating: true })
     }
 
-    componentWillReceiveProps({ errorText }) {
-      if (errorText && this.props.errorText !== errorText) {
+    componentDidUpdate(prevProps) {
+      const { props } = this
+      if (props.errorText && prevProps.errorText !== props.errorText) {
         this.safeSetState({
           valueForPropsErrorText: this.getValueInternal()
         })
@@ -38,22 +37,21 @@ export default function validated(WrappedComponent) {
     }
 
     render() {
-      const {
-        onChange,
-        onBlur,
-        errorText,
-        state: { validating }
-      } = this
-
+      const { state } = this
       return (
         <WrappedComponent
-          {...without.call(this.props, "onChange", "onBlur", "errorText", "validators")}
-          {...{ onChange, onBlur, errorText, validating }}
-          ref={ref => {
-            this.input = ref
-          }}
+          {...without.call(this.props, "validators")}
+          onChange={this.handleChange}
+          onBlur={this.handleBlur}
+          errorText={this.errorText}
+          validating={state.validating}
+          ref={this.storeInput}
         />
       )
+    }
+
+    storeInput = ref => {
+      this.input = ref
     }
 
     get errorText() {
@@ -93,24 +91,39 @@ export default function validated(WrappedComponent) {
     }
 
     isValid(callback) {
-      this.runValidations(true, callback)
+      this.runValidations(true/* Include remote validations */, callback)
     }
 
-    onChange = e => {
-      this.runValidations()
-      triggerEventForProps.call(this, "Change", e)
+    handleChange = e => {
+      if (this.props.onChange) {
+        this.props.onChange(e)
+        if (e.defaultPrevented) {
+          return
+        }
+      }
+      this.runValidations(false/* Skip remote validations */)
     }
 
-    onBlur = e => {
-      this.runValidations(true)
-      triggerEventForProps.call(this, "Blur", e)
+    handleBlur = e => {
+      if (this.props.onBlur) {
+        this.props.onBlur(e)
+        if (e.defaultPrevented) {
+          return
+        }
+      }
+      this.runValidations(true/* Include remote validations */)
     }
 
-    runValidations(doRemote = false, callback = noop) {
-      const { validators } = this.props
-      if (!validators || isEmptyObject.call(validators)) {
-        this.safeSetState({ errorText: null })
-        callback(true)
+    runValidations(includeRemoteValidations, callback) {
+      const { props, state } = this
+      /* If no validations */
+      if (!props.validators || isEmptyObject(props.validators)) {
+        if (state.errorText !== null) {
+          this.safeSetState({ errorText: null })
+        }
+        if (callback) {
+          callback(true/* Is valid */)
+        }
         return
       }
       const value = this.getValueInternal()
@@ -119,23 +132,32 @@ export default function validated(WrappedComponent) {
        * local errors. If there is an error without needing
        * to perform remote validations, show it now.
        */
-      const errorText = Validator.firstErrorMessage(validators, value)
-      this.safeSetState({ errorText })
-      if (errorText) {
-        callback(false)
+      const localErrorText = Validator.firstErrorMessage(props.validators, value)
+      /* Only trigger update if there's a need */
+      if (state.errorText !== localErrorText) {
+        this.safeSetState({ errorText: localErrorText })
+      }
+      /* Return early if there was a local error */
+      if (localErrorText) {
+        if (callback) {
+          callback(false/* Is not valid */)
+        }
         return
       }
-      if (!doRemote) {
-        callback(true)
+      /* Return early if skipping remote validations */
+      if (!includeRemoteValidations) {
+        if (callback) {
+          callback(true/* Is valid */)
+        }
         return
       }
-      /* No local errors found, but we're not out of the woods
-         yet ... time to perform remote validations if needed
-       */
-      Validator.firstRemoteErrorMessage(validators, value, this.beginValidation, errorText => {
+      /* Perform remote validations */
+      Validator.firstRemoteErrorMessage(props.validators, value, this.beginValidation, errorText => {
         this.safeSetState({ errorText, validating: false })
-        validators.form.decreaseValidation()
-        callback(!!!errorText)
+        props.validators.form.decreaseValidation()
+        if (callback) {
+          callback(!errorText/* Is valid when error text is falsy */)
+        }
       })
     }
   }

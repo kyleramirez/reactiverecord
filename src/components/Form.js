@@ -162,7 +162,7 @@ export default class Form extends Component {
             }, {})
 
           /* Don't submit deleted form objects */
-          if (isEmptyObject.call(attrs)) {
+          if (isEmptyObject(attrs)) {
             return finalValue
           }
 
@@ -170,7 +170,7 @@ export default class Form extends Component {
           const nextValue = resource.diff
 
           /* Don't submit unchanged resources */
-          if (isEmptyObject.call(nextValue)) {
+          if (isEmptyObject(nextValue)) {
             return finalValue
           }
 
@@ -239,7 +239,7 @@ export default class Form extends Component {
               return final
             }
             /* If it's an empty object */
-            if (isEmptyObject.call(originalValue)) {
+            if (isEmptyObject(originalValue)) {
               return final
             }
           }
