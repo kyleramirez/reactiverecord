@@ -4,6 +4,7 @@
     "@babel/plugin-proposal-export-default-from",
     "@babel/plugin-syntax-jsx",
     "@babel/plugin-transform-react-display-name",
-    "@babel/plugin-transform-react-jsx"
+    "@babel/plugin-transform-react-jsx",
+    "transform-es2015-modules-commonjs"
   ]
 }
