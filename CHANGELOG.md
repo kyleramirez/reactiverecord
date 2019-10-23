@@ -1,3 +1,8 @@
+### 0.7.6
+- This package as a whole is no longer an ES6 package for better compatibility
+- No longer using `componentWillReceiveProps`
+- Updates react-redux version (5.1.2 recommended)
+- Small refactors
 ### 0.7.5
 Bug fix: Form field should not generate fields for `_primaryKey` or `_timestamps`
 ### 0.7.4
