@@ -1,6 +1,6 @@
 {
   "name": "reactiverecord",
-  "version": "0.7.6",
+  "version": "0.7.7",
   "description": "Communicate with JSON APIs in React",
   "main": "dist/index.js",
   "repository": {
@@ -46,6 +46,7 @@
     "@babel/plugin-proposal-class-properties": "^7.4.4",
     "@babel/plugin-proposal-export-default-from": "^7.2.0",
     "@babel/plugin-syntax-jsx": "^7.2.0",
+    "@babel/plugin-transform-classes": "^7.5.5",
     "@babel/plugin-transform-react-display-name": "^7.2.0",
     "@babel/plugin-transform-react-jsx": "^7.3.0",
     "@babel/register": "^7.4.4",

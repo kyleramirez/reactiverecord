@@ -1,3 +1,5 @@
+### 0.7.7
+Transforms classes for non-ES6 environment
 ### 0.7.6
 - This package as a whole is no longer an ES6 package for better compatibility
 - No longer using `componentWillReceiveProps`
