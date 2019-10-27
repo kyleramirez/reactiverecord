@@ -215,94 +215,82 @@ export default class Form extends Component {
     if (e) {
       e.preventDefault()
     }
-    return new Promise((resolve, reject) => {
-      const { commitResource } = this
-      let allFieldsValid = true
-      let fieldsChecked = 0
-      const relevantFields = Object.keys(this.fields).filter(fieldName => !!this.fields[fieldName])
-      const fieldsToCheck = relevantFields.length
-      const getFieldValues = () => {
-        return relevantFields.reduce((final, currentValue) => {
-          const fieldsCurrentValue = this.fields[currentValue].value
-          if (typeof fieldsCurrentValue === "function") {
-            return { ...final, ...fieldsCurrentValue(final) }
+    const { commitResource } = this
+    let allFieldsValid = true
+    let fieldsChecked = 0
+    const relevantFields = Object.keys(this.fields).filter(fieldName => !!this.fields[fieldName])
+    const fieldsToCheck = relevantFields.length
+    const getFieldValues = () => {
+      return relevantFields.reduce((final, currentValue) => {
+        const fieldsCurrentValue = this.fields[currentValue].value
+        if (typeof fieldsCurrentValue === "function") {
+          return { ...final, ...fieldsCurrentValue(final) }
+        }
+        const originalValue = fieldsCurrentValue
+        /* If these are nested attributes as in fieldsFor */
+        if (
+          currentValue.indexOf("_attributes") > -1 &&
+          currentValue.lastIndexOf("_attributes") === currentValue.length - "_attributes".length
+        ) {
+          /* If these nested attributes are empty */
+          /* If it's an empty array */
+          if (Array.isArray(originalValue) && !originalValue.length) {
+            return final
           }
-          const originalValue = fieldsCurrentValue
-          /* If these are nested attributes as in fieldsFor */
-          if (
-            currentValue.indexOf("_attributes") > -1 &&
-            currentValue.lastIndexOf("_attributes") === currentValue.length - "_attributes".length
-          ) {
-            /* If these nested attributes are empty */
-            /* If it's an empty array */
-            if (Array.isArray(originalValue) && !originalValue.length) {
-              return final
-            }
-            /* If it's an empty object */
-            if (isEmptyObject(originalValue)) {
-              return final
-            }
+          /* If it's an empty object */
+          if (isEmptyObject(originalValue)) {
+            return final
           }
-          final[currentValue] = fieldsCurrentValue
-          return final
-        }, {})
-      }
+        }
+        final[currentValue] = fieldsCurrentValue
+        return final
+      }, {})
+    }
 
-      const fieldValidator = isValid => {
-        fieldsChecked++
-        if (!isValid) {
-          allFieldsValid = false
-        }
-        if (fieldsChecked === fieldsToCheck) {
-          if (allFieldsValid) {
-            return handleFormEvent
-              .call(this, "beforeSave", getFieldValues())
-              .then(commitResource)
-              .then(resolve)
-              .catch(reject)
-          }
-          return handleFormEvent.call(this, "afterValidationFail", getFieldValues()).then(reject)
-        }
+    const fieldValidator = isValid => {
+      fieldsChecked++
+      if (!isValid) {
+        allFieldsValid = false
       }
-      handleFormEvent.call(this, "beforeValidation", this.fields).then(() => {
-        relevantFields.map(key => {
-          if ("isValid" in this.fields[key]) {
-            return this.fields[key].isValid(fieldValidator)
-          }
-          return fieldValidator(true)
-        })
+      if (fieldsChecked === fieldsToCheck) {
+        if (allFieldsValid) {
+          return handleFormEvent
+            .call(this, "beforeSave", getFieldValues())
+            .then(commitResource)
+        }
+        return handleFormEvent.call(this, "afterValidationFail", getFieldValues())
+      }
+    }
+    handleFormEvent.call(this, "beforeValidation", this.fields).then(() => {
+      relevantFields.map(key => {
+        if ("isValid" in this.fields[key]) {
+          return this.fields[key].isValid(fieldValidator)
+        }
+        return fieldValidator(true)
       })
     })
   }
 
   commitResource = attrs => {
-    return new Promise((resolve, reject) => {
-      if (!isStoreManaged.call(this.props.for)) {
-        this.props.for._errors.clear()
-        this.safeSetState({ submitting: true })
-      }
-      const query = this.props.query || {}
-      return this.props.for
-        .updateAttributes(attrs, { query })
-        .then(resource => {
-          if (this.state.submitting) {
-            this.safeSetState({ submitting: false })
-          }
-          const afterSave = handleFormEvent.call(this, "afterSave", resource)
-          if (afterSave && "then" in afterSave) {
-            afterSave.then(resolve)
-          }
-        })
-        .catch(resource => {
-          if (this.state.submitting) {
-            this.safeSetState({ submitting: false })
-          }
-          const afterRollback = handleFormEvent.call(this, "afterRollback", resource)
-          if (afterRollback && "then" in afterRollback) {
-            afterRollback.then(reject)
-          }
-        })
-    })
+    if (!isStoreManaged.call(this.props.for)) {
+      this.props.for._errors.clear()
+      this.safeSetState({ submitting: true })
+    }
+    const query = this.props.query || {}
+    this.props.for
+      .updateAttributes(attrs, { query })
+      .then(resource => {
+        if (this.state.submitting) {
+          this.safeSetState({ submitting: false })
+        }
+        handleFormEvent.call(this, "afterSave", resource)
+      })
+      .catch(resource => {
+        if (this.state.submitting) {
+          this.safeSetState({ submitting: false })
+        }
+        handleFormEvent.call(this, "afterRollback", resource)
+      })
   }
 
   increaseValidation = () => {

@@ -1,3 +1,5 @@
+### 0.7.8
+Form no longer throws errors
 ### 0.7.7
 Transforms classes for non-ES6 environment
 ### 0.7.6
