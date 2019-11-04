@@ -24,7 +24,6 @@ export default function validated(WrappedComponent) {
           this.setState(nextState)
         }
       }
-      this.beginValidation = () => this.safeSetState({ validating: true })
     }
 
     componentDidUpdate(prevProps) {
@@ -152,13 +151,31 @@ export default function validated(WrappedComponent) {
         return
       }
       /* Perform remote validations */
-      Validator.firstRemoteErrorMessage(props.validators, value, this.beginValidation, errorText => {
-        this.safeSetState({ errorText, validating: false })
-        props.validators.form.decreaseValidation()
+      const beginValidation = () => {
+        props.validators.form.increaseValidation()
+        this.safeSetState({ validating: true })
+      }
+      const endValidation = errorText => {
+        const { state } = this
+        const nextState = {}
+        const validationOccurred = state.validating
+        if (validationOccurred) {
+          nextState.validating = false
+        }
+        if (state.errorText !== errorText) {
+          nextState.errorText = errorText
+        }
+        if (Object.keys(nextState).length) {
+          this.safeSetState(nextState)
+        }
+        if (validationOccurred) {
+          props.validators.form.decreaseValidation()
+        }
         if (callback) {
           callback(!errorText/* Is valid when error text is falsy */)
         }
-      })
+      }
+      Validator.firstRemoteErrorMessage(props.validators, value, beginValidation, endValidation)
     }
   }
 }

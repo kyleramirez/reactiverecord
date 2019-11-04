@@ -342,31 +342,29 @@ const Validator = {
     }
     return null
   },
-  firstRemoteErrorMessage: function(validationObj, value, beginValidation, callback) {
+  firstRemoteErrorMessage: function(validationObj, value, beginValidation, endValidation) {
     const { attribute, labelText, form, ...validators } = validationObj
     const remoteValidators = Object.keys(validators).filter(
       validator => Object.keys(this.validators.remote).indexOf(validator) >= 0
     )
     const validatorsToCheck = remoteValidators.length
-
+    if (!validatorsToCheck) {
+      endValidation(null)
+      return
+    }
     let validatorsChecked = 0
-
-    const runNextValidator = function(msg) {
+    const runNextValidator = msg => {
       validatorsChecked++
       if (msg) {
-        return callback(formatWith.call(msg, { value, attribute: labelText }))
+        return endValidation(formatWith.call(msg, { value, attribute: labelText }))
       }
       if (validatorsToCheck === validatorsChecked) {
-        return callback(null)
+        return endValidation(null)
       }
       const validator = remoteValidators[validatorsChecked]
       const options = validators[validator][0]
       this.validators.remote[validator](value, options, form, attribute, runNextValidator)
     }
-    if (!validatorsToCheck) {
-      return callback(null)
-    }
-    form.increaseValidation()
     beginValidation()
     const validator = remoteValidators[validatorsChecked]
     const options = validators[validator][0]
