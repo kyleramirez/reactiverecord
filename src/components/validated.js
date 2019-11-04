@@ -2,6 +2,20 @@ import React, { Component } from "react"
 import { without, isEmptyObject } from "../utils"
 import Validator from "../Validator"
 
+/**
+ * Validated HOC
+ *
+ * Assigns model validations to the wrapped component. The component should be a simple
+ * input which responds to the following props:
+ * - `ref` which exposes a `value` attribute or getter
+ * - `onChange` called each time the input changes
+ * - `onBlur` called each time the input is blurred
+ * - `errorText` which will be a string, present only if the value is invalid
+ * - `validating` which is true only when remote validations are occurring
+ *
+ * @param {Component} WrappedComponent An input component which accepts a ref that responds to value
+ * @return {Component} The wrapped component.
+ */
 export default function validated(WrappedComponent) {
   const { name = "Unknown", displayName: wrappedComponentName = name } = WrappedComponent
 
@@ -19,7 +33,7 @@ export default function validated(WrappedComponent) {
         initialState.valueForPropsErrorText = props.value || props.defaultValue
       }
       this.state = initialState
-      this.safeSetState = (nextState) => {
+      this.safeSetState = nextState => {
         if (this.input) {
           this.setState(nextState)
         }
@@ -90,7 +104,7 @@ export default function validated(WrappedComponent) {
     }
 
     isValid(callback) {
-      this.runValidations(true/* Include remote validations */, callback)
+      this.runValidations(true /* Include remote validations */, callback)
     }
 
     handleChange = e => {
@@ -100,7 +114,7 @@ export default function validated(WrappedComponent) {
           return
         }
       }
-      this.runValidations(false/* Skip remote validations */)
+      this.runValidations(false /* Skip remote validations */)
     }
 
     handleBlur = e => {
@@ -110,7 +124,7 @@ export default function validated(WrappedComponent) {
           return
         }
       }
-      this.runValidations(true/* Include remote validations */)
+      this.runValidations(true /* Include remote validations */)
     }
 
     runValidations(includeRemoteValidations, callback) {
@@ -121,7 +135,7 @@ export default function validated(WrappedComponent) {
           this.safeSetState({ errorText: null })
         }
         if (callback) {
-          callback(true/* Is valid */)
+          callback(true /* Is valid */)
         }
         return
       }
@@ -139,14 +153,14 @@ export default function validated(WrappedComponent) {
       /* Return early if there was a local error */
       if (localErrorText) {
         if (callback) {
-          callback(false/* Is not valid */)
+          callback(false /* Is not valid */)
         }
         return
       }
       /* Return early if skipping remote validations */
       if (!includeRemoteValidations) {
         if (callback) {
-          callback(true/* Is valid */)
+          callback(true /* Is valid */)
         }
         return
       }
@@ -172,7 +186,7 @@ export default function validated(WrappedComponent) {
           props.validators.form.decreaseValidation()
         }
         if (callback) {
-          callback(!errorText/* Is valid when error text is falsy */)
+          callback(!errorText /* Is valid when error text is falsy */)
         }
       }
       Validator.firstRemoteErrorMessage(props.validators, value, beginValidation, endValidation)

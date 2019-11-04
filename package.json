@@ -9,6 +9,7 @@
   },
   "scripts": {
     "lint": "eslint src",
+    "jest": "jest",
     "test": "mocha -r @babel/register",
     "test:watch": "mocha -w -r @babel/register",
     "dist": "babel src --out-dir dist",
@@ -50,16 +51,19 @@
     "@babel/plugin-transform-react-display-name": "^7.2.0",
     "@babel/plugin-transform-react-jsx": "^7.3.0",
     "@babel/register": "^7.4.4",
+    "@testing-library/react": "^9.3.2",
     "babel-plugin-transform-es2015-modules-commonjs": "^6.26.2",
     "chai": "^3.5.0",
     "chai-spies": "^0.7.1",
     "eslint": "^3.8.1",
     "eslint-plugin-react-app": "^1.0.2",
     "husky": "^0.14.3",
+    "jest": "^24.9.0",
     "lint-staged": "^6.0.0",
     "mocha": "^3.3.0",
     "prettier": "^1.9.1",
     "react": "^16.8.6",
+    "react-dom": "^16.11.0",
     "react-redux": "^5.0.7",
     "redux": "^4.0.1"
   },
@@ -73,5 +77,8 @@
     "redux",
     "react-redux"
   ],
-  "dependencies": {}
+  "dependencies": {},
+  "jest": {
+    "testRegex": "(/__test__/.*|(\\.|/)test)\\.js$"
+  }
 }
