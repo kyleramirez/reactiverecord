@@ -1,6 +1,6 @@
 {
   "name": "reactiverecord",
-  "version": "0.7.8",
+  "version": "0.8.0",
   "description": "Communicate with JSON APIs in React",
   "main": "dist/index.js",
   "repository": {
@@ -24,7 +24,8 @@
   "lint-staged": {
     "*.js": [
       "eslint src --fix",
-      "prettier src --write --no-semi"
+      "prettier src --write --no-semi",
+      "git add"
     ]
   },
   "keywords": [

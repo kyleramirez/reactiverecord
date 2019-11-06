@@ -7,9 +7,10 @@ function isStoreManaged() {
 }
 
 export default class Form extends Component {
-  constructor(...args) {
-    super(...args)
-    this.state = { submitting: false, validating: 0 }
+  constructor(props, context) {
+    super(props, context)
+    this.state = { submitting: false, validating: false }
+    this.validating = 0
     this.fields = []
     this.safeSetState = (...args) => {
       if (this.form) {
@@ -19,12 +20,10 @@ export default class Form extends Component {
   }
 
   render() {
-    const { handleSubmit, state, buildFieldProps } = this
-    const { for: resource, children } = this.props
-    const submitting = !!(resource._request.status.toString().match(/ING$/) || state.submitting)
-    const validating = !!state.validating
-    const { schema = {}, validations = {} } = resource.constructor
-    const props = without.call(
+    const { state, props } = this
+    const submitting = props.for._request.status.toString().match(/ING$/) || state.submitting
+    const { schema = {}, validations = {} } = props.for.constructor
+    const formProps = without.call(
       this.props,
       "children",
       "for",
@@ -38,17 +37,17 @@ export default class Form extends Component {
     )
 
     const submit = {
-      disabled: submitting || validating
+      disabled: submitting || state.validating
     }
-    if (!!submitting) {
+    if (submitting) {
       submit.children = "Saving"
     }
 
-    const formObject = buildFieldProps(schema, validations, this, resource)
+    const formObject = this.buildFieldProps(schema, validations, this, props.for)
 
     return (
-      <form {...props} ref={ref => (this.form = ref)} onSubmit={handleSubmit}>
-        {children({ ...formObject, submit, submitting, validating })}
+      <form {...formProps} ref={ref => (this.form = ref)} onSubmit={this.handleSubmit}>
+        {props.children({ ...formObject, submit, submitting, validating: state.validating })}
       </form>
     )
   }
@@ -138,7 +137,7 @@ export default class Form extends Component {
         if (!relevantFields.length) {
           return callback.call(this, true)
         }
-        relevantFields.map(field => {
+        relevantFields.forEach(field => {
           if ("isValid" in field) {
             return field.isValid(fieldValidator)
           }
@@ -211,10 +210,18 @@ export default class Form extends Component {
     return fieldsFn => fieldsFn.call(this, formObject)
   }
 
-  handleSubmit = e => {
-    if (e) {
-      e.preventDefault()
+  handleSubmit = event => {
+    if (this.props.onSubmit) {
+      this.props.onSubmit(event)
+      if (event.defaultPrevented) {
+        return
+      }
     }
+    event.preventDefault()
+    this.submit()
+  }
+
+  submit = () => {
     const { commitResource } = this
     let allFieldsValid = true
     let fieldsChecked = 0
@@ -246,7 +253,6 @@ export default class Form extends Component {
         return final
       }, {})
     }
-
     const fieldValidator = isValid => {
       fieldsChecked++
       if (!isValid) {
@@ -254,15 +260,13 @@ export default class Form extends Component {
       }
       if (fieldsChecked === fieldsToCheck) {
         if (allFieldsValid) {
-          return handleFormEvent
-            .call(this, "beforeSave", getFieldValues())
-            .then(commitResource)
+          return handleFormEvent.call(this, "beforeSave", getFieldValues()).then(commitResource)
         }
         return handleFormEvent.call(this, "afterValidationFail", getFieldValues())
       }
     }
     handleFormEvent.call(this, "beforeValidation", this.fields).then(() => {
-      relevantFields.map(key => {
+      relevantFields.forEach(key => {
         if ("isValid" in this.fields[key]) {
           return this.fields[key].isValid(fieldValidator)
         }
@@ -294,10 +298,16 @@ export default class Form extends Component {
   }
 
   increaseValidation = () => {
-    this.safeSetState({ validating: this.state.validating + 1 })
+    this.validating = this.validating + 1
+    if (!!this.validating !== this.state.validating) {
+      this.safeSetState({ validating: !!this.validating })
+    }
   }
 
   decreaseValidation = () => {
-    this.safeSetState({ validating: Math.max(this.state.validating - 1, 0) })
+    this.validating = Math.max(this.state.validating - 1, 0)
+    if (!!this.validating !== this.state.validating) {
+      this.safeSetState({ validating: !!this.validating })
+    }
   }
 }

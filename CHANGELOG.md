@@ -1,3 +1,20 @@
+## 0.8.0
+- Improved performance of `validated` HOC. Updates are only triggered if absolutely needed.
+- All new `<Validate />` component is an alternative to the `validated` HOC. It accepts a function as children, which is passed input props, error text and validating as arguments. This will make composing custom inputs easier. The third argument, validating, will only be true if async validations are occurring.
+  ```js
+  <Validate {...propsFromFormFieldObject}>
+    {(props, errorText, validating) => (
+      <Fragment>
+        <input disabled={validating} {...props} />
+        {errorText}
+      </Fragment>
+    )}
+  </Validate>
+  ```
+- Form now exposes a `submit` method, which submits the data. The `handleSubmit` API is no longer recommended.
+- Warning: **BREAKING CHANGES**
+   - `Validators.local` has been changed to `Validators.sync`
+   - `Validators.remote` has been changed to `Validators.async`
 ### 0.7.8
 Form no longer throws errors
 ### 0.7.7

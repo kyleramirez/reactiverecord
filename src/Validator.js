@@ -14,7 +14,7 @@ const Validator = {
     }
   },
   validators: {
-    local: {
+    sync: {
       /*
        * attr: {
        *   absence: [{ message: "%{attribute} must not be present" }]
@@ -322,7 +322,7 @@ const Validator = {
         }
       }
     },
-    remote: {}
+    async: {}
   },
   firstErrorMessage: function(validationObj, value) {
     const { attribute, labelText, form, ...validators } = validationObj
@@ -330,10 +330,10 @@ const Validator = {
     for (let validator in validators) {
       /* eslint-enable guard-for-in */
       const optionsArr = validators[validator]
-      if (validator in this.validators.local) {
+      if (validator in this.validators.sync) {
         for (let i = 0; i < optionsArr.length; i++) {
           const options = optionsArr[i]
-          const msg = this.validators.local[validator](value, options, form, attribute)
+          const msg = this.validators.sync[validator](value, options, form, attribute)
           if (msg) {
             return formatWith.call(msg, { value, attribute: labelText })
           }
@@ -342,12 +342,12 @@ const Validator = {
     }
     return null
   },
-  firstRemoteErrorMessage: function(validationObj, value, beginValidation, endValidation) {
+  firstAsyncErrorMessage: function(validationObj, value, beginValidation, endValidation) {
     const { attribute, labelText, form, ...validators } = validationObj
-    const remoteValidators = Object.keys(validators).filter(
-      validator => Object.keys(this.validators.remote).indexOf(validator) >= 0
+    const asyncValidators = Object.keys(validators).filter(
+      validator => Object.keys(this.validators.async).indexOf(validator) >= 0
     )
-    const validatorsToCheck = remoteValidators.length
+    const validatorsToCheck = asyncValidators.length
     if (!validatorsToCheck) {
       endValidation(null)
       return
@@ -361,14 +361,16 @@ const Validator = {
       if (validatorsToCheck === validatorsChecked) {
         return endValidation(null)
       }
-      const validator = remoteValidators[validatorsChecked]
+      const validator = asyncValidators[validatorsChecked]
       const options = validators[validator][0]
-      this.validators.remote[validator](value, options, form, attribute, runNextValidator)
+      this.validators.async[validator](value, options, form, attribute, runNextValidator)
     }
     beginValidation()
-    const validator = remoteValidators[validatorsChecked]
+    const validator = asyncValidators[validatorsChecked]
     const options = validators[validator][0]
-    this.validators.remote[validator](value, options, form, attribute, runNextValidator)
+    setTimeout(() => {
+      this.validators.async[validator](value, options, form, attribute, runNextValidator)
+    }, 0)
   }
 }
 export default Validator

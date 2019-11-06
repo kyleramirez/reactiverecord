@@ -2,48 +2,55 @@ import React, { Component } from "react"
 import { without, isEmptyObject } from "../utils"
 import Validator from "../Validator"
 
+/**
+ * Validated HOC
+ *
+ * Assigns model validations to the wrapped component. The component should be a simple
+ * input which responds to the following props:
+ * - `ref` which exposes a `value` attribute or getter
+ * - `onChange` called each time the input changes
+ * - `onBlur` called each time the input is blurred
+ * - `errorText` which will be a string, present only if the value is invalid
+ * - `validating` which is true only when async validations are occurring. When this is true, it's a good opportunity to disable your input or show a loading indicator
+ *
+ * @param {Component} WrappedComponent An input component which accepts a ref that responds to value
+ * @return {Component} The wrapped component.
+ */
 export default function validated(WrappedComponent) {
   const { name = "Unknown", displayName: wrappedComponentName = name } = WrappedComponent
 
   return class extends Component {
     static displayName = `validated(${wrappedComponentName})`
-
-    constructor(props, context) {
-      super(props, context)
-      const initialState = {
-        errorText: null,
-        valueForPropsErrorText: null,
-        validating: false
-      }
-      if (props.errorText) {
-        initialState.valueForPropsErrorText = props.value || props.defaultValue
-      }
-      this.state = initialState
-      this.safeSetState = (nextState) => {
-        if (this.input) {
-          this.setState(nextState)
-        }
-      }
+    state = {
+      errorText: null,
+      propsErrorTextStale: false,
+      validating: false
     }
 
     componentDidUpdate(prevProps) {
       const { props } = this
       if (props.errorText && prevProps.errorText !== props.errorText) {
         this.safeSetState({
-          valueForPropsErrorText: this.getValueInternal()
+          propsErrorTextStale: false
         })
       }
     }
 
     render() {
-      const { state } = this
+      const { state, props } = this
+
+      let errorText = state.errorText
+      if (props.errorText && !state.propsErrorTextStale) {
+        errorText = props.errorText
+      }
+
       return (
         <WrappedComponent
-          {...without.call(this.props, "validators")}
+          validating={state.validating}
+          {...without.call(props, "validators")}
           onChange={this.handleChange}
           onBlur={this.handleBlur}
-          errorText={this.errorText}
-          validating={state.validating}
+          errorText={errorText}
           ref={this.storeInput}
         />
       )
@@ -53,44 +60,12 @@ export default function validated(WrappedComponent) {
       this.input = ref
     }
 
-    get errorText() {
-      const { props, state, input } = this
-      if (props.errorText) {
-        /* 
-         * Props says there's an error. The
-         * component has not yet mounted.
-         */
-        if (!input) {
-          return props.errorText
-        }
-        /* 
-         * Props says there's an error and the value that
-         * caused the error is unchanged.
-         */
-        if (JSON.stringify(this.getValueInternal()) === JSON.stringify(state.valueForPropsErrorText)) {
-          return props.errorText
-        }
-      }
-      /* 
-       * The state error text will be
-       * the latest error or null
-       */
-      return state.errorText
-    }
-
-    getValueInternal() {
-      if (typeof this.value === "function") {
-        return this.value({})
-      }
-      return this.value
-    }
-
     get value() {
       return this.input.value
     }
 
     isValid(callback) {
-      this.runValidations(true/* Include remote validations */, callback)
+      this.runValidations(true /* Include async validations */, callback)
     }
 
     handleChange = e => {
@@ -100,7 +75,7 @@ export default function validated(WrappedComponent) {
           return
         }
       }
-      this.runValidations(false/* Skip remote validations */)
+      this.runValidations(false /* Skip async validations */)
     }
 
     handleBlur = e => {
@@ -110,47 +85,65 @@ export default function validated(WrappedComponent) {
           return
         }
       }
-      this.runValidations(true/* Include remote validations */)
+      this.runValidations(true /* Include async validations */)
     }
 
-    runValidations(includeRemoteValidations, callback) {
+    safeSetState = nextState => {
+      if (this.input) {
+        this.setState(nextState)
+      }
+    }
+
+    runValidations(includeAsyncValidations, callback) {
       const { props, state } = this
-      /* If no validations */
+      /* Return early if no validations */
       if (!props.validators || isEmptyObject(props.validators)) {
         if (state.errorText !== null) {
           this.safeSetState({ errorText: null })
         }
         if (callback) {
-          callback(true/* Is valid */)
+          callback(true /* Is valid */)
         }
         return
       }
-      const value = this.getValueInternal()
+      /* Get the value */
+      let { value } = this
+      if (typeof value === "function") {
+        value = value({})
+      }
       /* 
-       * If remote validations are included, first find any
-       * local errors. If there is an error without needing
-       * to perform remote validations, show it now.
+       * 1. Find and return an error message from synchronous validators
+       * 2. Find and return an error message from async validators
        */
-      const localErrorText = Validator.firstErrorMessage(props.validators, value)
+      const errorText = Validator.firstErrorMessage(props.validators, value)
+      const nextState = {}
+      /* When the state error text is no longer valid ... */
+      if (state.errorText !== errorText) {
+        nextState.errorText = errorText
+      }
+      /* When the props error text is no longer valid ... */
+      if (errorText && props.errorText) {
+        nextState.propsErrorTextStale = true
+      }
       /* Only trigger update if there's a need */
-      if (state.errorText !== localErrorText) {
-        this.safeSetState({ errorText: localErrorText })
+      if (Object.keys(nextState).length) {
+        this.safeSetState(nextState)
       }
-      /* Return early if there was a local error */
-      if (localErrorText) {
+      /* Return early if there was a synchronous error */
+      if (errorText) {
         if (callback) {
-          callback(false/* Is not valid */)
+          callback(false /* Is not valid */)
         }
         return
       }
-      /* Return early if skipping remote validations */
-      if (!includeRemoteValidations) {
+      /* Return early if skipping async validations */
+      if (!includeAsyncValidations) {
         if (callback) {
-          callback(true/* Is valid */)
+          callback(true /* Is valid */)
         }
         return
       }
-      /* Perform remote validations */
+      /* Perform async validations */
       const beginValidation = () => {
         props.validators.form.increaseValidation()
         this.safeSetState({ validating: true })
@@ -159,12 +152,19 @@ export default function validated(WrappedComponent) {
         const { state } = this
         const nextState = {}
         const validationOccurred = state.validating
+        /* When we are no longer validating ... */
         if (validationOccurred) {
           nextState.validating = false
         }
+        /* When the state error text is no longer valid ... */
         if (state.errorText !== errorText) {
           nextState.errorText = errorText
         }
+        /* When the props error text is no longer valid ... */
+        if (errorText && props.errorText) {
+          nextState.propsErrorTextStale = true
+        }
+        /* Only trigger update if there's a need */
         if (Object.keys(nextState).length) {
           this.safeSetState(nextState)
         }
@@ -172,10 +172,10 @@ export default function validated(WrappedComponent) {
           props.validators.form.decreaseValidation()
         }
         if (callback) {
-          callback(!errorText/* Is valid when error text is falsy */)
+          callback(!errorText /* Is valid when error text is falsy */)
         }
       }
-      Validator.firstRemoteErrorMessage(props.validators, value, beginValidation, endValidation)
+      Validator.firstAsyncErrorMessage(props.validators, value, beginValidation, endValidation)
     }
   }
 }
