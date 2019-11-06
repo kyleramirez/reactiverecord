@@ -1,5 +1,5 @@
 import React, { forwardRef } from "react"
-import { render, fireEvent } from "@testing-library/react"
+import { render } from "@testing-library/react"
 import validated from "../new-validated"
 
 const Input = forwardRef(function({ labelText, errorText, validating, ...props }, forwardedRef) {
@@ -16,43 +16,24 @@ const ValidatedInput = validated(Input)
 // test("basic rendering", () => {
 //   const { container } = render(<ValidatedInput />)
 //   expect(container).toMatchSnapshot()
+//   const input = container.querySelector("input")
+//   fireEvent.change(input, { target: { value: "Teddy" } })
 // })
-test("error text", () => {
-  const { container } = render(<ValidatedInput labelText="Name" errorText="Invalid name!" />)
-  const input = container.querySelector("input")
-  fireEvent.change(input, { target: { value: "Duude" } })
-  console.log(input.value)
-  // expect(container).toMatchSnapshot()
+describe("error text", function() {
+  it("renders prop error when given", function() {
+    const { container, rerender } = render(<ValidatedInput labelText="Name" />)
+    /* input rendered with no error message */
+    expect(container).toMatchSnapshot()
+    /* form submits and returns error */
+    rerender(<ValidatedInput errorText="A name is required." labelText="Name" />)
+    /* expect error text to be present */
+    expect(container).toMatchSnapshot()
+  })
 })
-// const setup = () => {
-//   const utils = render(<CostInput />)
-//   const input = utils.getByLabelText('cost-input')
-//   return {
-//     input,
-//     ...utils,
-//   }
-// }
+describe("disabled", function() {
+  it("should be disabled while validating", function() {})
 
-// test('It should keep a $ in front of the input', () => {
-//   const { input } = setup()
-//   fireEvent.change(input, { target: { value: '23' } })
-//   expect(input.value).toBe('$23')
-// })
+  it("should be disabled if the given prop is true", function() {})
 
-// test('loads and displays greeting', async () => {
-//   const url = '/greeting'
-//   const { getByText, getByRole } = render(<Fetch url={url} />)
-
-//   axiosMock.get.mockResolvedValueOnce({
-//     data: { greeting: 'hello there' },
-//   })
-
-//   fireEvent.click(getByText('Load Greeting'))
-
-//   const greetingTextNode = await waitForElement(() => getByRole('heading'))
-
-//   expect(axiosMock.get).toHaveBeenCalledTimes(1)
-//   expect(axiosMock.get).toHaveBeenCalledWith(url)
-//   expect(getByRole('heading')).toHaveTextContent('hello there')
-//   expect(getByRole('button')).toHaveAttribute('disabled')
-// })
+  it("should not be disabled while validating if the given prop is false", function() {})
+})

@@ -1,0 +1,20 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`error text renders prop error when given 1`] = `
+<div>
+  <label>
+    <input />
+    Name
+  </label>
+</div>
+`;
+
+exports[`error text renders prop error when given 2`] = `
+<div>
+  <label>
+    <input />
+    Name
+    A name is required.
+  </label>
+</div>
+`;

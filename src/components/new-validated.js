@@ -1,32 +1,26 @@
-import React, { forwardRef, useState, useEffect, useRef, useMemo } from "react"
-// import { without, isEmptyObject } from "../utils"
+import React, { forwardRef, useState, useEffect, useRef } from "react"
+import { without } from "../utils"
+import PropTypes from "prop-types"
 // import Validator from "../Validator"
 
 function useUpdateEffect(fn, inputs) {
   const didMountRef = useRef(false)
-  useEffect(
-    function() {
-      if (didMountRef.current) {
-        fn()
-        return
-      }
-      didMountRef.current = true
-    },
-    inputs
-  )
-}
-
-function getValueInternal({ current }) {
-  if (current) {
-    const { value } = current
-    if (typeof value === "function") {
-      return value({})
+  useEffect(function() {
+    if (didMountRef.current) {
+      fn()
+      return
     }
-    return value
-  }
-  return null
+    didMountRef.current = true
+  }, inputs)
 }
 
+// function getValue({ current }) {
+//   const { value } = current
+//   if (typeof value === "function") {
+//     return value({})
+//   }
+//   return value
+// }
 /**
  * Validated HOC
  *
@@ -44,61 +38,73 @@ function getValueInternal({ current }) {
 export default function validated(WrappedComponent) {
   const { name = "Unknown", displayName: wrappedComponentName = name } = WrappedComponent
 
-  const ValidatedComponent = forwardRef(
-    function({ errorText: propsErrorText, ...props }/*, forwardedRef*/) {
-      const [state, setState] = useState({
-        errorText: null,
-        valueThatCausedError: propsErrorText ? props.value || props.defaultValue : null,
-        validating: false,
-      })
-      const storeInput = useRef(null)
-      /* Provide a way to get the value */
-      // useEffect(function() {
-      //   console.log("Running the useEffect for forwardedRef")
-      //   if (forwardedRef) {
-      //     forwardedRef({
-      //       get value() {
-      //         return getValueInternal(storeInput)
-      //       },
-      //     })
-      //   }
-      // }, [forwardedRef, storeInput])
-      /* Record the value of the form field whenever an error was added */
-      // useEffect(function() {
-      //   console.log("Setting the valueForPropsErrorText")
-      //   setState({ valueForPropsErrorText: getValueInternal(storeInput) })
-      // }, [propsErrorText])
-      useUpdateEffect(
-        function() {
-          console.log("setting value that caused error")
-          if (propsErrorText) {
-            setState({ valueThatCausedError: getValueInternal(storeInput) })
-          }
-        },
-        [propsErrorText]
-      )
-      const errorText = useMemo(
-        function() {
-          console.log("Computing error text", propsErrorText, state.errorText)
-          if (propsErrorText) {
-            return propsErrorText
-          }
-          return state.errorText
-        },
-        [propsErrorText, state.errorText]
-      )
-
-      return (
-        <WrappedComponent
-          {...props}
-          errorText={errorText}
-          ref={storeInput}
-        />
-      )
+  const ValidatedComponent = forwardRef(function({ errorText: propsErrorText, ...props }) {
+    const [state, setState] = useState({
+      propsErrorTextStale: false,
+      errorText: null,
+      validating: false
+    })
+    const inputRef = useRef(null)
+    useUpdateEffect(
+      function() {
+        setState({ ...state, propsErrorTextStale: false })
+      },
+      [propsErrorText]
+    )
+    let errorText = state.errorText
+    if (propsErrorText && !state.propsErrorTextStale) {
+      errorText = propsErrorText
     }
-  )
+    function handleChange(event) {
+      if (props.onChange) {
+        props.onChange(event)
+        if (event.defaultPrevented) {
+          return
+        }
+      }
+    }
+    function handleBlur(event) {
+      if (props.onBlur) {
+        props.onBlur(event)
+        if (event.defaultPrevented) {
+          return
+        }
+      }
+    }
+    return (
+      <WrappedComponent
+        disabled={state.validating}
+        {...without.call(props, "validators")}
+        onChange={handleChange}
+        onBlur={handleBlur}
+        errorText={errorText}
+        ref={inputRef}
+      />
+    )
+  })
+
+  ValidatedComponent.propTypes = {
+    onChange: PropTypes.func,
+    onBlur: PropTypes.func
+  }
 
   ValidatedComponent.displayName = `validated(${wrappedComponentName})`
 
   return ValidatedComponent
 }
+/* Provide a way to get the value */
+// useEffect(function() {
+//   console.log("Running the useEffect for forwardedRef")
+//   if (forwardedRef) {
+//     forwardedRef({
+//       get value() {
+//         return getValue(inputRef)
+//       },
+//     })
+//   }
+// }, [forwardedRef, inputRef])
+/* Record the value of the form field whenever an error was added */
+// useEffect(function() {
+//   console.log("Setting the valueForPropsErrorText")
+//   setState({ valueForPropsErrorText: getValue(inputRef) })
+// }, [propsErrorText])
