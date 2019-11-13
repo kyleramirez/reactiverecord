@@ -1,3 +1,5 @@
+### 0.8.1
+- Length validator now has ability to check length of Arrays
 ## 0.8.0
 - Improved performance of `validated` HOC. Updates are only triggered if absolutely needed.
 - All new `<Validate />` component is an alternative to the `validated` HOC. It accepts a function as children, which is passed input props, error text and validating as arguments. This will make composing custom inputs easier. The third argument, validating, will only be true if async validations are occurring.

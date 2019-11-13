@@ -195,7 +195,10 @@ const Validator = {
       */
       length: function(value, options) {
         /* eslint-disable no-new-func */
-        const valueLength = new Function("value", "return (value.split('') || '').length")(value)
+        const valueLength = new Function(
+          "value",
+          "return value && value.hasOwnProperty('length') ? value.length : (value ? value.toString() : '').length"
+        )(value)
         /* eslint-enable no-new-func */
         const CHECKS = {
           is: "==",
