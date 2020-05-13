@@ -12,6 +12,6 @@ search_enabled: true
 # Build settings
 markdown: kramdown
 permalink: /:categories/:title
-remote_theme: pmarsceill/just-the-docs
+remote_theme: pmarsceill/just-the-docs@0.2.6
 plugins:
   - jekyll-feed
