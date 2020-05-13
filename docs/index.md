@@ -3,7 +3,7 @@ layout: home
 title: Home
 nav_exclude: true
 ---
-<img role="presentation" src="{{ "/assets/wordmark.png" }}" width="100" height="100" style="display: block;">
+<img role="presentation" src="{{ "/assets/images/wordmark.png" }}" width="100" height="100" style="display: block;">
 # Reactive Record
 [![npm version](https://img.shields.io/npm/v/reactiverecord.svg?style=flat-square)](https://www.npmjs.com/package/reactiverecord) [![npm downloads](https://img.shields.io/npm/dm/reactiverecord.svg?style=flat-square)](https://www.npmjs.com/package/reactiverecord)
 

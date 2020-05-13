@@ -1,0 +1,11 @@
+$link-color: #1769fa;
+.btn.btn {
+  &:focus {
+    box-shadow: 0 0 0 3px rgba($link-color, 0.25);
+  }
+
+  &:focus:hover,
+  &.selected:focus {
+    box-shadow: 0 0 0 3px rgba($link-color, 0.25);
+  }
+}

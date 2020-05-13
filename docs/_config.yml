@@ -12,6 +12,7 @@ search_enabled: true
 # Build settings
 markdown: kramdown
 permalink: /:categories/:title
-remote_theme: pmarsceill/just-the-docs@0.2.6
+remote_theme: pmarsceill/just-the-docs@v0.2.8
+logo: /assets/images/wordmark-site.png
 plugins:
   - jekyll-feed
