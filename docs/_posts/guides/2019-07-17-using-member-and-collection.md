@@ -127,13 +127,13 @@ The `<Member />` component behaves very similarly to `<Collection />`. By passin
 | <samp>catch</samp> | Function | When present, is chained to the end of the request Promise. This function will be called immediately before results from a error response are rendered, or if any type of error occurs processing the request or response. Example: `catch={() => this.setState({ hasError: true })}` | No |
 
 ## Component Organization
-Following the [suggested file layout]({% post_url guides/2019-07-14-getting-started %}#suggested-file-layout), you should try to keep your components which use the `<Member />` and `<Collection />` components in the `/containers` directory only. This is a suggestion to help you separate concerns in your React application. Only route-based components should be making API requests. Components in the `/resources` directory should be concerned with rendering resources only. This helps make components in the `/resources` directory more portable, able to be used in different contexts, such as in tests or in other builds where the default `XMLHttpRequest` used in Reactive Record may not be available, such as when rendering components on the server. Components in `/resources` should have a guarantee that the resource prop they receive is already loaded, whereas components in the `/containers` directory are responsible for loading the resources. Thus, the components in the `/containers` directory serve a similar purpose to a controller in a model-view-controller framework.
+Following the [suggested file layout]({% post_url guides/2019-07-14-getting-started %}#suggested-file-layout), you should try to keep your components which use the `<Member />` and `<Collection />` components in the `/routes` directory only. This is a suggestion to help you separate concerns in your React application. Only route-based components should be making API requests. Components in the `/resources` directory should be concerned with rendering resources only. This helps make components in the `/resources` directory more portable, able to be used in different contexts, such as in tests or in other builds where the default `XMLHttpRequest` used in Reactive Record may not be available, such as when rendering components on the server. Components in `/resources` should have a guarantee that the resource prop they receive is already loaded, whereas components in the `/routes` directory are responsible for loading the resources. Thus, the components in the `/routes` directory serve a similar purpose to a controller in a model-view-controller framework.
 
 Consider the following flow:
 1. A user navigates to the `/cart` page in the browser.
-1. The React application renders `/containers/cart.js`, which contains:
+1. The React application renders `/routes/cart.js`, which contains:
 
-   **<small>/containers/cart.js</small>**
+   **<small>/routes/cart.js</small>**
    {: .m-0 .text-mono .text-grey-dk-000 }
    ```jsx
    import ReactiveRecord, { Member } from "reactiverecord"

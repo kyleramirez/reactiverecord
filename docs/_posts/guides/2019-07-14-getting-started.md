@@ -146,7 +146,7 @@ Much of the content in this documentation refers to certain folders, which may o
 
 ```yaml
 root-directory/
-  ├ containers/ # Route-based components
+  ├ routes/ # Route-based components
   │ └ products/
   │   ├ edit.js
   │   ├ index.js
