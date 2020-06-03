@@ -3,5 +3,5 @@ layout: page
 title: Automatically generate models using Rails
 date:
 category: Advanced
-nav_order: 5
+nav_order: 100
 ---

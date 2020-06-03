@@ -151,7 +151,7 @@ The form object contains a `submit` property, which can be passed directly to a 
 | <samp>validating</samp> | True only while field validations are occurring. |
 | <samp>fieldsFor</samp> | Function used to create fields for nested attributes. Learn more about using `fieldsFor` later. |
 
-## Creating Resources
+<!-- ## Creating Resources
 
 ## Updating Resources
 
@@ -162,7 +162,7 @@ The form object contains a `submit` property, which can be passed directly to a 
 ## Summary
 
 <div class="text-center mt-7">
-  <a class="btn" href="{% post_url guides/2019-07-21-creating-form-controls %}">
+  <a class="btn" href="">
     Create form controls
   </a>
-</div>
+</div> -->

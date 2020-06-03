@@ -9,3 +9,17 @@ $link-color: #1769fa;
     box-shadow: 0 0 0 3px rgba($link-color, 0.25);
   }
 }
+$mono-font-family: "IBM Plex Mono", monospace;
+code, kbd, pre, samp {
+  font-family: $mono-font-family;
+  font-weight: 400;
+}
+.highlight code {
+  font-size: 0.875rem;
+}
+code.highlighter-rouge {
+  font-size: 0.8125rem;
+}
+body {
+  font-weight: 400;
+}
