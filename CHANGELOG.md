@@ -1,3 +1,5 @@
+### 0.8.2
+- Updates package homepage to https://reactiverecord.com
 ### 0.8.1
 - Length validator now has ability to check length of Arrays
 ## 0.8.0

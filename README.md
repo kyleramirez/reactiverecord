@@ -220,3 +220,26 @@ Reactive Record uses `fetch` as its remote backend. You can register these setti
 ### `validated(WrappedComponent)`
 ### `Validator`
 ### `Sugar`
+===================================================
+// use React hooks, get rid of Redux and React-Redux
+// change the way validations work .. make it where the resource holds the
+//    state of everything in forms and is the thing that's validated
+// use a more declarative component interface, <Api> to define routes <ReactiveRecord> to instantiate things
+// make the library way smaller
+// implement tests
+// finish documentation
+
+
+import ReactiveRecord from 'reactiverecord'
+ReactiveRecord.model
+
+<Provider use={ReactiveRecord}>
+  <Api route="v2">
+    <Collection for={Model}></Collection>
+    <Member for={Model}></Member>
+  </Api>
+  <Form>
+    <Validate></Validate>
+    <Attributes for={Child}></Attributes>
+  </Form>
+</Provider>
