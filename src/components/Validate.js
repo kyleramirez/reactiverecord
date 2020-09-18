@@ -1,5 +1,5 @@
-import { forwardRef } from "react"
-import validated from "./validated"
+import { forwardRef } from 'react';
+import validated from './validated';
 
 /** Implements the `validated` HOC. */
 const Validate = forwardRef(
@@ -11,9 +11,9 @@ const Validate = forwardRef(
    * @param {Object} ref Forwarded Ref
    */
   function({ validating, errorText, children, ...props }, ref) {
-    return children({ ...props, ref }, errorText, validating)
+    return children({ ...props, ref }, errorText, validating);
   }
-)
-Validate.displayName = "Validate"
+);
+Validate.displayName = 'Validate';
 
-export default validated(Validate)
+export default validated(Validate);

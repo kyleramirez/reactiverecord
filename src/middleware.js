@@ -1,15 +1,15 @@
-import { ACTION_MATCHER } from "./constants"
+import { ACTION_MATCHER } from './constants';
 
 export default function middleware() {
   return () => next => action => {
-    next(action)
-    const matches = action.type.match(ACTION_MATCHER)
+    next(action);
+    const matches = action.type.match(ACTION_MATCHER);
     if (!!!matches) {
-      return
+      return;
     }
-    const [, requestStatus, actionName] = matches
+    const [, requestStatus, actionName] = matches;
     if (actionName && !requestStatus) {
-      return this.performAsync(action)
+      return this.performAsync(action);
     }
-  }
+  };
 }

@@ -1,54 +1,54 @@
-import { ACTION_MATCHER, ACTION_STATUSES, memberProps } from "../constants"
+import { ACTION_MATCHER, ACTION_STATUSES, memberProps } from '../constants';
 
 export default function singletonReducer(modelName, state = memberProps, action) {
   if (!ACTION_MATCHER.test(action.type)) {
-    return state
+    return state;
   }
-  const [, asyncStatus, actionNameUpper, actionModelName] = action.type.match(ACTION_MATCHER)
-  const actionName = actionNameUpper.toLowerCase()
-  const requestStatus = asyncStatus ? asyncStatus.replace("_", "") : null
+  const [, asyncStatus, actionNameUpper, actionModelName] = action.type.match(ACTION_MATCHER);
+  const actionName = actionNameUpper.toLowerCase();
+  const requestStatus = asyncStatus ? asyncStatus.replace('_', '') : null;
   if (actionModelName !== modelName) {
-    return state
+    return state;
   }
 
-  const nextState = { ...state }
+  const nextState = { ...state };
   const {
     _request: safeActionRequest = {},
     _attributes: safeActionAttributes = {},
-    _errors: safeActionErrors = {}
-  } = action
-  const startingAsync = !!!requestStatus
-  const returningFromAsync = !!requestStatus
-  const statusOK = requestStatus === "OK"
+    _errors: safeActionErrors = {},
+  } = action;
+  const startingAsync = !!!requestStatus;
+  const returningFromAsync = !!requestStatus;
+  const statusOK = requestStatus === 'OK';
 
   nextState._request = {
     ...nextState._request,
-    ...safeActionRequest
-  }
+    ...safeActionRequest,
+  };
   if (startingAsync) {
-    nextState._request.status = ACTION_STATUSES[actionName]
-    nextState._errors = {}
+    nextState._request.status = ACTION_STATUSES[actionName];
+    nextState._errors = {};
   }
   if (returningFromAsync) {
     nextState._attributes = {
       ...nextState._attributes,
-      ...safeActionAttributes
-    }
+      ...safeActionAttributes,
+    };
     nextState._errors = {
       ...nextState._errors,
-      ...safeActionErrors
-    }
+      ...safeActionErrors,
+    };
   }
 
-  if (actionName === "destroy" && statusOK) {
+  if (actionName === 'destroy' && statusOK) {
     nextState._attributes = {
-      ...memberProps._attributes
-    }
+      ...memberProps._attributes,
+    };
 
     nextState._errors = {
-      ...memberProps._errors
-    }
+      ...memberProps._errors,
+    };
   }
 
-  return nextState
+  return nextState;
 }

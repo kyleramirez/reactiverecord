@@ -1,29 +1,29 @@
-import Collection from "../ReactiveRecord/Collection"
-import { where, select, onlyReactiveRecord, queryStringToObj, pick, without } from "../utils"
+import Collection from '../ReactiveRecord/Collection';
+import { where, select, onlyReactiveRecord, queryStringToObj, pick, without } from '../utils';
 
 export function mapStateToProps(type) {
   return (state, { for: Model, find, where: _where, select: _select }) => {
     const {
       store: { singleton },
-      schema: { _primaryKey = "id" },
-      displayName
-    } = Model
-    const stateModels = onlyReactiveRecord.call(state)
+      schema: { _primaryKey = 'id' },
+      displayName,
+    } = Model;
+    const stateModels = onlyReactiveRecord.call(state);
     function modelFromStore({ _attributes, _request, _errors }) {
-      return new Model({ ..._attributes, _errors, _request }, true, true)
+      return new Model({ ..._attributes, _errors, _request }, true, true);
     }
 
-    if (type === "Member") {
+    if (type === 'Member') {
       if (singleton) {
-        return { resource: modelFromStore(stateModels[displayName]) }
+        return { resource: modelFromStore(stateModels[displayName]) };
       }
       if (find !== undefined) {
-        let member
-        if (typeof find === "function") {
-          const { _collection } = stateModels[displayName]
-          member = Object.values(_collection).find(storeResource => find(modelFromStore(storeResource)))
+        let member;
+        if (typeof find === 'function') {
+          const { _collection } = stateModels[displayName];
+          member = Object.values(_collection).find(storeResource => find(modelFromStore(storeResource)));
         } else {
-          member = stateModels[displayName]._collection[find]
+          member = stateModels[displayName]._collection[find];
         }
         if (member) {
           return {
@@ -31,54 +31,54 @@ export function mapStateToProps(type) {
               {
                 ...member._attributes,
                 _errors: member._errors,
-                _request: member._request
+                _request: member._request,
               },
               true,
               true
-            )
-          }
+            ),
+          };
         }
       }
-      return { resource: new Model({ _request: { status: null } }, false, true) }
+      return { resource: new Model({ _request: { status: null } }, false, true) };
     }
 
-    let whereQuery = null
+    let whereQuery = null;
     if (_where) {
-      whereQuery = _where
-      if (typeof _where === "string") {
-        whereQuery = queryStringToObj(_where)
+      whereQuery = _where;
+      if (typeof _where === 'string') {
+        whereQuery = queryStringToObj(_where);
       }
-      const schemaAttrs = Object.keys(without.call(Model.schema, "_primaryKey", "_timestamps"))
-      whereQuery = pick.call(whereQuery, ...schemaAttrs)
+      const schemaAttrs = Object.keys(without.call(Model.schema, '_primaryKey', '_timestamps'));
+      whereQuery = pick.call(whereQuery, ...schemaAttrs);
     }
 
-    const { _collection, _request } = stateModels[displayName]
-    let transformedCollection = Object.values(_collection).map(modelFromStore)
+    const { _collection, _request } = stateModels[displayName];
+    let transformedCollection = Object.values(_collection).map(modelFromStore);
     if (whereQuery) {
-      transformedCollection = where.call(transformedCollection, whereQuery)
+      transformedCollection = where.call(transformedCollection, whereQuery);
     }
     if (_select) {
-      transformedCollection = select.call(transformedCollection, _select)
+      transformedCollection = select.call(transformedCollection, _select);
     }
     return {
       resource: new Collection({
         _collection: transformedCollection,
         _request,
-        _primaryKey
-      })
-    }
-  }
+        _primaryKey,
+      }),
+    };
+  };
 }
 
 export const areStatePropsEqual = (prev, next) => {
-  return JSON.stringify(prev.resource.serialize()) === JSON.stringify(next.resource.serialize())
-}
+  return JSON.stringify(prev.resource.serialize()) === JSON.stringify(next.resource.serialize());
+};
 
 export const areStatesEqual = ({ for: { displayName } }) => (prev, next) => {
-  return onlyReactiveRecord.call(prev)[displayName] === onlyReactiveRecord.call(next)[displayName]
-}
+  return onlyReactiveRecord.call(prev)[displayName] === onlyReactiveRecord.call(next)[displayName];
+};
 
 export function ReactiveResource({ children, resource }) {
-  return children(resource)
+  return children(resource);
 }
-ReactiveResource.displayName = "ReactiveResource"
+ReactiveResource.displayName = 'ReactiveResource';

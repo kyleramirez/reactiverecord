@@ -1,269 +1,269 @@
-import chai, { expect } from "chai"
-import { ReactiveRecord, Model } from "../src"
-import { xhrRequests } from "./test-utils"
+import chai, { expect } from 'chai';
+import { ReactiveRecord, Model } from '../src';
+import { xhrRequests } from './test-utils';
 
-describe("ReactiveRecord", () => {
-  describe("#model", () => {
-    const reactiveRecordTest = new ReactiveRecord()
-    it("should throw an error if getting a non-existent model", () => {
+describe('ReactiveRecord', () => {
+  describe('#model', () => {
+    const reactiveRecordTest = new ReactiveRecord();
+    it('should throw an error if getting a non-existent model', () => {
       expect(() => {
-        reactiveRecordTest.model("Insect")
-      }).to.throw(ReferenceError)
-    })
+        reactiveRecordTest.model('Insect');
+      }).to.throw(ReferenceError);
+    });
 
     it("should require models which inherit from ReactiveRecord's Model", () => {
-      const reactiveRecordTest = new ReactiveRecord()
+      const reactiveRecordTest = new ReactiveRecord();
       expect(() => {
-        reactiveRecordTest.model("Insect", class Insect {})
-      }).to.throw(TypeError)
-    })
+        reactiveRecordTest.model('Insect', class Insect {});
+      }).to.throw(TypeError);
+    });
 
-    it("should assign models a unique instance", () => {
-      const reactiveRecordTest = new ReactiveRecord()
-      const reactiveRecordTest2 = new ReactiveRecord()
+    it('should assign models a unique instance', () => {
+      const reactiveRecordTest = new ReactiveRecord();
+      const reactiveRecordTest2 = new ReactiveRecord();
       reactiveRecordTest.model(
-        "Person",
+        'Person',
         class extends Model {
           static schema = {
-            name: String
-          }
+            name: String,
+          };
         }
-      )
+      );
       reactiveRecordTest2.model(
-        "Person",
+        'Person',
         class extends Model {
           static schema = {
-            name: String
-          }
+            name: String,
+          };
         }
-      )
+      );
       reactiveRecordTest2.model(
-        "Place",
+        'Place',
         class extends Model {
           static schema = {
-            name: String
-          }
+            name: String,
+          };
         }
-      )
+      );
 
-      const instanceOne = reactiveRecordTest.model("Person").ReactiveRecord
-      const instanceTwo = reactiveRecordTest2.model("Person").ReactiveRecord
-      const placeInstance = reactiveRecordTest2.model("Place").ReactiveRecord
+      const instanceOne = reactiveRecordTest.model('Person').ReactiveRecord;
+      const instanceTwo = reactiveRecordTest2.model('Person').ReactiveRecord;
+      const placeInstance = reactiveRecordTest2.model('Place').ReactiveRecord;
 
       /* eslint-disable no-unused-expressions */
-      expect(instanceOne).to.not.be.undefined
+      expect(instanceOne).to.not.be.undefined;
       /* eslint-enable no-unused-expressions */
-      expect(instanceOne).to.not.equal(instanceTwo)
-      expect(instanceTwo).to.equal(placeInstance)
-    })
+      expect(instanceOne).to.not.equal(instanceTwo);
+      expect(instanceTwo).to.equal(placeInstance);
+    });
 
-    it("should assign models a displayName", () => {
+    it('should assign models a displayName', () => {
       const Thing = reactiveRecordTest.model(
-        "Thing",
+        'Thing',
         class extends Model {
           static schema = {
-            name: String
-          }
+            name: String,
+          };
         }
-      )
-      expect(Thing).to.have.property("displayName")
-      expect(Thing.displayName).to.equal("Thing")
-    })
+      );
+      expect(Thing).to.have.property('displayName');
+      expect(Thing.displayName).to.equal('Thing');
+    });
 
-    it("should assign default routes to a model", () => {
-      const Plan = reactiveRecordTest.model("Plan", class extends Model {})
-      expect(Plan.routes).to.have.all.keys("index", "create", "show", "update", "destroy")
-    })
+    it('should assign default routes to a model', () => {
+      const Plan = reactiveRecordTest.model('Plan', class extends Model {});
+      expect(Plan.routes).to.have.all.keys('index', 'create', 'show', 'update', 'destroy');
+    });
 
-    it("should not override provided routes from a model", () => {
-      const indexRoute = "/api/v2/dishes"
+    it('should not override provided routes from a model', () => {
+      const indexRoute = '/api/v2/dishes';
       const Dish = reactiveRecordTest.model(
-        "Dish",
+        'Dish',
         class extends Model {
-          static routes = { index: indexRoute }
+          static routes = { index: indexRoute };
         }
-      )
-      expect(Dish.routes.index).to.equal(indexRoute)
-    })
+      );
+      expect(Dish.routes.index).to.equal(indexRoute);
+    });
 
-    it("should not generate routes specified in the except as an array", () => {
-      const reactiveRecordTest = new ReactiveRecord()
+    it('should not generate routes specified in the except as an array', () => {
+      const reactiveRecordTest = new ReactiveRecord();
       const Test = reactiveRecordTest.model(
-        "Test",
+        'Test',
         class extends Model {
           static routes = {
-            except: ["index", "show"]
-          }
+            except: ['index', 'show'],
+          };
         }
-      )
-      expect(Test.routes).to.not.have.keys("index", "show")
-    })
+      );
+      expect(Test.routes).to.not.have.keys('index', 'show');
+    });
 
-    it("should not generate a route specified in the except as a string", () => {
-      const reactiveRecordTest = new ReactiveRecord()
+    it('should not generate a route specified in the except as a string', () => {
+      const reactiveRecordTest = new ReactiveRecord();
       const Test = reactiveRecordTest.model(
-        "Test",
+        'Test',
         class extends Model {
           static routes = {
-            except: "destroy"
-          }
+            except: 'destroy',
+          };
         }
-      )
-      expect(Test.routes).to.not.have.key("destroy")
-    })
+      );
+      expect(Test.routes).to.not.have.key('destroy');
+    });
 
-    it("should only generate routes specified in the except as an array", () => {
-      const reactiveRecordTest = new ReactiveRecord()
+    it('should only generate routes specified in the except as an array', () => {
+      const reactiveRecordTest = new ReactiveRecord();
       const Test = reactiveRecordTest.model(
-        "Test",
+        'Test',
         class extends Model {
           static routes = {
-            only: ["index", "show"]
-          }
+            only: ['index', 'show'],
+          };
         }
-      )
-      expect(Test.routes).to.have.keys("index", "show")
-      expect(Object.keys(Test.routes).length).to.equal(2)
-    })
+      );
+      expect(Test.routes).to.have.keys('index', 'show');
+      expect(Object.keys(Test.routes).length).to.equal(2);
+    });
 
-    it("should only generate a route specified in the except as a string", () => {
-      const reactiveRecordTest = new ReactiveRecord()
+    it('should only generate a route specified in the except as a string', () => {
+      const reactiveRecordTest = new ReactiveRecord();
       const Test = reactiveRecordTest.model(
-        "Test",
+        'Test',
         class extends Model {
           static routes = {
-            only: "index"
-          }
+            only: 'index',
+          };
         }
-      )
-      expect(Test.routes).to.have.key("index")
-      expect(Object.keys(Test.routes).length).to.equal(1)
-    })
+      );
+      expect(Test.routes).to.have.key('index');
+      expect(Object.keys(Test.routes).length).to.equal(1);
+    });
 
-    it("should add a new Model to the ReactiveRecord instance", () => {
-      const reactiveRecordTest = new ReactiveRecord()
+    it('should add a new Model to the ReactiveRecord instance', () => {
+      const reactiveRecordTest = new ReactiveRecord();
       reactiveRecordTest.model(
-        "Person",
+        'Person',
         class extends Model {
           static schema = {
-            name: String
-          }
+            name: String,
+          };
         }
-      )
-      expect(reactiveRecordTest.models).to.have.property("Person")
-    })
+      );
+      expect(reactiveRecordTest.models).to.have.property('Person');
+    });
 
     it("should set the model's store configuration as not singleton unless otherwise specified", () => {
-      const reactiveRecordTest = new ReactiveRecord()
-      const Person = reactiveRecordTest.model("Person", class extends Model {})
+      const reactiveRecordTest = new ReactiveRecord();
+      const Person = reactiveRecordTest.model('Person', class extends Model {});
       const CurrentUser = reactiveRecordTest.model(
-        "CurrentUser",
+        'CurrentUser',
         class extends Person {
-          static store = { singleton: true }
+          static store = { singleton: true };
         }
-      )
-      expect(Person.store.singleton).to.equal(false)
-      expect(CurrentUser.store.singleton).to.equal(true)
-    })
+      );
+      expect(Person.store.singleton).to.equal(false);
+      expect(CurrentUser.store.singleton).to.equal(true);
+    });
 
     it("should add either a singleton or collection reducer to the model's store configuration", () => {
-      const reactiveRecordTest = new ReactiveRecord()
-      const Person = reactiveRecordTest.model("Person", class extends Model {})
+      const reactiveRecordTest = new ReactiveRecord();
+      const Person = reactiveRecordTest.model('Person', class extends Model {});
       const CurrentUser = reactiveRecordTest.model(
-        "CurrentUser",
+        'CurrentUser',
         class extends Person {
-          static store = { singleton: true }
+          static store = { singleton: true };
         }
-      )
-      expect(Person.store.reducer.name).to.equal("bound collectionReducer")
-      expect(CurrentUser.store.reducer.name).to.equal("bound singletonReducer")
-    })
+      );
+      expect(Person.store.reducer.name).to.equal('bound collectionReducer');
+      expect(CurrentUser.store.reducer.name).to.equal('bound singletonReducer');
+    });
 
     it("should not replace an existing reducer in the model's store configuration", () => {
       function myReducer(state = {}) {
-        return state
+        return state;
       }
-      const reactiveRecordTest = new ReactiveRecord()
+      const reactiveRecordTest = new ReactiveRecord();
       const Person = reactiveRecordTest.model(
-        "Person",
+        'Person',
         class extends Model {
           static store = {
-            reducer: myReducer
-          }
+            reducer: myReducer,
+          };
         }
-      )
-      expect(Person.store.reducer).to.equal(myReducer)
-      expect(Person.store.singleton).to.equal(false)
-    })
-  })
+      );
+      expect(Person.store.reducer).to.equal(myReducer);
+      expect(Person.store.singleton).to.equal(false);
+    });
+  });
 
-  describe("#setAPI", () => {
-    const reactiveRecordTest = new ReactiveRecord()
+  describe('#setAPI', () => {
+    const reactiveRecordTest = new ReactiveRecord();
 
     reactiveRecordTest.setAPI({
       headers: {
-        Accept: "text/plain",
-        JWT_TOKEN: "thetoken"
-      }
-    })
+        Accept: 'text/plain',
+        JWT_TOKEN: 'thetoken',
+      },
+    });
 
-    it("should merge API request headers with the default headers", () => {
-      expect(reactiveRecordTest.API.headers["Content-Type"]).to.equal("application/json")
-      expect(reactiveRecordTest.API.headers["JWT_TOKEN"]).to.equal("thetoken")
-    })
-    it("should leave default API request properties alone if unspecified", () => {
-      expect(reactiveRecordTest.API.prefix).to.equal("")
-    })
-  })
+    it('should merge API request headers with the default headers', () => {
+      expect(reactiveRecordTest.API.headers['Content-Type']).to.equal('application/json');
+      expect(reactiveRecordTest.API.headers['JWT_TOKEN']).to.equal('thetoken');
+    });
+    it('should leave default API request properties alone if unspecified', () => {
+      expect(reactiveRecordTest.API.prefix).to.equal('');
+    });
+  });
 
-  describe("#performAsync", () => {
-    const reactiveRecordTest = new ReactiveRecord()
-    const dispatchSpy = chai.spy()
+  describe('#performAsync', () => {
+    const reactiveRecordTest = new ReactiveRecord();
+    const dispatchSpy = chai.spy();
     reactiveRecordTest.model(
-      "Person",
+      'Person',
       class extends Model {
-        static schema = { name: String }
+        static schema = { name: String };
       }
-    )
-    reactiveRecordTest.dispatch = dispatchSpy
+    );
+    reactiveRecordTest.dispatch = dispatchSpy;
 
-    it("should throw an error if referencing a non-existent model", () => {
+    it('should throw an error if referencing a non-existent model', () => {
       return reactiveRecordTest
-        .performAsync({ type: "@CREATE(Insect)", _attributes: { name: "Asian Longhorn Beetle" } })
+        .performAsync({ type: '@CREATE(Insect)', _attributes: { name: 'Asian Longhorn Beetle' } })
         .catch(e => {
-          expect(e).to.be.an.instanceof(ReferenceError)
-        })
-    })
+          expect(e).to.be.an.instanceof(ReferenceError);
+        });
+    });
 
-    it("should select the appropriate route based on the dispatched action", () => {
-      xhrRequests.reset()
+    it('should select the appropriate route based on the dispatched action', () => {
+      xhrRequests.reset();
       reactiveRecordTest.model(
-        "Insect",
+        'Insect',
         class extends Model {
           static routes = {
-            index: "/the-index-route",
-            create: "/the-create-route",
-            show: "/the-show-route",
-            update: "/the-update-route",
-            destroy: "/the-destroy-route"
-          }
+            index: '/the-index-route',
+            create: '/the-create-route',
+            show: '/the-show-route',
+            update: '/the-update-route',
+            destroy: '/the-destroy-route',
+          };
         }
-      )
-      reactiveRecordTest.performAsync({ type: "@INDEX(Insect)" })
+      );
+      reactiveRecordTest.performAsync({ type: '@INDEX(Insect)' });
       // expect(XMLHttpRequest).to.have.been.called.with(Insect.routes.index)
 
-      reactiveRecordTest.performAsync({ type: "@CREATE(Insect)" })
+      reactiveRecordTest.performAsync({ type: '@CREATE(Insect)' });
       // expect(XMLHttpRequest).to.have.been.called.with(Insect.routes.create)
 
-      reactiveRecordTest.performAsync({ type: "@SHOW(Insect)" })
+      reactiveRecordTest.performAsync({ type: '@SHOW(Insect)' });
       // expect(XMLHttpRequest).to.have.been.called.with(Insect.routes.show)
 
-      reactiveRecordTest.performAsync({ type: "@UPDATE(Insect)" })
+      reactiveRecordTest.performAsync({ type: '@UPDATE(Insect)' });
       // expect(XMLHttpRequest).to.have.been.called.with(Insect.routes.update)
 
-      reactiveRecordTest.performAsync({ type: "@DESTROY(Insect)" })
+      reactiveRecordTest.performAsync({ type: '@DESTROY(Insect)' });
       // expect(XMLHttpRequest).to.have.been.called.with(Insect.routes.destroy)
-    })
+    });
 
     // it("should select the appropriate request method based on the dispatched action", () => {
     //   xhrRequests.reset()
@@ -401,10 +401,10 @@ describe("ReactiveRecord", () => {
     //   reactiveRecordTest.API.prefix = oldPrefix
     // })
 
-    it("should resolve all 2xx HTTP status codes")
+    it('should resolve all 2xx HTTP status codes');
 
-    it("should reject all 4xx - 5xx status codes")
+    it('should reject all 4xx - 5xx status codes');
 
-    it("should reject a JSON parse error")
-  })
-})
+    it('should reject a JSON parse error');
+  });
+});

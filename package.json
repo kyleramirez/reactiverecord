@@ -8,23 +8,19 @@
     "url": "git+https://github.com/kyleramirez/reactiverecord.git"
   },
   "scripts": {
-    "lint": "eslint src",
+    "lint": "eslint \"**/*.js\" --fix",
     "test": "mocha -r @babel/register",
     "test:watch": "mocha -w -r @babel/register",
     "dist": "babel src --out-dir dist",
     "dist:watch": "babel -w src --out-dir dist",
     "prepublish": "npm run dist",
-    "prettier": "prettier",
+    "prettier": "prettier \"**/*.js\"  --write",
     "precommit": "lint-staged"
-  },
-  "prettier": {
-    "printWidth": 120,
-    "semi": false
   },
   "lint-staged": {
     "*.js": [
       "eslint src --fix",
-      "prettier src --write --no-semi",
+      "prettier src --write",
       "git add"
     ]
   },

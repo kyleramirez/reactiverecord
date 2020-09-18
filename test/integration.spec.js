@@ -1,22 +1,22 @@
 // import { expect } from "chai"
-import ReactiveRecord, { Model, reducer, middleware } from "../src"
+import ReactiveRecord, { Model, reducer, middleware } from '../src';
 // import { xhrRequests, XHRResponse } from "./test-utils"
-import { createStore, applyMiddleware } from "redux"
+import { createStore, applyMiddleware } from 'redux';
 
-describe("Integrations", () => {
+describe('Integrations', () => {
   /*******/ /* Minimal ReactiveRecord boilerplate */
   /*******/ ReactiveRecord.model(
-    "Post",
+    'Post',
     class extends Model {
       /*******/ static schema = {
         /*******/ userId: Number,
         /*******/ title: String,
-        /*******/ body: String
+        /*******/ body: String,
         /*******/
-      }
+      };
       /*******/
     }
-  )
+  );
   /**
    * Example: CurrentUser
    *
@@ -38,8 +38,8 @@ describe("Integrations", () => {
     /*******/ reducer.call(ReactiveRecord),
     /*******/ applyMiddleware(middleware.call(ReactiveRecord))
     /*******/
-  )
-  /*******/ ReactiveRecord.dispatch = store.dispatch
+  );
+  /*******/ ReactiveRecord.dispatch = store.dispatch;
 
   // describe("Model.all(query)", () => {
   //   it("should ", () => {
@@ -111,4 +111,4 @@ describe("Integrations", () => {
     it("should ", () => {
     });
   }); */
-})
+});
