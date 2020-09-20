@@ -1,3 +1,31 @@
+### 0.8.3
+- **Validation Triggers**<br>Each validation now accepts an `on:` option to control when specific validations occur. This is useful in cases where a specific validation is better to occur when the user is finished typing, rather than as they type. For example, a format validator that validates a ZIP code is in the correct format will validate as the user types, showing an error message before they have completed typing the ZIP code. By adding `on: 'BLUR'` to the validation, the format validator will only check on the BLUR event.
+  The three validation `on:` options are:
+   - `CHANGE`
+   - `BLUR`
+   - `VALIDATE`
+
+   By using the `on:` option, the validation will only occur when a form field triggers the `onChange` or `onBlur` event, or if the form is being validated as a whole (`VALIDATE`), i.e. before form submission.
+   ```js
+   <Input
+     {...fields.zip_code}
+     validators={{
+      format: [
+        /* Only validates on blur */
+        { with: /\d{5}/, message: 'A ZIP code must have 5 digits.', on: 'BLUR' },
+      ],
+      /* Validates on all events */
+      length: [{ maximum: 10, messages: { maximum: 'A ZIP code must be no more than 10 characters.' } }]
+    }}
+   />
+   ```
+   The validation trigger may also be an array to support multiple triggers.
+   ```js
+   format: [
+     { with: /\d{5}/, message: 'A ZIP code must have 5 digits.', on: ['BLUR', 'VALIDATE'] },
+   ]
+   ```
+   If the validation is to occur for all events, no `on:` option is necessary. For the event type, e.g. `'BLUR'`, the case does not matter.
 ### 0.8.2
 - Updates package homepage to https://reactiverecord.com
 ### 0.8.1

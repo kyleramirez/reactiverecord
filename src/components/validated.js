@@ -65,7 +65,7 @@ export default function validated(WrappedComponent) {
     }
 
     isValid(callback) {
-      this.runValidations(true /* Include async validations */, callback);
+      this.runValidations('VALIDATE', callback);
     }
 
     handleChange = e => {
@@ -75,7 +75,7 @@ export default function validated(WrappedComponent) {
           return;
         }
       }
-      this.runValidations(false /* Skip async validations */);
+      this.runValidations('CHANGE');
     };
 
     handleBlur = e => {
@@ -85,7 +85,7 @@ export default function validated(WrappedComponent) {
           return;
         }
       }
-      this.runValidations(true /* Include async validations */);
+      this.runValidations('BLUR');
     };
 
     safeSetState = nextState => {
@@ -93,8 +93,17 @@ export default function validated(WrappedComponent) {
         this.setState(nextState);
       }
     };
-
-    runValidations(includeAsyncValidations, callback) {
+    /**
+     *
+     * @param {string} event One of
+     *     ```
+     *     - 'BLUR'     // Run validations, including async
+     *     - 'CHANGE'   // Run validations, exclude async
+     *     - 'VALIDATE' // Run validations, including async
+     *     ```
+     * @param {function} [callback] Called after all validation has completed with boolean result (`true`: The value is valid, `false`: The value is invalid)
+     */
+    runValidations(event, callback) {
       const { props, state } = this;
       /* Return early if no validations */
       if (!props.validators || isEmptyObject(props.validators)) {
@@ -115,7 +124,7 @@ export default function validated(WrappedComponent) {
        * 1. Find and return an error message from synchronous validators
        * 2. Find and return an error message from async validators
        */
-      const errorText = Validator.firstErrorMessage(props.validators, value);
+      const errorText = Validator.firstErrorMessage(props.validators, value, event);
       const nextState = {};
       /* When the state error text is no longer valid ... */
       if (state.errorText !== errorText) {
@@ -137,7 +146,7 @@ export default function validated(WrappedComponent) {
         return;
       }
       /* Return early if skipping async validations */
-      if (!includeAsyncValidations) {
+      if (!event.match(/BLUR|VALIDATE/)) {
         if (callback) {
           callback(true /* Is valid */);
         }

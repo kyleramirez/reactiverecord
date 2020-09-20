@@ -327,7 +327,7 @@ const Validator = {
     },
     async: {},
   },
-  firstErrorMessage: function(validationObj, value) {
+  firstErrorMessage: function(validationObj, value, event) {
     const { attribute, labelText, form, ...validators } = validationObj;
     /* eslint-disable guard-for-in */
     for (let validator in validators) {
@@ -336,9 +336,16 @@ const Validator = {
       if (validator in this.validators.sync) {
         for (let i = 0; i < optionsArr.length; i++) {
           const options = optionsArr[i];
-          const msg = this.validators.sync[validator](value, options, form, attribute);
-          if (msg) {
-            return formatWith.call(msg, { value, attribute: labelText });
+          if (
+            !options.on ||
+            options.on === '*' ||
+            (Array.isArray(options.on) && options.on.indexOf(event) >= 0) ||
+            `${options.on}`.toUpperCase() === event
+          ) {
+            const msg = this.validators.sync[validator](value, options, form, attribute);
+            if (msg) {
+              return formatWith.call(msg, { value, attribute: labelText });
+            }
           }
         }
       }
