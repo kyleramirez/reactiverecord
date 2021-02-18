@@ -1,3 +1,5 @@
+### 0.8.4
+- Fixed a bug that would re-order collections returned from a request based on their primary key if the primary key was numerical.
 ### 0.8.3
 - **Validation Triggers**<br>Each validation now accepts an `on:` option to control when specific validations occur. This is useful in cases where a specific validation is better to occur when the user is finished typing, rather than as they type. For example, a format validator that validates a ZIP code is in the correct format will validate as the user types, showing an error message before they have completed typing the ZIP code. By adding `on: 'BLUR'` to the validation, the format validator will only check on the BLUR event.
   The three validation `on:` options are:

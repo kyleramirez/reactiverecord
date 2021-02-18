@@ -20,7 +20,7 @@ export default class Collection extends Array {
           _request: this._request.serialize(),
           _collection: this.reduce(function(collection, member) {
             const { [_primaryKey]: key } = member;
-            collection[key] = member.serialize();
+            collection[`${_primaryKey}-${key}`] = member.serialize();
             return collection;
           }, {}),
         }),

@@ -19,8 +19,11 @@ export default function collectionReducer(modelName, _primaryKey, state = collec
     _attributes: { [_primaryKey]: key } = {},
     _errors: safeActionErrors = {},
   } = action;
+  const storeIdentifier = `${_primaryKey}-${key}`;
   const hasMemberToUpdate = actionName !== 'index' && !!key;
-  const existingVersionOfMember = hasMemberToUpdate ? nextState._collection[key] || { ...memberProps } : null;
+  const existingVersionOfMember = hasMemberToUpdate
+    ? nextState._collection[storeIdentifier] || { ...memberProps }
+    : null;
   const startingAsync = !!!requestStatus;
   const returningFromAsync = !!requestStatus;
   const statusOK = requestStatus === 'OK';
@@ -35,7 +38,7 @@ export default function collectionReducer(modelName, _primaryKey, state = collec
     if (hasMemberToUpdate) {
       nextState._collection = {
         ...nextState._collection,
-        [key]: {
+        [storeIdentifier]: {
           ...existingVersionOfMember,
           _request: {
             ...existingVersionOfMember._request,
@@ -69,7 +72,7 @@ export default function collectionReducer(modelName, _primaryKey, state = collec
     if (!!(actionName.match(/(show|create|update)/) || (actionName === 'destroy' && !statusOK))) {
       nextState._collection = {
         ...nextState._collection,
-        [key]: {
+        [storeIdentifier]: {
           _request: {
             ...existingVersionOfMember._request,
             ...safeActionRequest,
@@ -87,7 +90,7 @@ export default function collectionReducer(modelName, _primaryKey, state = collec
     }
 
     if (!!(actionName === 'destroy' && statusOK)) {
-      nextState._collection = without.call(nextState._collection, key.toString());
+      nextState._collection = without.call(nextState._collection, storeIdentifier);
     }
   }
 

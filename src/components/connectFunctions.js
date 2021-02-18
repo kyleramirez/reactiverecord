@@ -23,7 +23,7 @@ export function mapStateToProps(type) {
           const { _collection } = stateModels[displayName];
           member = Object.values(_collection).find(storeResource => find(modelFromStore(storeResource)));
         } else {
-          member = stateModels[displayName]._collection[find];
+          member = stateModels[displayName]._collection[`${_primaryKey}-${find}`];
         }
         if (member) {
           return {
