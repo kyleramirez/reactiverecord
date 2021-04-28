@@ -1,6 +1,6 @@
 {
   "name": "reactiverecord",
-  "version": "0.8.5",
+  "version": "0.8.6",
   "description": "Communicate with JSON APIs in React",
   "main": "dist/index.js",
   "repository": {
@@ -61,7 +61,7 @@
     "redux": "^4.0.1"
   },
   "peerDependencies": {
-    "react": "16.x",
+    "react": "16.x || 17.x",
     "react-redux": "5.x",
     "redux": "3.x || 4.x"
   },

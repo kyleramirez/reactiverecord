@@ -1,3 +1,5 @@
+### 0.8.6
+Bump React version
 ### 0.8.5
 Validated components will not run validations when the `disabled` prop is `true`. This is to avoid showing errors near a form field where the user is unable to make a correction.
 ### 0.8.4
