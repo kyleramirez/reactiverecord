@@ -65,6 +65,9 @@ export default function validated(WrappedComponent) {
     }
 
     isValid(callback) {
+      if (this.props.disabled) {
+        callback(true /* Is valid */);
+      }
       this.runValidations('VALIDATE', callback);
     }
 
