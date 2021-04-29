@@ -1,6 +1,6 @@
 {
   "name": "reactiverecord",
-  "version": "0.8.6",
+  "version": "0.8.7",
   "description": "Communicate with JSON APIs in React",
   "main": "dist/index.js",
   "repository": {
