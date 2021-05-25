@@ -9,10 +9,10 @@ export default class Collection extends Array {
 
     this._primaryKey = _primaryKey || null;
 
-    Object.defineProperty(this, 'reload', {
-      value: query => this._request.reload(query),
-      enumerable: false,
-    });
+    /**
+     * TODO: Once .reload method is available on the request object, implement
+     * a reload method here that delegates to it.
+     */
 
     Object.defineProperty(this, 'serialize', {
       value: () =>

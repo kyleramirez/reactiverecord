@@ -41,7 +41,7 @@ export default class Member extends Component {
     return <Member {...props} />;
   }
 
-  load() {
+  load = () => {
     const {
       store: { singleton = false },
     } = this.props.for;
@@ -59,9 +59,9 @@ export default class Member extends Component {
         value.catch(this.props.catch);
       }
     }
-  }
+  };
 
-  reload() {
+  reload = () => {
     this.load();
-  }
+  };
 }

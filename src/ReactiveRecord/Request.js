@@ -4,6 +4,10 @@ export default class Request {
     this.body = body;
   }
 
+  /**
+   * TODO: Implement a .reload method here to re-run the original request on demand.
+   */
+
   serialize() {
     return {
       status: this.status,

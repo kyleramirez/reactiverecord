@@ -1,3 +1,5 @@
+### 0.8.8
+Fixed a bug that cause the `.reload` method to fail on both `<Member />` and `<Collection />`.
 ### 0.8.7
 Bug Fix: v0.8.5 introduced a bug that would still run validations even if the input component was `disabled`.
 ### 0.8.6

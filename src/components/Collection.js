@@ -41,7 +41,7 @@ export default class Collection extends Component {
     return <Collection {...props} />;
   }
 
-  load() {
+  load = () => {
     if (this.props.fetch) {
       const value = this.props.for.all(this.props.where);
       if (this.props.then) {
@@ -51,9 +51,9 @@ export default class Collection extends Component {
         value.catch(this.props.catch);
       }
     }
-  }
+  };
 
-  reload() {
+  reload = () => {
     this.load();
-  }
+  };
 }
