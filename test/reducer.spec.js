@@ -14,28 +14,28 @@ const defaultPerson = {
 const initialState = {
   ...collectionProps,
   _collection: {
-    300: {
+    'id-300': {
       ...defaultPerson,
       _attributes: {
         name: 'Jen',
         id: 300,
       },
     },
-    301: {
+    'id-301': {
       ...defaultPerson,
       _attributes: {
         name: 'Kate',
         id: 301,
       },
     },
-    302: {
+    'id-302': {
       ...defaultPerson,
       _attributes: {
         name: 'Christine',
         id: 302,
       },
     },
-    303: {
+    'id-303': {
       ...defaultPerson,
       _attributes: {
         name: 'Mary',
@@ -64,6 +64,20 @@ describe('collectionReducer', () => {
           ...initialState._request,
           status: 'GETTING',
         },
+      });
+    });
+    it('should remove all existing members with the invalidateCache option', () => {
+      const nextState = initializedReducer(initialState, {
+        type: '@INDEX(Person)',
+        _options: { invalidateCache: true },
+      });
+      expect(nextState).to.deep.equal({
+        ...initialState,
+        _request: {
+          ...initialState._request,
+          status: 'GETTING',
+        },
+        _collection: {},
       });
     });
   });
@@ -157,7 +171,7 @@ describe('collectionReducer', () => {
         ...initialState,
         _collection: {
           ...initialState._collection,
-          '4001': {
+          'id-4001': {
             ...memberProps,
             _attributes: nextAction._attributes,
             _request: {
@@ -198,7 +212,7 @@ describe('collectionReducer', () => {
         ...initialState,
         _collection: {
           ...initialState._collection,
-          '123': {
+          'id-123': {
             ...memberProps,
             _attributes: nextAction._attributes,
             _request: {
@@ -233,7 +247,7 @@ describe('collectionReducer', () => {
         ...initialState,
         _collection: {
           ...initialState._collection,
-          '123': {
+          'id-123': {
             ...memberProps,
             _attributes: nextAction._attributes,
             _request: {
@@ -267,7 +281,7 @@ describe('collectionReducer', () => {
         ...initialState,
         _collection: {
           ...initialState._collection,
-          '123': {
+          'id-123': {
             ...memberProps,
             _attributes: nextAction._attributes,
             _request: {
@@ -298,7 +312,7 @@ describe('collectionReducer', () => {
         ...initialState,
         _collection: {
           ...initialState._collection,
-          '123': {
+          'id-123': {
             ...memberProps,
             _attributes: nextAction._attributes,
             _request: {
@@ -333,7 +347,7 @@ describe('collectionReducer', () => {
         ...initialState,
         _collection: {
           ...initialState._collection,
-          '123': {
+          'id-123': {
             ...memberProps,
             _attributes: nextAction._attributes,
             _request: {
@@ -370,8 +384,8 @@ describe('collectionReducer', () => {
         ...initialState,
         _collection: {
           ...initialState._collection,
-          '300': {
-            ...initialState._collection[300],
+          'id-300': {
+            ...initialState._collection['id-300'],
             _request: {
               status: 422,
               body: { name: ['Name is required'] },
@@ -402,10 +416,10 @@ describe('collectionReducer', () => {
         ...initialState,
         _collection: {
           ...initialState._collection,
-          '300': {
-            ...initialState._collection[300],
+          'id-300': {
+            ...initialState._collection['id-300'],
             _request: {
-              ...initialState._collection[300]._request,
+              ...initialState._collection['id-300']._request,
               status: 'DELETING',
             },
           },
@@ -427,7 +441,7 @@ describe('collectionReducer', () => {
         should not change the request status of the model`, () => {
       expect(nextState).to.deep.equal({
         ...initialState,
-        _collection: without.call(initialState._collection, '300'),
+        _collection: without.call(initialState._collection, 'id-300'),
       });
     });
   });
@@ -454,8 +468,8 @@ describe('collectionReducer', () => {
         ...initialState,
         _collection: {
           ...initialState._collection,
-          300: {
-            ...initialState._collection[300],
+          'id-300': {
+            ...initialState._collection['id-300'],
             _request: {
               status: 404,
               body: { message: 'Not Found.' },

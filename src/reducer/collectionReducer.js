@@ -18,13 +18,14 @@ export default function collectionReducer(modelName, _primaryKey, state = collec
     _attributes: safeActionAttributes = {},
     _attributes: { [_primaryKey]: key } = {},
     _errors: safeActionErrors = {},
+    _options = {},
   } = action;
   const storeIdentifier = `${_primaryKey}-${key}`;
   const hasMemberToUpdate = actionName !== 'index' && !!key;
   const existingVersionOfMember = hasMemberToUpdate
     ? nextState._collection[storeIdentifier] || { ...memberProps }
     : null;
-  const startingAsync = !!!requestStatus;
+  const startingAsync = !requestStatus;
   const returningFromAsync = !!requestStatus;
   const statusOK = requestStatus === 'OK';
 
@@ -34,6 +35,9 @@ export default function collectionReducer(modelName, _primaryKey, state = collec
         ...nextState._request,
         status: ACTION_STATUSES[actionName],
       };
+      if (_options.invalidateCache) {
+        nextState._collection = {};
+      }
     }
     if (hasMemberToUpdate) {
       nextState._collection = {

@@ -17,7 +17,7 @@ export default function singletonReducer(modelName, state = memberProps, action)
     _attributes: safeActionAttributes = {},
     _errors: safeActionErrors = {},
   } = action;
-  const startingAsync = !!!requestStatus;
+  const startingAsync = !requestStatus;
   const returningFromAsync = !!requestStatus;
   const statusOK = requestStatus === 'OK';
 

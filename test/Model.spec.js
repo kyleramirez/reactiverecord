@@ -479,6 +479,15 @@ describe('Model', () => {
         _attributes: {},
       });
     });
+
+    it('should handle options', () => {
+      News.all({}, { invalidateCache: true });
+      expect(reactiveRecordTest.dispatch).to.have.been.called.with({
+        type: '@INDEX(News)',
+        _attributes: {},
+        _options: { invalidateCache: true },
+      });
+    });
   });
 
   describe('#load', () => {

@@ -4,7 +4,7 @@ export default function middleware() {
   return () => next => action => {
     next(action);
     const matches = action.type.match(ACTION_MATCHER);
-    if (!!!matches) {
+    if (!matches) {
       return;
     }
     const [, requestStatus, actionName] = matches;

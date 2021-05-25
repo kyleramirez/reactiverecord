@@ -1,3 +1,23 @@
+### 0.8.9
+The `Model.all()` method now accepts an additional options object as an argument. So far, only one option has been implemented called `invalidateCache`. When using this option, the existing index will be removed from the store, and will be replaced with the incoming collection returned from the index request. This is useful for situations where reloading a request would result in less records being returned than prior requests, previously resulting in stale records present in the store. To use the `invalidateCache` option, pass it in as an object:
+```js
+News.all({ /* query options */ }, { invalidateCache: true })
+```
+The `invalidateCache` option will also be used automatically when using the `.reload()` method off the `<Collection />` component. This will require no additional code, but can also be overridden:
+```js
+const collectionRef = createRef(null);
+...
+const handleReload = useCallback(() => {
+  /* Example usage that would automatically invalidate the cache */
+  collectionRef.current.reload();
+  /* Example usage that uses an empty options argument to cancel invalidating the cache */
+  collectionRef.current.reload({});
+}, []);
+...
+<Collection ref={collectionRef}>
+...
+<button onClick={handleReload}>Reload</button>
+```
 ### 0.8.8
 Fixed a bug that cause the `.reload` method to fail on both `<Member />` and `<Collection />`.
 ### 0.8.7

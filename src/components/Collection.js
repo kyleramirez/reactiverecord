@@ -41,9 +41,9 @@ export default class Collection extends Component {
     return <Collection {...props} />;
   }
 
-  load = () => {
+  load = options => {
     if (this.props.fetch) {
-      const value = this.props.for.all(this.props.where);
+      const value = this.props.for.all(this.props.where, options);
       if (this.props.then) {
         value.then(this.props.then);
       }
@@ -53,7 +53,7 @@ export default class Collection extends Component {
     }
   };
 
-  reload = () => {
-    this.load();
+  reload = (options = { invalidateCache: true }) => {
+    this.load(options);
   };
 }

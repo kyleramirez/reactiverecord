@@ -41,10 +41,14 @@ export default class Model {
   get ReactiveRecord() {
     return this.constructor.ReactiveRecord;
   }
-  static dispatch({ action, _attributes }) {
+  static dispatch({ action, _attributes, _options }) {
     const { displayName, ReactiveRecord } = this;
     const type = `@${action}(${displayName})`;
-    return ReactiveRecord.dispatch({ type, _attributes });
+    const actionToDispatch = { type, _attributes };
+    if (_options) {
+      actionToDispatch._options = _options;
+    }
+    return ReactiveRecord.dispatch(actionToDispatch);
   }
   static store = { singleton: false };
   static schema = {};
@@ -66,7 +70,7 @@ export default class Model {
     return Object.keys(this.diff);
   }
   get isPristine() {
-    return !!!this.changedAttributes.length;
+    return !this.changedAttributes.length;
   }
   get isDirty() {
     return !this.isPristine;
@@ -173,12 +177,16 @@ export default class Model {
     }
     return this.dispatch({ action: 'SHOW', _attributes });
   }
-  static all(query = {}) {
+  static all(query = {}, options) {
     const _attributes = typeof query === 'string' ? queryStringToObj(query) : query;
-    return this.dispatch({ action: 'INDEX', _attributes });
+    const dispatchOptions = { action: 'INDEX', _attributes };
+    if (options) {
+      dispatchOptions._options = options;
+    }
+    return this.dispatch(dispatchOptions);
   }
-  static load(query) {
-    return this.all(query);
+  static load(query, _options) {
+    return this.all(query, _options);
   }
   get reload() {
     const { singleton = false } = this.constructor.store;
