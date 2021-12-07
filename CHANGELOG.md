@@ -1,3 +1,5 @@
+### 0.8.10
+Removed logic which prevented a `user_id` attribute from being used in the `<Form />` component.
 ### 0.8.9
 The `Model.all()` method now accepts an additional options object as an argument. So far, only one option has been implemented called `invalidateCache`. When using this option, the existing index will be removed from the store, and will be replaced with the incoming collection returned from the index request. This is useful for situations where reloading a request would result in less records being returned than prior requests, previously resulting in stale records present in the store. To use the `invalidateCache` option, pass it in as an object:
 ```js

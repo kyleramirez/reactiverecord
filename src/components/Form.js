@@ -58,7 +58,7 @@ export default class Form extends Component {
     return Object.keys(without.call(schema, '_primaryKey', '_timestamps')).reduce((form, field) => {
       const { type, labelText } = schema[field];
       const name = type.displayName || type.name;
-      if (name !== 'Object' && !/^(_timestamps|_primaryKey|user_?[iI]d)$/.test(field)) {
+      if (name !== 'Object' && !/^(_timestamps|_primaryKey)$/.test(field)) {
         form[field] = form[field] || {
           ref: ref => (fieldsObj.fields[field] = ref),
           labelText,
