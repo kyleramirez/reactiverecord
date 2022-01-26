@@ -1,3 +1,5 @@
+### 0.8.11
+Fixed a bug that would throw an error when turning off `patchMode`.
 ### 0.8.10
 Removed logic which prevented a `user_id` attribute from being used in the `<Form />` component.
 ### 0.8.9

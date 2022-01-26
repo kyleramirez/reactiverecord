@@ -116,7 +116,7 @@ export default class Model {
     return ({ query: _query = {} } = {}) => {
       return new Promise((resolve, reject) => {
         const shouldDiff = this.ReactiveRecord.API.patchMode;
-        const attributesForRequest = shouldDiff ? this.diff : skinnyObject(this._attributes);
+        const attributesForRequest = shouldDiff ? this.diff : this._attributes;
         const query = typeof _query === 'string' ? queryStringToObj(_query) : _query;
         const _attributes = Object.assign(attributesForRequest, this.routeAttributes(action, query), query);
         this.constructor
